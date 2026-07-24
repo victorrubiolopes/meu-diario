@@ -121,6 +121,7 @@ const ALIMENTOS_PADRAO = [
   { name: 'Geleia de fruta', portionLabel: '1 colher sopa (20g)', portionGrams: 20, kcal: 56, carbs: 14, sugars: 12, protein: 0.1, fat: 0, satFat: 0, transFat: 0, fiber: 0.2, sodium: 4 },
   { name: 'Biscoito recheado', portionLabel: '3 unidades (30g)', portionGrams: 30, kcal: 145, carbs: 20, sugars: 10, protein: 1.5, fat: 6.5, satFat: 3, transFat: 0.5, fiber: 0.7, sodium: 90 },
   { name: 'Pipoca sem manteiga', portionLabel: '1 porção (30g)', portionGrams: 30, kcal: 110, carbs: 22, sugars: 0.2, protein: 3.6, fat: 1.3, satFat: 0.2, transFat: 0, fiber: 4.5, sodium: 2 },
+  { name: 'Paçoquita', portionLabel: '1 unidade (20g)', portionGrams: 20, kcal: 92, carbs: 10, sugars: 6, protein: 2.5, fat: 4.6, satFat: 0.9, transFat: 0, fiber: 1, sodium: 30 },
 
   // Proteínas vegetais e outros
   { name: 'Tofu', portionLabel: '100g', portionGrams: 100, kcal: 76, carbs: 1.9, sugars: 0.6, protein: 8, fat: 4.8, satFat: 0.7, transFat: 0, fiber: 0.3, sodium: 7 },
