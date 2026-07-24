@@ -2,6 +2,7 @@ const ViewMedidas = (() => {
   const FIELDS = [
     { key: 'weight', label: 'Peso (kg)' },
     { key: 'waist', label: 'Cintura (cm)' },
+    { key: 'abdomen', label: 'Abdômen (cm)' },
     { key: 'chest', label: 'Peito (cm)' },
     { key: 'hip', label: 'Quadril (cm)' },
     { key: 'arm', label: 'Braço (cm)' },
