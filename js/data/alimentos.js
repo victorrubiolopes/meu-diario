@@ -1,0 +1,171 @@
+// Valores nutricionais de referência (aproximados, baseados em tabelas nutricionais
+// padrão como a TACO). Editáveis e ampliáveis pelo usuário na biblioteca.
+const ALIMENTOS_PADRAO = [
+  { name: 'Arroz branco cozido', portionLabel: '100g', portionGrams: 100, kcal: 128, carbs: 28, sugars: 0, protein: 2.5, fat: 0.2, satFat: 0, transFat: 0, fiber: 0.4, sodium: 1 },
+  { name: 'Feijão carioca cozido', portionLabel: '100g', portionGrams: 100, kcal: 76, carbs: 13.6, sugars: 0.3, protein: 4.8, fat: 0.5, satFat: 0.1, transFat: 0, fiber: 8.5, sodium: 2 },
+  { name: 'Peito de frango grelhado', portionLabel: '100g', portionGrams: 100, kcal: 159, carbs: 0, sugars: 0, protein: 32, fat: 3, satFat: 0.9, transFat: 0, fiber: 0, sodium: 74 },
+  { name: 'Ovo cozido', portionLabel: '1 unidade (50g)', portionGrams: 50, kcal: 78, carbs: 0.6, sugars: 0.6, protein: 6.3, fat: 5.3, satFat: 1.6, transFat: 0, fiber: 0, sodium: 62 },
+  { name: 'Pão francês', portionLabel: '1 unidade (50g)', portionGrams: 50, kcal: 150, carbs: 28, sugars: 1, protein: 4, fat: 1.5, satFat: 0.3, transFat: 0, fiber: 1.3, sodium: 290 },
+  { name: 'Banana prata', portionLabel: '1 unidade (90g)', portionGrams: 90, kcal: 80, carbs: 20, sugars: 12, protein: 1, fat: 0.2, satFat: 0, transFat: 0, fiber: 2, sodium: 1 },
+  { name: 'Batata doce cozida', portionLabel: '100g', portionGrams: 100, kcal: 86, carbs: 20, sugars: 4, protein: 1.6, fat: 0.1, satFat: 0, transFat: 0, fiber: 3, sodium: 55 },
+  { name: 'Leite integral', portionLabel: '1 copo (200ml)', portionGrams: 200, kcal: 122, carbs: 9.6, sugars: 9.6, protein: 6.4, fat: 6.6, satFat: 4, transFat: 0.2, fiber: 0, sodium: 76 },
+  { name: 'Iogurte natural integral', portionLabel: '1 pote (170g)', portionGrams: 170, kcal: 105, carbs: 7.7, sugars: 7.7, protein: 6, fat: 5.9, satFat: 3.8, transFat: 0, fiber: 0, sodium: 76 },
+  { name: 'Aveia em flocos', portionLabel: '1 colher sopa (30g)', portionGrams: 30, kcal: 117, carbs: 20, sugars: 0.5, protein: 4.2, fat: 2.3, satFat: 0.4, transFat: 0, fiber: 3, sodium: 2 },
+  { name: 'Whey protein (pó)', portionLabel: '1 scoop (30g)', portionGrams: 30, kcal: 120, carbs: 3, sugars: 2, protein: 24, fat: 1.5, satFat: 0.5, transFat: 0, fiber: 0, sodium: 50 },
+  { name: 'Pão de forma integral', portionLabel: '1 fatia (25g)', portionGrams: 25, kcal: 60, carbs: 11, sugars: 1.5, protein: 3, fat: 0.8, satFat: 0.2, transFat: 0, fiber: 1.8, sodium: 110 },
+  { name: 'Carne bovina moída magra cozida', portionLabel: '100g', portionGrams: 100, kcal: 172, carbs: 0, sugars: 0, protein: 26, fat: 7, satFat: 2.8, transFat: 0.3, fiber: 0, sodium: 65 },
+  { name: 'Tilápia grelhada', portionLabel: '100g', portionGrams: 100, kcal: 128, carbs: 0, sugars: 0, protein: 26, fat: 2.7, satFat: 0.9, transFat: 0, fiber: 0, sodium: 56 },
+  { name: 'Salmão grelhado', portionLabel: '100g', portionGrams: 100, kcal: 208, carbs: 0, sugars: 0, protein: 22, fat: 13, satFat: 3.1, transFat: 0, fiber: 0, sodium: 59 },
+  { name: 'Brócolis cozido', portionLabel: '100g', portionGrams: 100, kcal: 35, carbs: 7, sugars: 1.7, protein: 2.4, fat: 0.4, satFat: 0, transFat: 0, fiber: 3.3, sodium: 41 },
+  { name: 'Alface', portionLabel: '100g', portionGrams: 100, kcal: 15, carbs: 2.9, sugars: 0.8, protein: 1.4, fat: 0.2, satFat: 0, transFat: 0, fiber: 1.3, sodium: 28 },
+  { name: 'Tomate', portionLabel: '100g', portionGrams: 100, kcal: 18, carbs: 3.9, sugars: 2.6, protein: 0.9, fat: 0.2, satFat: 0, transFat: 0, fiber: 1.2, sodium: 5 },
+  { name: 'Cenoura crua', portionLabel: '100g', portionGrams: 100, kcal: 41, carbs: 9.6, sugars: 4.7, protein: 0.9, fat: 0.2, satFat: 0, transFat: 0, fiber: 2.8, sodium: 69 },
+  { name: 'Abacate', portionLabel: '100g', portionGrams: 100, kcal: 160, carbs: 8.5, sugars: 0.7, protein: 2, fat: 14.7, satFat: 2.1, transFat: 0, fiber: 6.7, sodium: 7 },
+  { name: 'Azeite de oliva', portionLabel: '1 colher sopa (13g)', portionGrams: 13, kcal: 119, carbs: 0, sugars: 0, protein: 0, fat: 13.5, satFat: 1.9, transFat: 0, fiber: 0, sodium: 0 },
+  { name: 'Amendoim torrado', portionLabel: '1 punhado (30g)', portionGrams: 30, kcal: 170, carbs: 6, sugars: 1.3, protein: 7.7, fat: 14.5, satFat: 2, transFat: 0, fiber: 2.4, sodium: 5 },
+  { name: 'Queijo minas frescal', portionLabel: '1 fatia (30g)', portionGrams: 30, kcal: 87, carbs: 1, sugars: 1, protein: 5.4, fat: 6.6, satFat: 4.2, transFat: 0, fiber: 0, sodium: 130 },
+  { name: 'Requeijão', portionLabel: '1 colher sopa (20g)', portionGrams: 20, kcal: 55, carbs: 0.7, sugars: 0.7, protein: 1.8, fat: 5, satFat: 3.2, transFat: 0, fiber: 0, sodium: 90 },
+  { name: 'Macarrão cozido', portionLabel: '100g', portionGrams: 100, kcal: 158, carbs: 31, sugars: 1.1, protein: 5.8, fat: 0.9, satFat: 0.2, transFat: 0, fiber: 1.8, sodium: 1 },
+  { name: 'Molho de tomate', portionLabel: '100g', portionGrams: 100, kcal: 40, carbs: 8, sugars: 5, protein: 1.5, fat: 0.5, satFat: 0.1, transFat: 0, fiber: 1.5, sodium: 380 },
+  { name: 'Mandioca cozida', portionLabel: '100g', portionGrams: 100, kcal: 125, carbs: 30, sugars: 1.7, protein: 0.6, fat: 0.3, satFat: 0.1, transFat: 0, fiber: 1.6, sodium: 4 },
+  { name: 'Laranja', portionLabel: '1 unidade (150g)', portionGrams: 150, kcal: 70, carbs: 17, sugars: 14, protein: 1.4, fat: 0.2, satFat: 0, transFat: 0, fiber: 3.4, sodium: 0 },
+  { name: 'Maçã', portionLabel: '1 unidade (130g)', portionGrams: 130, kcal: 68, carbs: 18, sugars: 14, protein: 0.3, fat: 0.2, satFat: 0, transFat: 0, fiber: 3, sodium: 1 },
+  { name: 'Chocolate amargo 70%', portionLabel: '25g', portionGrams: 25, kcal: 140, carbs: 12, sugars: 8, protein: 2, fat: 10, satFat: 6, transFat: 0, fiber: 3, sodium: 3 },
+  { name: 'Açúcar refinado', portionLabel: '1 colher sopa (12g)', portionGrams: 12, kcal: 46, carbs: 12, sugars: 12, protein: 0, fat: 0, satFat: 0, transFat: 0, fiber: 0, sodium: 0 },
+  { name: 'Água de coco', portionLabel: '1 copo (200ml)', portionGrams: 200, kcal: 38, carbs: 9, sugars: 8, protein: 0.6, fat: 0.1, satFat: 0, transFat: 0, fiber: 0, sodium: 45 },
+  { name: 'Barra de cereal', portionLabel: '1 unidade (25g)', portionGrams: 25, kcal: 95, carbs: 18, sugars: 8, protein: 1.5, fat: 2, satFat: 1, transFat: 0, fiber: 1, sodium: 40 },
+  { name: 'Sardinha em lata', portionLabel: '100g', portionGrams: 100, kcal: 208, carbs: 0, sugars: 0, protein: 24.6, fat: 11.5, satFat: 1.5, transFat: 0, fiber: 0, sodium: 400 },
+  { name: 'Grão de bico cozido', portionLabel: '100g', portionGrams: 100, kcal: 164, carbs: 27, sugars: 4.8, protein: 8.9, fat: 2.6, satFat: 0.3, transFat: 0, fiber: 7.6, sodium: 7 },
+
+  // Ovos
+  { name: 'Ovo cru', portionLabel: '1 unidade (50g)', portionGrams: 50, kcal: 72, carbs: 0.8, sugars: 0.8, protein: 6.5, fat: 4.5, satFat: 1.4, transFat: 0, fiber: 0, sodium: 84 },
+  { name: 'Clara de ovo', portionLabel: '1 unidade (33g)', portionGrams: 33, kcal: 17, carbs: 0.3, sugars: 0.3, protein: 3.6, fat: 0.1, satFat: 0, transFat: 0, fiber: 0, sodium: 55 },
+  { name: 'Gema de ovo', portionLabel: '1 unidade (17g)', portionGrams: 17, kcal: 55, carbs: 0.3, sugars: 0.3, protein: 2.7, fat: 4.5, satFat: 1.6, transFat: 0, fiber: 0, sodium: 8 },
+
+  // Carnes
+  { name: 'Peito de frango cru', portionLabel: '100g', portionGrams: 100, kcal: 119, carbs: 0, sugars: 0, protein: 21.5, fat: 3, satFat: 0.9, transFat: 0, fiber: 0, sodium: 53 },
+  { name: 'Coxa de frango assada', portionLabel: '100g', portionGrams: 100, kcal: 199, carbs: 0, sugars: 0, protein: 26, fat: 10, satFat: 2.7, transFat: 0, fiber: 0, sodium: 90 },
+  { name: 'Carne bovina crua (patinho)', portionLabel: '100g', portionGrams: 100, kcal: 137, carbs: 0, sugars: 0, protein: 21.9, fat: 4.9, satFat: 1.9, transFat: 0, fiber: 0, sodium: 54 },
+  { name: 'Picanha grelhada', portionLabel: '100g', portionGrams: 100, kcal: 289, carbs: 0, sugars: 0, protein: 25, fat: 21, satFat: 8.5, transFat: 0, fiber: 0, sodium: 60 },
+  { name: 'Lombo suíno grelhado', portionLabel: '100g', portionGrams: 100, kcal: 210, carbs: 0, sugars: 0, protein: 27, fat: 11, satFat: 4, transFat: 0, fiber: 0, sodium: 55 },
+  { name: 'Bacon frito', portionLabel: '100g', portionGrams: 100, kcal: 541, carbs: 1.4, sugars: 0, protein: 37, fat: 42, satFat: 14, transFat: 0, fiber: 0, sodium: 1500 },
+
+  // Peixes e frutos do mar
+  { name: 'Atum em lata (óleo, escorrido)', portionLabel: '100g', portionGrams: 100, kcal: 189, carbs: 0, sugars: 0, protein: 25, fat: 9, satFat: 1.6, transFat: 0, fiber: 0, sodium: 377 },
+  { name: 'Camarão cozido', portionLabel: '100g', portionGrams: 100, kcal: 99, carbs: 0.2, sugars: 0, protein: 20.9, fat: 1.5, satFat: 0.3, transFat: 0, fiber: 0, sodium: 220 },
+  { name: 'Bacalhau dessalgado cozido', portionLabel: '100g', portionGrams: 100, kcal: 105, carbs: 0, sugars: 0, protein: 23, fat: 0.9, satFat: 0.2, transFat: 0, fiber: 0, sodium: 200 },
+
+  // Grãos e cereais
+  { name: 'Arroz integral cozido', portionLabel: '100g', portionGrams: 100, kcal: 124, carbs: 25.8, sugars: 0.4, protein: 2.6, fat: 1, satFat: 0.2, transFat: 0, fiber: 2.7, sodium: 1 },
+  { name: 'Quinoa cozida', portionLabel: '100g', portionGrams: 100, kcal: 120, carbs: 21.3, sugars: 0.9, protein: 4.4, fat: 1.9, satFat: 0.2, transFat: 0, fiber: 2.8, sodium: 7 },
+  { name: 'Cuscuz de milho cozido', portionLabel: '100g', portionGrams: 100, kcal: 112, carbs: 25, sugars: 0.3, protein: 2.1, fat: 0.2, satFat: 0, transFat: 0, fiber: 1.2, sodium: 4 },
+  { name: 'Granola', portionLabel: '1 porção (30g)', portionGrams: 30, kcal: 130, carbs: 19, sugars: 7, protein: 3, fat: 4.5, satFat: 1, transFat: 0, fiber: 2.5, sodium: 15 },
+  { name: 'Macarrão integral cozido', portionLabel: '100g', portionGrams: 100, kcal: 124, carbs: 25, sugars: 0.6, protein: 5.3, fat: 0.6, satFat: 0.1, transFat: 0, fiber: 3.9, sodium: 4 },
+  { name: 'Tapioca (goma hidratada)', portionLabel: '1 porção (50g)', portionGrams: 50, kcal: 89, carbs: 22, sugars: 0.2, protein: 0.1, fat: 0, satFat: 0, transFat: 0, fiber: 0.3, sodium: 1 },
+
+  // Tubérculos
+  { name: 'Batata inglesa cozida', portionLabel: '100g', portionGrams: 100, kcal: 52, carbs: 11.9, sugars: 0.8, protein: 1.2, fat: 0.1, satFat: 0, transFat: 0, fiber: 1.3, sodium: 3 },
+  { name: 'Batata frita', portionLabel: '100g', portionGrams: 100, kcal: 267, carbs: 35, sugars: 0.3, protein: 3.4, fat: 13, satFat: 2, transFat: 0.5, fiber: 2.9, sodium: 210 },
+  { name: 'Inhame cozido', portionLabel: '100g', portionGrams: 100, kcal: 116, carbs: 27.6, sugars: 0.5, protein: 2.1, fat: 0.2, satFat: 0, transFat: 0, fiber: 2.5, sodium: 9 },
+
+  // Leguminosas
+  { name: 'Lentilha cozida', portionLabel: '100g', portionGrams: 100, kcal: 93, carbs: 16.3, sugars: 1.5, protein: 6.3, fat: 0.5, satFat: 0.1, transFat: 0, fiber: 7.9, sodium: 2 },
+  { name: 'Ervilha cozida', portionLabel: '100g', portionGrams: 100, kcal: 65, carbs: 11.4, sugars: 4.2, protein: 4.3, fat: 0.3, satFat: 0, transFat: 0, fiber: 4.5, sodium: 3 },
+
+  // Laticínios
+  { name: 'Queijo mussarela', portionLabel: '1 fatia (30g)', portionGrams: 30, kcal: 90, carbs: 0.6, sugars: 0.6, protein: 6.6, fat: 6.9, satFat: 4.1, transFat: 0, fiber: 0, sodium: 176 },
+  { name: 'Queijo prato', portionLabel: '1 fatia (30g)', portionGrams: 30, kcal: 105, carbs: 0.5, sugars: 0.5, protein: 6.6, fat: 8.5, satFat: 5.4, transFat: 0, fiber: 0, sodium: 210 },
+  { name: 'Leite desnatado', portionLabel: '1 copo (200ml)', portionGrams: 200, kcal: 70, carbs: 9.8, sugars: 9.8, protein: 6.8, fat: 0.4, satFat: 0.2, transFat: 0, fiber: 0, sodium: 80 },
+  { name: 'Iogurte grego natural', portionLabel: '100g', portionGrams: 100, kcal: 97, carbs: 4, sugars: 4, protein: 9, fat: 5, satFat: 3.2, transFat: 0, fiber: 0, sodium: 36 },
+  { name: 'Iogurte desnatado', portionLabel: '1 pote (170g)', portionGrams: 170, kcal: 90, carbs: 12, sugars: 12, protein: 8.5, fat: 0.3, satFat: 0.2, transFat: 0, fiber: 0, sodium: 95 },
+  { name: 'Queijo cottage', portionLabel: '100g', portionGrams: 100, kcal: 98, carbs: 3.4, sugars: 2.7, protein: 11.1, fat: 4.3, satFat: 2.7, transFat: 0, fiber: 0, sodium: 364 },
+  { name: 'Manteiga', portionLabel: '1 colher chá (5g)', portionGrams: 5, kcal: 36, carbs: 0, sugars: 0, protein: 0, fat: 4.1, satFat: 2.5, transFat: 0.1, fiber: 0, sodium: 30 },
+
+  // Frutas
+  { name: 'Morango', portionLabel: '100g', portionGrams: 100, kcal: 30, carbs: 6.8, sugars: 4.7, protein: 0.9, fat: 0.3, satFat: 0, transFat: 0, fiber: 1.7, sodium: 1 },
+  { name: 'Manga', portionLabel: '100g', portionGrams: 100, kcal: 51, carbs: 12.8, sugars: 11.5, protein: 0.4, fat: 0.2, satFat: 0, transFat: 0, fiber: 1.6, sodium: 1 },
+  { name: 'Mamão', portionLabel: '100g', portionGrams: 100, kcal: 40, carbs: 10, sugars: 7.8, protein: 0.6, fat: 0.1, satFat: 0, transFat: 0, fiber: 1.7, sodium: 3 },
+  { name: 'Melancia', portionLabel: '100g', portionGrams: 100, kcal: 33, carbs: 8.1, sugars: 6.2, protein: 0.9, fat: 0.1, satFat: 0, transFat: 0, fiber: 0.1, sodium: 1 },
+  { name: 'Uva', portionLabel: '100g', portionGrams: 100, kcal: 53, carbs: 13.9, sugars: 13, protein: 0.7, fat: 0.2, satFat: 0, transFat: 0, fiber: 0.9, sodium: 2 },
+  { name: 'Abacaxi', portionLabel: '100g', portionGrams: 100, kcal: 48, carbs: 12.3, sugars: 9.9, protein: 0.9, fat: 0.1, satFat: 0, transFat: 0, fiber: 1, sodium: 1 },
+  { name: 'Pera', portionLabel: '100g', portionGrams: 100, kcal: 53, carbs: 13.8, sugars: 9.8, protein: 0.3, fat: 0.1, satFat: 0, transFat: 0, fiber: 2.8, sodium: 1 },
+  { name: 'Kiwi', portionLabel: '100g', portionGrams: 100, kcal: 51, carbs: 11.7, sugars: 8.9, protein: 1.1, fat: 0.4, satFat: 0, transFat: 0, fiber: 2.1, sodium: 3 },
+  { name: 'Melão', portionLabel: '100g', portionGrams: 100, kcal: 29, carbs: 7.5, sugars: 6.7, protein: 0.7, fat: 0.1, satFat: 0, transFat: 0, fiber: 0.5, sodium: 12 },
+
+  // Vegetais
+  { name: 'Pepino', portionLabel: '100g', portionGrams: 100, kcal: 10, carbs: 2.1, sugars: 1.2, protein: 0.7, fat: 0.1, satFat: 0, transFat: 0, fiber: 0.8, sodium: 2 },
+  { name: 'Couve refogada', portionLabel: '100g', portionGrams: 100, kcal: 30, carbs: 3.8, sugars: 0.6, protein: 1.9, fat: 1.1, satFat: 0.2, transFat: 0, fiber: 2, sodium: 5 },
+  { name: 'Espinafre refogado', portionLabel: '100g', portionGrams: 100, kcal: 21, carbs: 2.5, sugars: 0.4, protein: 2.6, fat: 0.3, satFat: 0, transFat: 0, fiber: 1.7, sodium: 66 },
+  { name: 'Abobrinha refogada', portionLabel: '100g', portionGrams: 100, kcal: 19, carbs: 3.9, sugars: 2.5, protein: 1.1, fat: 0.2, satFat: 0, transFat: 0, fiber: 1.3, sodium: 2 },
+  { name: 'Berinjela refogada', portionLabel: '100g', portionGrams: 100, kcal: 22, carbs: 4.7, sugars: 2.3, protein: 0.6, fat: 0.3, satFat: 0, transFat: 0, fiber: 2.4, sodium: 2 },
+  { name: 'Pimentão', portionLabel: '100g', portionGrams: 100, kcal: 25, carbs: 5.6, sugars: 3, protein: 1, fat: 0.2, satFat: 0, transFat: 0, fiber: 2.1, sodium: 2 },
+  { name: 'Cebola crua', portionLabel: '100g', portionGrams: 100, kcal: 39, carbs: 8.9, sugars: 4.2, protein: 1.2, fat: 0.1, satFat: 0, transFat: 0, fiber: 1.7, sodium: 4 },
+  { name: 'Repolho cru', portionLabel: '100g', portionGrams: 100, kcal: 24, carbs: 5.7, sugars: 3.2, protein: 1.2, fat: 0.1, satFat: 0, transFat: 0, fiber: 2, sodium: 4 },
+  { name: 'Vagem refogada', portionLabel: '100g', portionGrams: 100, kcal: 32, carbs: 6.8, sugars: 3, protein: 1.9, fat: 0.2, satFat: 0, transFat: 0, fiber: 2.9, sodium: 3 },
+  { name: 'Beterraba cozida', portionLabel: '100g', portionGrams: 100, kcal: 32, carbs: 7.3, sugars: 5.9, protein: 1.2, fat: 0.1, satFat: 0, transFat: 0, fiber: 1.9, sodium: 60 },
+
+  // Oleaginosas e sementes
+  { name: 'Castanha de caju', portionLabel: '1 punhado (30g)', portionGrams: 30, kcal: 170, carbs: 9, sugars: 1.5, protein: 5, fat: 13.5, satFat: 2.4, transFat: 0, fiber: 1, sodium: 3 },
+  { name: 'Nozes', portionLabel: '1 punhado (30g)', portionGrams: 30, kcal: 196, carbs: 4, sugars: 0.8, protein: 4.6, fat: 19.5, satFat: 1.8, transFat: 0, fiber: 2, sodium: 1 },
+  { name: 'Amêndoas', portionLabel: '1 punhado (30g)', portionGrams: 30, kcal: 174, carbs: 6.5, sugars: 1.3, protein: 6.3, fat: 15, satFat: 1.1, transFat: 0, fiber: 3.6, sodium: 0 },
+  { name: 'Semente de chia', portionLabel: '1 colher sopa (15g)', portionGrams: 15, kcal: 73, carbs: 6.3, sugars: 0, protein: 2.5, fat: 4.6, satFat: 0.5, transFat: 0, fiber: 5.5, sodium: 2 },
+  { name: 'Linhaça', portionLabel: '1 colher sopa (15g)', portionGrams: 15, kcal: 80, carbs: 4.3, sugars: 0.2, protein: 2.7, fat: 6.3, satFat: 0.5, transFat: 0, fiber: 4.1, sodium: 4 },
+
+  // Bebidas
+  { name: 'Café sem açúcar', portionLabel: '100ml', portionGrams: 100, kcal: 2, carbs: 0.3, sugars: 0, protein: 0.1, fat: 0, satFat: 0, transFat: 0, fiber: 0, sodium: 2 },
+  { name: 'Suco de laranja natural', portionLabel: '1 copo (200ml)', portionGrams: 200, kcal: 90, carbs: 21, sugars: 17, protein: 1.4, fat: 0.4, satFat: 0, transFat: 0, fiber: 0.4, sodium: 2 },
+  { name: 'Refrigerante comum', portionLabel: '1 lata (350ml)', portionGrams: 350, kcal: 140, carbs: 37, sugars: 37, protein: 0, fat: 0, satFat: 0, transFat: 0, fiber: 0, sodium: 15 },
+
+  // Doces e snacks
+  { name: 'Mel', portionLabel: '1 colher sopa (20g)', portionGrams: 20, kcal: 61, carbs: 16.5, sugars: 16.4, protein: 0.1, fat: 0, satFat: 0, transFat: 0, fiber: 0, sodium: 1 },
+  { name: 'Geleia de fruta', portionLabel: '1 colher sopa (20g)', portionGrams: 20, kcal: 56, carbs: 14, sugars: 12, protein: 0.1, fat: 0, satFat: 0, transFat: 0, fiber: 0.2, sodium: 4 },
+  { name: 'Biscoito recheado', portionLabel: '3 unidades (30g)', portionGrams: 30, kcal: 145, carbs: 20, sugars: 10, protein: 1.5, fat: 6.5, satFat: 3, transFat: 0.5, fiber: 0.7, sodium: 90 },
+  { name: 'Pipoca sem manteiga', portionLabel: '1 porção (30g)', portionGrams: 30, kcal: 110, carbs: 22, sugars: 0.2, protein: 3.6, fat: 1.3, satFat: 0.2, transFat: 0, fiber: 4.5, sodium: 2 },
+
+  // Proteínas vegetais e outros
+  { name: 'Tofu', portionLabel: '100g', portionGrams: 100, kcal: 76, carbs: 1.9, sugars: 0.6, protein: 8, fat: 4.8, satFat: 0.7, transFat: 0, fiber: 0.3, sodium: 7 },
+  { name: 'Proteína texturizada de soja (hidratada)', portionLabel: '100g', portionGrams: 100, kcal: 105, carbs: 6, sugars: 2, protein: 15, fat: 2.5, satFat: 0.4, transFat: 0, fiber: 5, sodium: 5 },
+  { name: 'Farofa pronta', portionLabel: '1 colher sopa (30g)', portionGrams: 30, kcal: 130, carbs: 18, sugars: 0.5, protein: 1.5, fat: 5.5, satFat: 1, transFat: 0, fiber: 1.5, sodium: 200 },
+
+  // Legumes e verduras cozidos (complemento)
+  { name: 'Cenoura cozida', portionLabel: '100g', portionGrams: 100, kcal: 30, carbs: 6.3, sugars: 4, protein: 0.8, fat: 0.2, satFat: 0, transFat: 0, fiber: 2.9, sodium: 35 },
+  { name: 'Chuchu cozido', portionLabel: '100g', portionGrams: 100, kcal: 19, carbs: 4.1, sugars: 2, protein: 0.4, fat: 0.1, satFat: 0, transFat: 0, fiber: 1.3, sodium: 2 },
+  { name: 'Couve-flor cozida', portionLabel: '100g', portionGrams: 100, kcal: 19, carbs: 2.9, sugars: 1.5, protein: 1.2, fat: 0.3, satFat: 0, transFat: 0, fiber: 2, sodium: 10 },
+  { name: 'Milho verde cozido', portionLabel: '100g', portionGrams: 100, kcal: 98, carbs: 19, sugars: 3, protein: 3.4, fat: 1.2, satFat: 0.2, transFat: 0, fiber: 2.4, sodium: 15 },
+  { name: 'Quiabo cozido', portionLabel: '100g', portionGrams: 100, kcal: 26, carbs: 5.8, sugars: 1.5, protein: 1.8, fat: 0.2, satFat: 0, transFat: 0, fiber: 3.6, sodium: 6 },
+  { name: 'Abóbora cozida', portionLabel: '100g', portionGrams: 100, kcal: 22, carbs: 5.3, sugars: 2.5, protein: 0.8, fat: 0.1, satFat: 0, transFat: 0, fiber: 1.5, sodium: 1 },
+  { name: 'Palmito em conserva', portionLabel: '100g', portionGrams: 100, kcal: 23, carbs: 3.9, sugars: 1, protein: 2, fat: 0.5, satFat: 0.1, transFat: 0, fiber: 2.8, sodium: 200 },
+  { name: 'Rabanete', portionLabel: '100g', portionGrams: 100, kcal: 16, carbs: 3.4, sugars: 1.9, protein: 0.7, fat: 0.1, satFat: 0, transFat: 0, fiber: 1.6, sodium: 20 },
+  { name: 'Aspargo cozido', portionLabel: '100g', portionGrams: 100, kcal: 22, carbs: 3.9, sugars: 1.9, protein: 2.4, fat: 0.2, satFat: 0, transFat: 0, fiber: 2.1, sodium: 2 },
+  { name: 'Nabo cozido', portionLabel: '100g', portionGrams: 100, kcal: 22, carbs: 4.7, sugars: 3, protein: 0.8, fat: 0.1, satFat: 0, transFat: 0, fiber: 1.8, sodium: 25 },
+
+  // Mais frutas
+  { name: 'Acerola', portionLabel: '100g', portionGrams: 100, kcal: 33, carbs: 8, sugars: 6, protein: 0.9, fat: 0.2, satFat: 0, transFat: 0, fiber: 1.6, sodium: 5 },
+  { name: 'Goiaba', portionLabel: '100g', portionGrams: 100, kcal: 54, carbs: 12.4, sugars: 8.9, protein: 1.1, fat: 0.5, satFat: 0, transFat: 0, fiber: 6.2, sodium: 3 },
+  { name: 'Tangerina/mexerica', portionLabel: '1 unidade (100g)', portionGrams: 100, kcal: 45, carbs: 11.5, sugars: 9, protein: 0.8, fat: 0.2, satFat: 0, transFat: 0, fiber: 1.7, sodium: 1 },
+  { name: 'Ameixa fresca', portionLabel: '100g', portionGrams: 100, kcal: 46, carbs: 11.4, sugars: 9.9, protein: 0.7, fat: 0.3, satFat: 0, transFat: 0, fiber: 1.4, sodium: 1 },
+  { name: 'Damasco seco', portionLabel: '1 porção (30g)', portionGrams: 30, kcal: 74, carbs: 19, sugars: 15, protein: 1, fat: 0.1, satFat: 0, transFat: 0, fiber: 2.2, sodium: 3 },
+  { name: 'Uva passas', portionLabel: '1 porção (30g)', portionGrams: 30, kcal: 90, carbs: 24, sugars: 20, protein: 0.9, fat: 0.1, satFat: 0, transFat: 0, fiber: 1.1, sodium: 4 },
+  { name: 'Coco fresco', portionLabel: '1 porção (30g)', portionGrams: 30, kcal: 106, carbs: 4.5, sugars: 2, protein: 1, fat: 10, satFat: 8.9, transFat: 0, fiber: 2.7, sodium: 6 },
+
+  // Mais grãos e carboidratos
+  { name: 'Arroz parboilizado cozido', portionLabel: '100g', portionGrams: 100, kcal: 123, carbs: 26.2, sugars: 0, protein: 2.6, fat: 0.7, satFat: 0.1, transFat: 0, fiber: 1.8, sodium: 1 },
+  { name: 'Pão sírio', portionLabel: '1 unidade (60g)', portionGrams: 60, kcal: 165, carbs: 33, sugars: 1, protein: 5.5, fat: 1, satFat: 0.2, transFat: 0, fiber: 1.5, sodium: 320 },
+
+  // Mais proteínas
+  { name: 'Peito de peru fatiado', portionLabel: '1 fatia (30g)', portionGrams: 30, kcal: 30, carbs: 0.5, sugars: 0.3, protein: 6, fat: 0.4, satFat: 0.1, transFat: 0, fiber: 0, sodium: 280 },
+  { name: 'Atum fresco grelhado', portionLabel: '100g', portionGrams: 100, kcal: 130, carbs: 0, sugars: 0, protein: 28, fat: 1, satFat: 0.3, transFat: 0, fiber: 0, sodium: 45 },
+  { name: 'Lombo defumado (bacon canadense)', portionLabel: '1 fatia (30g)', portionGrams: 30, kcal: 55, carbs: 0.5, sugars: 0.2, protein: 8, fat: 2.2, satFat: 0.7, transFat: 0, fiber: 0, sodium: 380 },
+
+  // Laticínios vegetais e bebidas
+  { name: 'Leite de amêndoas', portionLabel: '1 copo (200ml)', portionGrams: 200, kcal: 30, carbs: 1, sugars: 0.6, protein: 1, fat: 2.4, satFat: 0.2, transFat: 0, fiber: 0.4, sodium: 72 },
+  { name: 'Leite de aveia', portionLabel: '1 copo (200ml)', portionGrams: 200, kcal: 90, carbs: 14, sugars: 6, protein: 2, fat: 3, satFat: 0.4, transFat: 0, fiber: 1.6, sodium: 90 },
+  { name: 'Chá sem açúcar', portionLabel: '1 copo (200ml)', portionGrams: 200, kcal: 2, carbs: 0.4, sugars: 0, protein: 0, fat: 0, satFat: 0, transFat: 0, fiber: 0, sodium: 2 },
+
+  // Mais doces e temperos
+  { name: 'Sorvete de creme', portionLabel: '1 bola (60g)', portionGrams: 60, kcal: 110, carbs: 13, sugars: 12, protein: 2, fat: 6, satFat: 3.8, transFat: 0.1, fiber: 0, sodium: 40 },
+  { name: 'Chocolate ao leite', portionLabel: '25g', portionGrams: 25, kcal: 135, carbs: 15, sugars: 14, protein: 2, fat: 7.5, satFat: 4.5, transFat: 0.1, fiber: 0.6, sodium: 20 },
+  { name: 'Pudim de leite', portionLabel: '1 fatia (100g)', portionGrams: 100, kcal: 150, carbs: 25, sugars: 24, protein: 4, fat: 4, satFat: 2, transFat: 0, fiber: 0, sodium: 60 },
+  { name: 'Molho shoyu', portionLabel: '1 colher sopa (15ml)', portionGrams: 15, kcal: 8, carbs: 1, sugars: 0.4, protein: 1, fat: 0, satFat: 0, transFat: 0, fiber: 0.1, sodium: 1000 },
+  { name: 'Vinagrete', portionLabel: '100g', portionGrams: 100, kcal: 35, carbs: 5, sugars: 3, protein: 0.8, fat: 1.5, satFat: 0.2, transFat: 0, fiber: 1, sodium: 250 },
+];
