@@ -83,5 +83,22 @@ const Util = (() => {
     return `https://www.youtube.com/results?search_query=${encodeURIComponent(query + ' execução exercício')}`;
   }
 
-  return { todayISO, fmtDate, escapeHtml, daysAgo, daysFromNow, movingAverage, getPesoAtual, planoSugerido, weekdayOf, daysBetween, inputGroup, youtubeSearchUrl };
+  // Extrai o ID do vídeo de links do YouTube (watch, youtu.be, embed, shorts) para permitir incorporar.
+  // Retorna null se o link não for de um vídeo específico (ex: uma busca) — nesse caso não dá pra incorporar.
+  function youtubeEmbedId(url) {
+    if (!url) return null;
+    const patterns = [
+      /youtube\.com\/watch\?v=([\w-]{11})/,
+      /youtu\.be\/([\w-]{11})/,
+      /youtube\.com\/embed\/([\w-]{11})/,
+      /youtube\.com\/shorts\/([\w-]{11})/,
+    ];
+    for (const p of patterns) {
+      const m = url.match(p);
+      if (m) return m[1];
+    }
+    return null;
+  }
+
+  return { todayISO, fmtDate, escapeHtml, daysAgo, daysFromNow, movingAverage, getPesoAtual, planoSugerido, weekdayOf, daysBetween, inputGroup, youtubeSearchUrl, youtubeEmbedId };
 })();

@@ -72,6 +72,7 @@ const ViewTreino = (() => {
     `;
     const list = document.getElementById('exercise-list');
     let rows = exercises.map(e => ({ ...e }));
+    const expandedVideos = new Set();
 
     function aplicarPlano(plano) {
       if (!plano) return;
@@ -103,7 +104,16 @@ const ViewTreino = (() => {
           ${isPR ? '<span class="badge pr">🏆 PR</span>' : ''}
           ${r.name.trim() ? (() => {
             const doLib = biblioteca.find(e => e.name.trim().toLowerCase() === r.name.trim().toLowerCase());
-            const url = (doLib && doLib.videoUrl) || Util.youtubeSearchUrl(r.name);
+            const videoUrl = doLib && doLib.videoUrl;
+            const embedId = Util.youtubeEmbedId(videoUrl);
+            if (embedId) {
+              const isOpen = expandedVideos.has(i);
+              return `
+                <button type="button" class="link" data-togglevideo="${i}" style="color:var(--accent);flex-basis:100%;text-align:left">${isOpen ? '▲ Ocultar vídeo' : '▶ Ver vídeo do exercício'}</button>
+                ${isOpen ? `<div style="flex-basis:100%;aspect-ratio:16/9;margin-top:6px"><iframe width="100%" height="100%" src="https://www.youtube.com/embed/${embedId}" title="Vídeo do exercício" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe></div>` : ''}
+              `;
+            }
+            const url = videoUrl || Util.youtubeSearchUrl(r.name);
             return `<a href="${url}" target="_blank" rel="noopener" class="meta" style="color:var(--accent);flex-basis:100%">▶ Ver vídeo do exercício</a>`;
           })() : ''}
         </div>
@@ -119,6 +129,14 @@ const ViewTreino = (() => {
       });
       list.querySelectorAll('.ex-weight, .ex-name').forEach(inp => {
         inp.addEventListener('change', () => { syncFromInputs(); renderRows(); });
+      });
+      list.querySelectorAll('[data-togglevideo]').forEach(btn => {
+        btn.addEventListener('click', () => {
+          const i = Number(btn.dataset.togglevideo);
+          if (expandedVideos.has(i)) expandedVideos.delete(i); else expandedVideos.add(i);
+          syncFromInputs();
+          renderRows();
+        });
       });
     }
 
