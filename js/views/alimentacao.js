@@ -3,6 +3,7 @@ const ViewAlimentacao = (() => {
   const NUTRI_FIELDS = ['kcal', 'carbs', 'sugars', 'protein', 'fat', 'satFat', 'transFat', 'fiber', 'sodium'];
 
   let selectedFood = null;
+  let editingQtyId = null;
 
   function sumNutrients(entries) {
     const totals = { kcal: 0, carbs: 0, protein: 0, fat: 0, fiber: 0, sodium: 0 };
@@ -295,20 +296,53 @@ const ViewAlimentacao = (() => {
 
     $app.querySelectorAll('[data-editqty]').forEach(btn => {
       btn.addEventListener('click', () => {
-        const entry = entries.find(e => e.id === btn.dataset.editqty);
+        editingQtyId = btn.dataset.editqty;
+        api.render();
+      });
+    });
+
+    $app.querySelectorAll('[data-cancelqty]').forEach(btn => {
+      btn.addEventListener('click', () => {
+        editingQtyId = null;
+        api.render();
+      });
+    });
+
+    $app.querySelectorAll('[data-saveqty]').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const id = btn.dataset.saveqty;
+        const entry = entries.find(e => e.id === id);
         if (!entry) return;
         const oldQty = entry.qty || 1;
-        const input = prompt(`Nova quantidade para "${entry.foodName}" (porções, atual: ${oldQty}):`, oldQty);
-        if (input === null) return;
-        const newQty = Number(input);
+        const newQty = Number(document.getElementById(`editqty-porcoes-${id}`).value);
         if (!newQty || newQty <= 0) return;
         const factor = newQty / oldQty;
         const data = { qty: newQty };
         NUTRI_FIELDS.forEach(f => { data[f] = Math.round((entry[f] || 0) * factor * 10) / 10; });
         Storage.update('alimentacao', entry.id, data);
+        editingQtyId = null;
         api.render();
       });
     });
+
+    if (editingQtyId) {
+      const editEntry = entries.find(e => e.id === editingQtyId);
+      if (editEntry) {
+        const lib = Storage.getAll('alimentos_biblioteca');
+        const doLib = lib.find(f => f.name.trim().toLowerCase() === editEntry.foodName.trim().toLowerCase());
+        const portionGrams = doLib ? doLib.portionGrams : null;
+        const porcoesInput = document.getElementById(`editqty-porcoes-${editingQtyId}`);
+        const gramasInput = document.getElementById(`editqty-gramas-${editingQtyId}`);
+        if (porcoesInput && gramasInput && portionGrams) {
+          porcoesInput.addEventListener('input', () => {
+            gramasInput.value = Math.round((Number(porcoesInput.value) || 0) * portionGrams * 10) / 10;
+          });
+          gramasInput.addEventListener('input', () => {
+            porcoesInput.value = Math.round(((Number(gramasInput.value) || 0) / portionGrams) * 1000) / 1000;
+          });
+        }
+      }
+    }
 
     $app.querySelectorAll('[data-savecombo]').forEach(btn => {
       btn.addEventListener('click', () => {
@@ -328,6 +362,7 @@ const ViewAlimentacao = (() => {
   }
 
   function renderMealList(entries) {
+    const lib = Storage.getAll('alimentos_biblioteca');
     const groups = {};
     entries.forEach(e => {
       groups[e.mealType] = groups[e.mealType] || [];
@@ -339,18 +374,44 @@ const ViewAlimentacao = (() => {
           <strong>${Util.escapeHtml(type)}</strong>
           <button class="secondary" data-savecombo="${Util.escapeHtml(type)}" style="flex:0 0 auto;font-size:0.75rem;padding:6px 10px">💾 Salvar como combo</button>
         </div>
-        ${groups[type].map(e => `
-          <div class="list-item" data-id="${e.id}">
-            <div>
-              <div>${Util.escapeHtml(e.foodName)} ${e.qty !== 1 ? `<span class="meta">(${e.qty}x)</span>` : ''}</div>
-              <div class="meta">${e.kcal} kcal · P ${e.protein}g · C ${e.carbs}g · G ${e.fat}g</div>
+        ${groups[type].map(e => {
+          if (e.id !== editingQtyId) {
+            return `
+              <div class="list-item" data-id="${e.id}">
+                <div>
+                  <div>${Util.escapeHtml(e.foodName)} ${e.qty !== 1 ? `<span class="meta">(${e.qty}x)</span>` : ''}</div>
+                  <div class="meta">${e.kcal} kcal · P ${e.protein}g · C ${e.carbs}g · G ${e.fat}g</div>
+                </div>
+                <div style="display:flex;gap:6px">
+                  <button class="link" data-editqty="${e.id}">✎</button>
+                  <button class="link" data-remove="${e.id}">✕</button>
+                </div>
+              </div>
+            `;
+          }
+          const doLib = lib.find(f => f.name.trim().toLowerCase() === e.foodName.trim().toLowerCase());
+          const portionGrams = doLib ? doLib.portionGrams : null;
+          const gramsValue = portionGrams ? Math.round(e.qty * portionGrams * 10) / 10 : '';
+          return `
+            <div class="list-item" data-id="${e.id}" style="flex-direction:column;align-items:stretch">
+              <div style="font-weight:600">${Util.escapeHtml(e.foodName)}</div>
+              <div class="row" style="margin-top:6px">
+                <div>
+                  <label style="font-size:0.75rem">Porções</label>
+                  <input type="number" id="editqty-porcoes-${e.id}" value="${e.qty}" min="0.01" step="0.01">
+                </div>
+                <div>
+                  <label style="font-size:0.75rem">Gramas${!portionGrams ? ' (indisponível p/ este item)' : ''}</label>
+                  <input type="number" id="editqty-gramas-${e.id}" value="${gramsValue}" min="1" step="1" ${!portionGrams ? 'disabled' : ''}>
+                </div>
+              </div>
+              <div class="row" style="margin-top:8px">
+                <button class="primary" data-saveqty="${e.id}" style="flex:1">Salvar</button>
+                <button class="secondary" data-cancelqty="${e.id}" style="flex:1">Cancelar</button>
+              </div>
             </div>
-            <div style="display:flex;gap:6px">
-              <button class="link" data-editqty="${e.id}">✎</button>
-              <button class="link" data-remove="${e.id}">✕</button>
-            </div>
-          </div>
-        `).join('')}
+          `;
+        }).join('')}
       </div>
     `).join('');
   }
