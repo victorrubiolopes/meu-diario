@@ -8,6 +8,7 @@ const ViewMais = (() => {
     { key: 'biblioteca-exercicios', icon: '🏋️', label: 'Biblioteca de Exercícios' },
     { key: 'planos-treino', icon: '🔄', label: 'Planos de Treino' },
     { key: 'combos', icon: '🥗', label: 'Combos de Refeição' },
+    { key: 'dietas-custom', icon: '📋', label: 'Minhas Dietas' },
     { key: 'backup', icon: '💾', label: 'Backup' },
   ];
 
@@ -21,6 +22,7 @@ const ViewMais = (() => {
       case 'biblioteca-exercicios': return renderBibliotecaExercicios($app, state, api);
       case 'planos-treino': return renderPlanosTreino($app, state, api);
       case 'combos': return renderCombos($app, state, api);
+      case 'dietas-custom': return renderDietasCustom($app, state, api);
       case 'backup': return renderBackup($app, state, api);
       default: return renderMenu($app, state, api);
     }
@@ -72,8 +74,10 @@ const ViewMais = (() => {
         <label>Objetivo</label>
         <select id="p-dieta">
           ${DIETA_TEMPLATES.map(d => `<option value="${d.id}" ${perfil.dietaTemplate === d.id ? 'selected' : ''}>${d.nome}</option>`).join('')}
-          <option value="custom" ${perfil.metaCustom ? 'selected' : ''}>Personalizado (definir eu mesmo)</option>
+          ${Storage.getAll('dietas_custom').map(d => `<option value="dc:${d.id}" ${perfil.dietaCustomId === d.id ? 'selected' : ''}>${Util.escapeHtml(d.nome)}</option>`).join('')}
+          <option value="custom" ${perfil.metaCustom && !perfil.dietaCustomId ? 'selected' : ''}>Personalizado (definir eu mesmo)</option>
         </select>
+        <button type="button" class="secondary" id="go-dietas-custom" style="margin:8px 0">+ Gerenciar minhas dietas</button>
         <div id="template-fields">
           <label>Estilo de macros</label>
           <select id="p-macro-style">
@@ -113,19 +117,22 @@ const ViewMais = (() => {
 
     function currentFormPerfil() {
       const dietaVal = dietaSelect.value;
+      const isDietaCustom = dietaVal.startsWith('dc:');
       const p = {
         peso: Number(document.getElementById('p-peso').value) || null,
         altura: Number(document.getElementById('p-altura').value) || null,
         idade: Number(document.getElementById('p-idade').value) || null,
         sexo: document.getElementById('p-sexo').value,
         nivelAtividade: document.getElementById('p-atividade').value,
-        dietaTemplate: dietaVal === 'custom' ? null : dietaVal,
+        dietaTemplate: (dietaVal === 'custom' || isDietaCustom) ? null : dietaVal,
         macroStyle: document.getElementById('p-macro-style').value,
         mealStrategy: document.getElementById('p-meal-strategy').value,
         numRefeicoes: Math.max(1, Number(document.getElementById('p-num-refeicoes').value) || 5),
         aguaMetaCustom: Number(document.getElementById('p-agua-meta').value) || null,
       };
-      if (dietaVal === 'custom') {
+      if (isDietaCustom) {
+        p.dietaCustomId = dietaVal.slice(3);
+      } else if (dietaVal === 'custom') {
         p.metaCustom = {
           kcal: Number(document.getElementById('p-kcal').value) || null,
           protein: Number(document.getElementById('p-protein').value) || null,
@@ -139,8 +146,9 @@ const ViewMais = (() => {
 
     function updatePreview() {
       const isCustom = dietaSelect.value === 'custom';
+      const isDietaCustom = dietaSelect.value.startsWith('dc:');
       customFields.style.display = isCustom ? '' : 'none';
-      templateFields.style.display = isCustom ? 'none' : '';
+      templateFields.style.display = (isCustom || isDietaCustom) ? 'none' : '';
 
       const macroStyle = MACRO_STYLES.find(m => m.id === document.getElementById('p-macro-style').value);
       document.getElementById('macro-style-desc').textContent = macroStyle ? macroStyle.descricao : '';
@@ -183,6 +191,83 @@ const ViewMais = (() => {
       Storage.savePerfil(currentFormPerfil());
       alert('Perfil salvo!');
       api.render();
+    });
+
+    document.getElementById('go-dietas-custom').addEventListener('click', () => {
+      api.goToMais('dietas-custom');
+    });
+  }
+
+  // ---------------- MINHAS DIETAS (personalizadas nomeadas) ----------------
+  function renderDietasCustom($app, state, api) {
+    const dietas = Storage.getAll('dietas_custom');
+    const perfil = Storage.getPerfil();
+
+    $app.innerHTML = `
+      <div class="card">
+        <h2>Nova dieta</h2>
+        <p class="meta">Salve um plano recebido de nutricionista (ou outra meta fixa) com um nome, pra escolher depois no Objetivo do seu Perfil.</p>
+        <label>Nome</label>
+        <input type="text" id="dc-nome" placeholder="Ex: Dieta do mês 08/2026">
+        <div class="row">
+          <div><label>Calorias (kcal)</label><input type="number" id="dc-kcal"></div>
+          <div><label>Proteína (g)</label><input type="number" id="dc-protein"></div>
+        </div>
+        <div class="row">
+          <div><label>Carboidrato (g)</label><input type="number" id="dc-carb"></div>
+          <div><label>Gordura (g)</label><input type="number" id="dc-fat"></div>
+        </div>
+        <label>Fibras (g) — opcional</label>
+        <input type="number" id="dc-fiber">
+        <button class="primary" id="save-dieta-custom" style="margin-top:10px">Salvar dieta</button>
+      </div>
+      <div class="card">
+        <h2>Dietas salvas (${dietas.length})</h2>
+        <div id="dietas-custom-list">
+          ${dietas.length === 0 ? '<div class="empty">Nenhuma dieta salva ainda</div>' : dietas.map(d => `
+            <div class="list-item" data-id="${d.id}">
+              <div>
+                <div>${Util.escapeHtml(d.nome)} ${perfil.dietaCustomId === d.id ? '<span class="badge pr">Em uso</span>' : ''}</div>
+                <div class="meta">${d.kcal} kcal · P ${d.protein}g · C ${d.carb}g · G ${d.fat}g${d.fiber ? ` · Fibras ${d.fiber}g` : ''}</div>
+              </div>
+              <div style="display:flex;gap:6px">
+                <button class="secondary" data-usar="${d.id}" style="font-size:0.75rem;padding:6px 10px">Usar</button>
+                <button class="link" data-remove-dieta="${d.id}">✕</button>
+              </div>
+            </div>
+          `).join('')}
+        </div>
+      </div>
+    `;
+
+    document.getElementById('save-dieta-custom').addEventListener('click', () => {
+      const nome = document.getElementById('dc-nome').value.trim();
+      const kcal = Number(document.getElementById('dc-kcal').value) || null;
+      if (!nome || !kcal) return;
+      Storage.add('dietas_custom', {
+        nome,
+        kcal,
+        protein: Number(document.getElementById('dc-protein').value) || null,
+        carb: Number(document.getElementById('dc-carb').value) || null,
+        fat: Number(document.getElementById('dc-fat').value) || null,
+        fiber: Number(document.getElementById('dc-fiber').value) || null,
+      });
+      api.render();
+    });
+
+    $app.querySelectorAll('[data-usar]').forEach(btn => {
+      btn.addEventListener('click', () => {
+        Storage.savePerfil({ ...perfil, dietaTemplate: null, metaCustom: null, dietaCustomId: btn.dataset.usar });
+        alert('Dieta selecionada como objetivo atual!');
+        api.render();
+      });
+    });
+
+    $app.querySelectorAll('[data-remove-dieta]').forEach(btn => {
+      btn.addEventListener('click', () => {
+        Storage.remove('dietas_custom', btn.dataset.removeDieta);
+        api.render();
+      });
     });
   }
 
