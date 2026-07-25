@@ -1,4 +1,9 @@
 const ViewTreino = (() => {
+  // Ícones inline reutilizados nos cards de exercício
+  const ICON_DUMBBELL = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M6 12h12"/><rect x="2.5" y="9" width="3" height="6" rx="1"/><rect x="18.5" y="9" width="3" height="6" rx="1"/><rect x="5.5" y="7" width="2" height="10" rx="1"/><rect x="16.5" y="7" width="2" height="10" rx="1"/></svg>';
+  const ICON_REPEAT = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 2l4 4-4 4"/><path d="M3 11V9a4 4 0 0 1 4-4h14"/><path d="M7 22l-4-4 4-4"/><path d="M21 13v2a4 4 0 0 1-4 4H3"/></svg>';
+  const ICON_WEIGHT = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M7 8h10l1.2 11a1 1 0 0 1-1 1.1H6.8a1 1 0 0 1-1-1.1L7 8z"/><path d="M9 8a3 3 0 0 1 6 0"/></svg>';
+
   function maxWeightHistorico(name, excludeId) {
     const all = Storage.getAll('treino');
     let max = 0;
@@ -37,11 +42,16 @@ const ViewTreino = (() => {
 
   function renderMusculacao(content, state, api) {
     const existing = Storage.getByDate('treino', state.date)[0];
-    const exercises = existing ? existing.exercises : [{ name: '', sets: '', reps: '', weight: '' }];
     const biblioteca = Storage.getAll('exercicios_biblioteca');
     const planos = Storage.getAll('treino_planos').sort((a, b) => a.ordem - b.ordem);
     const sugerido = Util.planoSugerido();
     let planoIdAtual = existing ? existing.planoId || null : null;
+
+    let rows = (existing ? existing.exercises : [{ name: '', sets: '', reps: '', weight: '', done: [] }]).map(e => ({ ...e }));
+    if (rows.length === 0) rows = [{ name: '', sets: '', reps: '', weight: '', done: [] }];
+    // Estado transitório de edição por card (não é persistido)
+    const ui = { scheme: {}, weight: {} };
+    const expandedVideos = new Set();
 
     content.innerHTML = `
       <datalist id="exercicios-datalist">
@@ -59,27 +69,237 @@ const ViewTreino = (() => {
           </select>
         </div>
       ` : ''}
+      <div id="ex-cards"></div>
+      <button class="secondary" id="add-exercise" style="width:100%;padding:12px;margin-bottom:14px">+ Adicionar exercício</button>
       <div class="card">
-        <h2>Treino do dia</h2>
-        <div id="exercise-list"></div>
-        <button class="secondary" id="add-exercise">+ Adicionar exercício</button>
         <label>Duração (min) — opcional, usada para estimar calorias gastas</label>
         <input type="number" id="treino-duracao" placeholder="Ex: 50" value="${existing && existing.duracaoMin ? existing.duracaoMin : ''}">
-        <label>Notas</label>
+        <label>Notas do treino</label>
         <textarea id="treino-notes" placeholder="Sensação, observações...">${Util.escapeHtml(existing ? existing.notes : '')}</textarea>
         <button class="primary" id="save-treino">Salvar treino</button>
       </div>
     `;
-    const list = document.getElementById('exercise-list');
-    let rows = exercises.map(e => ({ ...e }));
-    const expandedVideos = new Set();
+
+    function grupoDe(name) {
+      const d = biblioteca.find(e => e.name.trim().toLowerCase() === (name || '').trim().toLowerCase());
+      return d ? d.grupo : '';
+    }
+    function videoDe(name) {
+      const d = biblioteca.find(e => e.name.trim().toLowerCase() === (name || '').trim().toLowerCase());
+      return (d && d.videoUrl) || Util.youtubeSearchUrl(name);
+    }
+    function setsCount(r) { return Math.max(0, Math.min(12, Number(r.sets) || 0)); }
+    function ensureDone(r) {
+      const n = setsCount(r);
+      if (!Array.isArray(r.done)) r.done = [];
+      while (r.done.length < n) r.done.push(false);
+      if (r.done.length > n) r.done = r.done.slice(0, n);
+      return r.done;
+    }
+
+    function persist() {
+      const cleaned = rows
+        .filter(r => r.name && r.name.trim() !== '')
+        .map(r => ({ name: r.name.trim(), sets: r.sets, reps: r.reps, weight: r.weight, done: Array.isArray(r.done) ? r.done : [] }));
+      const notesEl = document.getElementById('treino-notes');
+      const notes = notesEl ? notesEl.value.trim() : (existing ? existing.notes : '');
+      const durEl = document.getElementById('treino-duracao');
+      const duracaoMin = durEl ? (Number(durEl.value) || null) : (existing ? existing.duracaoMin : null);
+      const cur = Storage.getByDate('treino', state.date)[0];
+      if (cur) Storage.update('treino', cur.id, { exercises: cleaned, notes, planoId: planoIdAtual, duracaoMin });
+      else if (cleaned.length) Storage.add('treino', { date: state.date, exercises: cleaned, notes, planoId: planoIdAtual, duracaoMin });
+      if (typeof atualizarGastoAuto === 'function') atualizarGastoAuto(state.date);
+    }
+
+    // Data desde a qual o peso atual do exercício se mantém (igual à referência "Desde ...")
+    function weightSince(name, w) {
+      if (!w || !name.trim()) return null;
+      const all = Storage.getAll('treino').filter(e => e.date <= state.date).sort((a, b) => b.date.localeCompare(a.date));
+      let since = state.date;
+      for (const e of all) {
+        const ex = (e.exercises || []).find(x => x.name && x.name.trim().toLowerCase() === name.trim().toLowerCase() && x.weight);
+        if (!ex) continue;
+        if (Number(ex.weight) === Number(w)) since = e.date;
+        else break;
+      }
+      return since;
+    }
+
+    const cardsEl = document.getElementById('ex-cards');
+
+    function cardHtml(r, i) {
+      ensureDone(r);
+      const grupo = grupoDe(r.name);
+      const n = setsCount(r);
+      const nameFilled = r.name && r.name.trim() !== '';
+      const maxHist = nameFilled ? maxWeightHistorico(r.name, existing ? existing.id : null) : 0;
+      const isPR = r.weight && nameFilled && Number(r.weight) > maxHist && maxHist > 0;
+      const since = weightSince(r.name, r.weight);
+
+      const schemeBlock = ui.scheme[i]
+        ? `<div class="ex-scheme-edit">
+             <input type="number" class="ex-sets-input" placeholder="Séries" value="${Util.escapeHtml(r.sets)}">
+             <span>x</span>
+             <input type="text" class="ex-reps-input" placeholder="8 a 10" value="${Util.escapeHtml(r.reps)}">
+             <button class="ex-scheme-ok" data-scheme-ok="${i}">OK</button>
+           </div>`
+        : `<button class="ex-scheme-pill" data-scheme="${i}">
+             ${ICON_REPEAT}
+             <span>${(r.sets || r.reps) ? `${Util.escapeHtml(r.sets || '?')}x${Util.escapeHtml(r.reps || '?')}` : 'Definir séries e reps'}</span>
+           </button>`;
+
+      const seriesBlock = n > 0
+        ? `<div class="ex-series">
+             ${Array.from({ length: n }).map((_, j) =>
+               `<button class="ex-serie ${r.done[j] ? 'done' : ''}" data-serie="${i}-${j}">${r.done[j] ? '✓ ' : ''}Série ${j + 1}</button>`
+             ).join('')}
+           </div>`
+        : '';
+
+      const weightBlock = ui.weight[i]
+        ? `<div class="ex-weight-row">
+             <input type="number" step="0.5" class="ex-weight-input" placeholder="Peso (kg)" value="${Util.escapeHtml(r.weight)}">
+             <button class="ex-weight-ok" data-weight-ok="${i}">OK</button>
+           </div>`
+        : `<div class="ex-weight-row">
+             <div class="ex-weight-box">
+               <div class="ex-weight-val">${ICON_WEIGHT}<span>${r.weight ? `${Util.escapeHtml(r.weight)} kg` : '— kg'}</span>${isPR ? '<span class="badge pr">🏆 PR</span>' : ''}</div>
+               ${since && r.weight ? `<div class="ex-weight-since">Desde ${Util.fmtDate(since)}</div>` : ''}
+             </div>
+             <button class="ex-weight-update" data-weight="${i}">+ Atualizar</button>
+           </div>`;
+
+      return `
+        <div class="ex-card" data-i="${i}">
+          <div class="ex-card-head">
+            <span class="ex-thumb">${ICON_DUMBBELL}${nameFilled ? '<span class="ex-thumb-play">▶</span>' : ''}</span>
+            <div class="ex-head-main">
+              <input class="ex-name-input" list="exercicios-datalist" placeholder="Nome do exercício" value="${Util.escapeHtml(r.name)}">
+              <div class="ex-grupo">${grupo ? Util.escapeHtml(grupo) : (nameFilled ? '' : 'Toque para nomear')}</div>
+            </div>
+            <button class="ex-remove" data-remove="${i}" aria-label="Remover">✕</button>
+          </div>
+          ${schemeBlock}
+          ${seriesBlock}
+          ${weightBlock}
+          ${nameFilled ? videoBlock(r, i) : ''}
+        </div>
+      `;
+    }
+
+    // Player embutido do YouTube quando há link específico; senão, link de busca externo.
+    function videoBlock(r, i) {
+      const doLib = biblioteca.find(e => e.name.trim().toLowerCase() === r.name.trim().toLowerCase());
+      const videoUrl = doLib && doLib.videoUrl;
+      const embedId = Util.youtubeEmbedId ? Util.youtubeEmbedId(videoUrl) : null;
+      if (embedId) {
+        const isOpen = expandedVideos.has(i);
+        return `
+          <button type="button" class="ex-video-link" data-togglevideo="${i}">${isOpen ? '▲ Ocultar vídeo' : '▶ Ver vídeo do exercício'}</button>
+          ${isOpen ? `<div class="ex-video-embed"><iframe width="100%" height="100%" src="https://www.youtube.com/embed/${embedId}" title="Vídeo do exercício" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe></div>` : ''}
+        `;
+      }
+      const url = videoUrl || Util.youtubeSearchUrl(r.name);
+      return `<a href="${url}" target="_blank" rel="noopener" class="ex-video-link">▶ Ver vídeo do exercício</a>`;
+    }
+
+    function syncNames() {
+      cardsEl.querySelectorAll('.ex-card').forEach(card => {
+        const i = Number(card.dataset.i);
+        const inp = card.querySelector('.ex-name-input');
+        if (inp && rows[i]) rows[i].name = inp.value;
+      });
+    }
+
+    function renderCards() {
+      cardsEl.innerHTML = rows.map((r, i) => cardHtml(r, i)).join('');
+      bindCards();
+    }
+
+    function bindCards() {
+      cardsEl.querySelectorAll('.ex-name-input').forEach(inp => {
+        inp.addEventListener('change', () => { syncNames(); persist(); renderCards(); });
+      });
+      cardsEl.querySelectorAll('[data-remove]').forEach(btn => {
+        btn.addEventListener('click', () => {
+          syncNames();
+          rows.splice(Number(btn.dataset.remove), 1);
+          if (rows.length === 0) rows.push({ name: '', sets: '', reps: '', weight: '', done: [] });
+          persist();
+          renderCards();
+        });
+      });
+      cardsEl.querySelectorAll('[data-scheme]').forEach(btn => {
+        btn.addEventListener('click', () => {
+          syncNames();
+          ui.scheme[Number(btn.dataset.scheme)] = true;
+          renderCards();
+          const card = cardsEl.querySelector(`.ex-card[data-i="${btn.dataset.scheme}"]`);
+          const f = card && card.querySelector('.ex-sets-input');
+          if (f) f.focus();
+        });
+      });
+      cardsEl.querySelectorAll('[data-scheme-ok]').forEach(btn => {
+        btn.addEventListener('click', () => {
+          syncNames();
+          const i = Number(btn.dataset.schemeOk);
+          const card = cardsEl.querySelector(`.ex-card[data-i="${i}"]`);
+          rows[i].sets = card.querySelector('.ex-sets-input').value;
+          rows[i].reps = card.querySelector('.ex-reps-input').value;
+          ensureDone(rows[i]);
+          ui.scheme[i] = false;
+          persist();
+          renderCards();
+        });
+      });
+      cardsEl.querySelectorAll('[data-serie]').forEach(btn => {
+        btn.addEventListener('click', () => {
+          syncNames();
+          const [i, j] = btn.dataset.serie.split('-').map(Number);
+          ensureDone(rows[i]);
+          rows[i].done[j] = !rows[i].done[j];
+          persist();
+          renderCards();
+        });
+      });
+      cardsEl.querySelectorAll('[data-weight]').forEach(btn => {
+        btn.addEventListener('click', () => {
+          syncNames();
+          ui.weight[Number(btn.dataset.weight)] = true;
+          renderCards();
+          const card = cardsEl.querySelector(`.ex-card[data-i="${btn.dataset.weight}"]`);
+          const f = card && card.querySelector('.ex-weight-input');
+          if (f) { f.focus(); f.select(); }
+        });
+      });
+      cardsEl.querySelectorAll('[data-weight-ok]').forEach(btn => {
+        btn.addEventListener('click', () => {
+          syncNames();
+          const i = Number(btn.dataset.weightOk);
+          const card = cardsEl.querySelector(`.ex-card[data-i="${i}"]`);
+          rows[i].weight = card.querySelector('.ex-weight-input').value;
+          ui.weight[i] = false;
+          persist();
+          renderCards();
+        });
+      });
+      cardsEl.querySelectorAll('[data-togglevideo]').forEach(btn => {
+        btn.addEventListener('click', () => {
+          syncNames();
+          const i = Number(btn.dataset.togglevideo);
+          if (expandedVideos.has(i)) expandedVideos.delete(i); else expandedVideos.add(i);
+          renderCards();
+        });
+      });
+    }
 
     function aplicarPlano(plano) {
       if (!plano) return;
       planoIdAtual = plano.id;
-      rows = (plano.exercises || []).map(e => ({ ...e }));
-      if (rows.length === 0) rows.push({ name: '', sets: '', reps: '', weight: '' });
-      renderRows();
+      rows = (plano.exercises || []).map(e => ({ ...e, done: [] }));
+      if (rows.length === 0) rows.push({ name: '', sets: '', reps: '', weight: '', done: [] });
+      persist();
+      renderCards();
     }
 
     if (planos.length > 0) {
@@ -87,93 +307,24 @@ const ViewTreino = (() => {
       document.getElementById('escolher-plano').addEventListener('change', e => {
         const plano = planos.find(p => p.id === e.target.value);
         if (plano) aplicarPlano(plano);
-        else planoIdAtual = null;
+        else { planoIdAtual = null; persist(); }
       });
     }
-
-    function renderRows() {
-      list.innerHTML = rows.map((r, i) => {
-        const isPR = r.weight && r.name && Number(r.weight) > maxWeightHistorico(r.name, existing ? existing.id : null) && maxWeightHistorico(r.name, existing ? existing.id : null) > 0;
-        return `
-        <div class="exercise-row" data-i="${i}">
-          <input type="text" class="ex-name" list="exercicios-datalist" placeholder="Exercício" value="${Util.escapeHtml(r.name)}">
-          <input type="number" class="small ex-sets" placeholder="Séries" value="${Util.escapeHtml(r.sets)}">
-          <input type="number" class="small ex-reps" placeholder="Reps" value="${Util.escapeHtml(r.reps)}">
-          <input type="number" class="small ex-weight" placeholder="Kg" value="${Util.escapeHtml(r.weight)}">
-          <button class="link" data-remove="${i}">✕</button>
-          ${isPR ? '<span class="badge pr">🏆 PR</span>' : ''}
-          ${r.name.trim() ? (() => {
-            const doLib = biblioteca.find(e => e.name.trim().toLowerCase() === r.name.trim().toLowerCase());
-            const videoUrl = doLib && doLib.videoUrl;
-            const embedId = Util.youtubeEmbedId(videoUrl);
-            if (embedId) {
-              const isOpen = expandedVideos.has(i);
-              return `
-                <button type="button" class="link" data-togglevideo="${i}" style="color:var(--accent);flex-basis:100%;text-align:left">${isOpen ? '▲ Ocultar vídeo' : '▶ Ver vídeo do exercício'}</button>
-                ${isOpen ? `<div style="flex-basis:100%;aspect-ratio:16/9;margin-top:6px"><iframe width="100%" height="100%" src="https://www.youtube.com/embed/${embedId}" title="Vídeo do exercício" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe></div>` : ''}
-              `;
-            }
-            const url = videoUrl || Util.youtubeSearchUrl(r.name);
-            return `<a href="${url}" target="_blank" rel="noopener" class="meta" style="color:var(--accent);flex-basis:100%">▶ Ver vídeo do exercício</a>`;
-          })() : ''}
-        </div>
-      `;
-      }).join('');
-      list.querySelectorAll('[data-remove]').forEach(btn => {
-        btn.addEventListener('click', () => {
-          rows.splice(Number(btn.dataset.remove), 1);
-          if (rows.length === 0) rows.push({ name: '', sets: '', reps: '', weight: '' });
-          syncFromInputs();
-          renderRows();
-        });
-      });
-      list.querySelectorAll('.ex-weight, .ex-name').forEach(inp => {
-        inp.addEventListener('change', () => { syncFromInputs(); renderRows(); });
-      });
-      list.querySelectorAll('[data-togglevideo]').forEach(btn => {
-        btn.addEventListener('click', () => {
-          const i = Number(btn.dataset.togglevideo);
-          if (expandedVideos.has(i)) expandedVideos.delete(i); else expandedVideos.add(i);
-          syncFromInputs();
-          renderRows();
-        });
-      });
-    }
-
-    function syncFromInputs() {
-      const names = list.querySelectorAll('.ex-name');
-      const sets = list.querySelectorAll('.ex-sets');
-      const reps = list.querySelectorAll('.ex-reps');
-      const weights = list.querySelectorAll('.ex-weight');
-      rows = rows.map((r, i) => ({
-        name: names[i] ? names[i].value : r.name,
-        sets: sets[i] ? sets[i].value : r.sets,
-        reps: reps[i] ? reps[i].value : r.reps,
-        weight: weights[i] ? weights[i].value : r.weight,
-      }));
-    }
-
-    renderRows();
 
     document.getElementById('add-exercise').addEventListener('click', () => {
-      syncFromInputs();
-      rows.push({ name: '', sets: '', reps: '', weight: '' });
-      renderRows();
+      syncNames();
+      rows.push({ name: '', sets: '', reps: '', weight: '', done: [] });
+      renderCards();
     });
 
     document.getElementById('save-treino').addEventListener('click', () => {
-      syncFromInputs();
-      const cleaned = rows.filter(r => r.name.trim() !== '');
-      const notes = document.getElementById('treino-notes').value.trim();
-      const duracaoMin = Number(document.getElementById('treino-duracao').value) || null;
-      if (existing) {
-        Storage.update('treino', existing.id, { exercises: cleaned, notes, planoId: planoIdAtual, duracaoMin });
-      } else {
-        Storage.add('treino', { date: state.date, exercises: cleaned, notes, planoId: planoIdAtual, duracaoMin });
-      }
+      syncNames();
+      persist();
       atualizarGastoAuto(state.date);
       api.render();
     });
+
+    renderCards();
   }
 
   function renderCorrida(content, state, api) {
