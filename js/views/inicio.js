@@ -60,6 +60,7 @@ const ViewInicio = (() => {
     const gastoExtra = gastoExistente ? gastoExistente.kcal : 0;
 
     const tendencia = typeof calcularTendenciaPeso === 'function' ? calcularTendenciaPeso() : null;
+    const projecao = typeof calcularProjecaoPeso === 'function' ? calcularProjecaoPeso() : null;
     const diasFoco = calcularDiasFoco(meta, aguaMeta);
 
     const tarefas = Storage.getAll('tarefas').filter(t => ViewTarefas.isApplicable(t, state.date));
@@ -86,9 +87,9 @@ const ViewInicio = (() => {
             <div><div class="num">${(meta.kcal - kcalConsumido).toFixed(0)}</div><div class="lbl">${meta.kcal - kcalConsumido >= 0 ? 'Restante' : 'Excedeu'}</div></div>
           </div>
           ${progressBar('Calorias', kcalConsumido, meta.kcal, '')}
-          <label style="margin-top:12px">🔥 Calorias extras gastas hoje (manual)</label>
+          <label style="margin-top:12px">🔥 Calorias extras gastas hoje ${gastoExistente && gastoExistente.source === 'auto' ? '(estimado a partir do treino/corrida)' : gastoExistente && gastoExistente.source === 'manual' ? '(ajustado manualmente)' : '(manual)'}</label>
           <input type="number" id="gasto-extra-input" placeholder="Ex: 300" value="${gastoExtra || ''}">
-          <p class="meta" style="font-size:0.72rem">Só informativo — não altera sua meta de calorias.</p>
+          <p class="meta" style="font-size:0.72rem">Só informativo — não altera sua meta de calorias. Preenche sozinho quando você registra treino (com duração) ou corrida; edite se quiser ajustar.</p>
         ` : `<p class="empty">Complete seu perfil para ver sua meta de calorias.</p>`}
         ${aguaMeta ? progressBar('💧 Água', aguaConsumida, aguaMeta, 'ml') : ''}
       </div>
@@ -130,6 +131,20 @@ const ViewInicio = (() => {
           <p class="meta" style="margin-top:10px;text-align:center">${STATUS_LABELS[tendencia.status]}</p>
           <p class="meta" style="font-size:0.7rem;text-align:center">Estimativa geral (~7700kcal ≈ 1kg), não substitui acompanhamento profissional.</p>
         ` : `<p class="empty">Registre pelo menos 2 medições de peso (em dias diferentes) para ver sua tendência.</p>`}
+        ${projecao && projecao.horizontes.length > 0 ? `
+          <h3 style="margin-top:16px;font-size:0.9rem">Projeção futura (mantendo o ritmo atual)</h3>
+          <div class="row" style="flex-wrap:wrap">
+            ${projecao.horizontes.map(h => `
+              <div class="card" style="margin:4px 0;padding:10px;text-align:center;flex:1 1 40%">
+                <div class="lbl" style="font-size:0.72rem;color:var(--text-muted)">${Util.fmtDate(h.data)} (${h.semanas}sem)</div>
+                <strong>${h.peso}kg</strong>
+              </div>
+            `).join('')}
+          </div>
+          <p class="meta" style="font-size:0.7rem;text-align:center">
+            ${projecao.kgPorSemana < 0 ? 'Perdendo' : 'Ganhando'} ~${Math.abs(projecao.kgPorSemana)}kg/semana com base na meta de calorias selecionada (${meta.kcal}kcal) vs. seu gasto (TDEE ${meta.tdee}kcal). Projeção simples, não considera adaptação metabólica.
+          </p>
+        ` : ''}
       </div>
 
       <div class="card dashboard-section">
@@ -173,9 +188,9 @@ const ViewInicio = (() => {
       gastoInput.addEventListener('change', () => {
         const kcal = Number(gastoInput.value) || 0;
         if (gastoExistente) {
-          Storage.update('gastos', gastoExistente.id, { kcal });
+          Storage.update('gastos', gastoExistente.id, { kcal, source: 'manual' });
         } else {
-          Storage.add('gastos', { date: state.date, kcal });
+          Storage.add('gastos', { date: state.date, kcal, source: 'manual' });
         }
         api.render();
       });

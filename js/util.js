@@ -20,6 +20,12 @@ const Util = (() => {
     return d.toISOString().slice(0, 10);
   }
 
+  function daysFromNow(n) {
+    const d = new Date();
+    d.setDate(d.getDate() + n);
+    return d.toISOString().slice(0, 10);
+  }
+
   function movingAverage(points, window) {
     return points.map((p, i) => {
       const slice = points.slice(Math.max(0, i - window + 1), i + 1);
@@ -77,5 +83,5 @@ const Util = (() => {
     return `https://www.youtube.com/results?search_query=${encodeURIComponent(query + ' execução exercício')}`;
   }
 
-  return { todayISO, fmtDate, escapeHtml, daysAgo, movingAverage, getPesoAtual, planoSugerido, weekdayOf, daysBetween, inputGroup, youtubeSearchUrl };
+  return { todayISO, fmtDate, escapeHtml, daysAgo, daysFromNow, movingAverage, getPesoAtual, planoSugerido, weekdayOf, daysBetween, inputGroup, youtubeSearchUrl };
 })();

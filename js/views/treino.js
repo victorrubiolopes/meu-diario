@@ -63,8 +63,10 @@ const ViewTreino = (() => {
         <h2>Treino do dia</h2>
         <div id="exercise-list"></div>
         <button class="secondary" id="add-exercise">+ Adicionar exercício</button>
+        <label>Duração (min) — opcional, usada para estimar calorias gastas</label>
+        <input type="number" id="treino-duracao" placeholder="Ex: 50" value="${existing && existing.duracaoMin ? existing.duracaoMin : ''}">
         <label>Notas</label>
-        <textarea id="treino-notes" placeholder="Duração, sensação, observações...">${Util.escapeHtml(existing ? existing.notes : '')}</textarea>
+        <textarea id="treino-notes" placeholder="Sensação, observações...">${Util.escapeHtml(existing ? existing.notes : '')}</textarea>
         <button class="primary" id="save-treino">Salvar treino</button>
       </div>
     `;
@@ -145,11 +147,13 @@ const ViewTreino = (() => {
       syncFromInputs();
       const cleaned = rows.filter(r => r.name.trim() !== '');
       const notes = document.getElementById('treino-notes').value.trim();
+      const duracaoMin = Number(document.getElementById('treino-duracao').value) || null;
       if (existing) {
-        Storage.update('treino', existing.id, { exercises: cleaned, notes, planoId: planoIdAtual });
+        Storage.update('treino', existing.id, { exercises: cleaned, notes, planoId: planoIdAtual, duracaoMin });
       } else {
-        Storage.add('treino', { date: state.date, exercises: cleaned, notes, planoId: planoIdAtual });
+        Storage.add('treino', { date: state.date, exercises: cleaned, notes, planoId: planoIdAtual, duracaoMin });
       }
+      atualizarGastoAuto(state.date);
       api.render();
     });
   }
@@ -186,11 +190,13 @@ const ViewTreino = (() => {
       const notes = document.getElementById('run-notes').value.trim();
       if (!distanceKm || !timeMin) return;
       Storage.add('corridas', { date: state.date, distanceKm, timeMin, notes, order: Date.now() });
+      atualizarGastoAuto(state.date);
       api.render();
     });
     content.querySelectorAll('[data-remove]').forEach(btn => {
       btn.addEventListener('click', () => {
         Storage.remove('corridas', btn.dataset.remove);
+        atualizarGastoAuto(state.date);
         api.render();
       });
     });

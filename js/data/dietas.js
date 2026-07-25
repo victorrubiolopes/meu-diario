@@ -111,3 +111,62 @@ function calcularTendenciaPeso() {
 
   return { taxaReal, taxaEsperada, status, dias, pesoInicial: primeiro.weight, pesoAtual: ultimo.weight };
 }
+
+// Projeção futura: com base no déficit/superávit da dieta selecionada (meta.kcal vs TDEE),
+// estima o peso em algumas semanas à frente. É uma extrapolação simples (regra dos 7700kcal/kg),
+// não considera adaptação metabólica.
+function calcularProjecaoPeso() {
+  const perfil = Storage.getPerfil();
+  const meta = calcularMetas(perfil);
+  if (!meta || meta.tdee == null) return null;
+
+  const pesoAtual = Util.getPesoAtual();
+  if (!pesoAtual) return null;
+
+  const ajusteDiario = meta.kcal - meta.tdee;
+  const kgPorSemana = (ajusteDiario * 7) / KCAL_POR_KG;
+  if (Math.abs(kgPorSemana) < 0.01) return { pesoAtual, kgPorSemana: 0, horizontes: [] };
+
+  const semanasHorizontes = [2, 4, 8, 12];
+  const horizontes = semanasHorizontes.map(semanas => ({
+    semanas,
+    data: Util.daysFromNow(semanas * 7),
+    peso: Math.round((pesoAtual + kgPorSemana * semanas) * 10) / 10,
+  }));
+
+  return { pesoAtual, kgPorSemana: Math.round(kgPorSemana * 100) / 100, horizontes };
+}
+
+// Estimativa de calorias gastas em atividades do dia (corrida + musculação),
+// usada para preencher automaticamente o campo de gasto extra em Início.
+function calcularGastoEstimado(date) {
+  const peso = Util.getPesoAtual();
+  if (!peso) return 0;
+  let total = 0;
+
+  Storage.getByDate('corridas', date).forEach(c => {
+    // Regra geral: ~1 kcal por kg de peso corporal por km percorrido (corrida).
+    if (c.distanceKm) total += peso * c.distanceKm * 1.036;
+  });
+
+  Storage.getByDate('treino', date).forEach(t => {
+    // MET ~5 (musculação moderada) — só entra na conta se a duração foi informada.
+    if (t.duracaoMin) total += 5 * peso * (t.duracaoMin / 60);
+  });
+
+  return Math.round(total);
+}
+
+// Cria/atualiza o registro de gasto extra do dia com a estimativa automática,
+// sem sobrescrever um valor que o usuário tenha ajustado manualmente.
+function atualizarGastoAuto(date) {
+  const estimado = calcularGastoEstimado(date);
+  const existente = Storage.getByDate('gastos', date)[0];
+  if (existente) {
+    if (existente.source !== 'manual') {
+      Storage.update('gastos', existente.id, { kcal: estimado, source: 'auto' });
+    }
+  } else if (estimado > 0) {
+    Storage.add('gastos', { date, kcal: estimado, source: 'auto' });
+  }
+}
