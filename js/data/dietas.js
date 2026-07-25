@@ -49,13 +49,19 @@ function calcularMetaAgua(perfil) {
 
 function calcularMetas(perfil) {
   const bmr = calcularBMR(perfil);
-  if (!bmr) return null;
-  const tdee = calcularTDEE(bmr, perfil.nivelAtividade);
 
   if (perfil.metaCustom && perfil.metaCustom.kcal) {
-    const { kcal, protein, fat, carb } = perfil.metaCustom;
-    return { bmr: Math.round(bmr), tdee: Math.round(tdee), kcal, protein, fat, carb };
+    const { kcal, protein, fat, carb, fiber } = perfil.metaCustom;
+    const tdee = bmr ? calcularTDEE(bmr, perfil.nivelAtividade) : null;
+    return {
+      bmr: bmr ? Math.round(bmr) : null,
+      tdee: tdee ? Math.round(tdee) : null,
+      kcal, protein, fat, carb, fiber,
+    };
   }
+
+  if (!bmr) return null;
+  const tdee = calcularTDEE(bmr, perfil.nivelAtividade);
 
   const template = DIETA_TEMPLATES.find(t => t.id === perfil.dietaTemplate) || DIETA_TEMPLATES[1];
   const macroStyle = MACRO_STYLES.find(m => m.id === perfil.macroStyle) || MACRO_STYLES[0];
@@ -75,7 +81,7 @@ const KCAL_POR_KG = 7700;
 function calcularTendenciaPeso() {
   const perfil = Storage.getPerfil();
   const meta = calcularMetas(perfil);
-  if (!meta) return null;
+  if (!meta || meta.tdee == null) return null;
 
   const medidas = Storage.getAll('medidas').filter(m => m.weight != null).sort((a, b) => a.date.localeCompare(b.date));
   if (medidas.length < 2) return null;

@@ -83,10 +83,10 @@ const Storage = (() => {
 
   // Adiciona itens novos do catálogo padrão que ainda não existem (por nome),
   // sem duplicar nem mexer em itens já salvos/editados pelo usuário.
-  function mergeSeeds(key, seedData) {
+  function mergeSeeds(key, seedData, nameField = 'name') {
     const current = getAll(key);
-    const existingNames = new Set(current.map(i => i.name.toLowerCase()));
-    const toAdd = seedData.filter(item => !existingNames.has(item.name.toLowerCase()));
+    const existingNames = new Set(current.map(i => i[nameField].toLowerCase()));
+    const toAdd = seedData.filter(item => !existingNames.has(item[nameField].toLowerCase()));
     if (toAdd.length > 0) {
       const seeded = toAdd.map(item => ({ ...item, id: uid(), custom: false }));
       saveAll(key, [...current, ...seeded]);

@@ -120,6 +120,7 @@ const App = (() => {
   function init() {
     Storage.mergeSeeds('exercicios_biblioteca', EXERCICIOS_PADRAO);
     Storage.mergeSeeds('alimentos_biblioteca', ALIMENTOS_PADRAO);
+    Storage.mergeSeeds('combos', COMBOS_PADRAO, 'nome');
 
     $datePicker.addEventListener('change', () => {
       state.date = $datePicker.value;

@@ -170,4 +170,13 @@ const ALIMENTOS_PADRAO = [
   { name: 'Pudim de leite', portionLabel: '1 fatia (100g)', portionGrams: 100, kcal: 150, carbs: 25, sugars: 24, protein: 4, fat: 4, satFat: 2, transFat: 0, fiber: 0, sodium: 60 },
   { name: 'Molho shoyu', portionLabel: '1 colher sopa (15ml)', portionGrams: 15, kcal: 8, carbs: 1, sugars: 0.4, protein: 1, fat: 0, satFat: 0, transFat: 0, fiber: 0.1, sodium: 1000 },
   { name: 'Vinagrete', portionLabel: '100g', portionGrams: 100, kcal: 35, carbs: 5, sugars: 3, protein: 0.8, fat: 1.5, satFat: 0.2, transFat: 0, fiber: 1, sodium: 250 },
+
+  // Preparo dietético / cardápio de nutricionista
+  { name: 'Ovo frito (chapa untada, sem óleo)', portionLabel: '1 unidade (50g)', portionGrams: 50, kcal: 82, carbs: 0.6, sugars: 0.6, protein: 6.5, fat: 5.8, satFat: 1.8, transFat: 0, fiber: 0, sodium: 70 },
+  { name: 'Suco Zero (em pó, sem açúcar)', portionLabel: '1 copo (200ml)', portionGrams: 200, kcal: 5, carbs: 1, sugars: 0, protein: 0, fat: 0, satFat: 0, transFat: 0, fiber: 0, sodium: 10 },
+  { name: 'Refrigerante zero', portionLabel: '1 lata (350ml)', portionGrams: 350, kcal: 1, carbs: 0.3, sugars: 0, protein: 0, fat: 0, satFat: 0, transFat: 0, fiber: 0, sodium: 30 },
+  { name: 'Batata inglesa crua', portionLabel: '100g', portionGrams: 100, kcal: 77, carbs: 17.5, sugars: 0.8, protein: 2, fat: 0.1, satFat: 0, transFat: 0, fiber: 1.3, sodium: 6 },
+  { name: 'Batata doce crua', portionLabel: '100g', portionGrams: 100, kcal: 86, carbs: 20.1, sugars: 4.2, protein: 1.6, fat: 0.1, satFat: 0, transFat: 0, fiber: 3, sodium: 55 },
+  { name: 'Requeijão light', portionLabel: '1 colher sopa (25g)', portionGrams: 25, kcal: 32, carbs: 1.9, sugars: 1.9, protein: 3.1, fat: 2, satFat: 1.2, transFat: 0, fiber: 0, sodium: 110 },
+  { name: 'Salada crua (mix de folhas e legumes)', portionLabel: '100g', portionGrams: 100, kcal: 20, carbs: 3.5, sugars: 1.5, protein: 1.5, fat: 0.2, satFat: 0, transFat: 0, fiber: 2, sodium: 15 },
 ];

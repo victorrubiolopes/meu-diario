@@ -46,8 +46,9 @@ const ViewAlimentacao = (() => {
         </div>
       `;
     } else {
-      const ajusteDesejado = meta.kcal - meta.tdee;
-      const ajusteReal = meta.tdee - totals.kcal;
+      const temTdee = meta.tdee != null;
+      const ajusteDesejado = temTdee ? meta.kcal - meta.tdee : null;
+      const ajusteReal = temTdee ? meta.tdee - totals.kcal : null;
       const labelDesejado = ajusteDesejado <= 0 ? 'Déficit desejado' : 'Superávit desejado';
       const labelReal = ajusteReal >= 0 ? 'Déficit hoje' : 'Superávit hoje';
       metaBlock = `
@@ -60,6 +61,8 @@ const ViewAlimentacao = (() => {
           ${progressBar('Proteína', totals.protein, meta.protein, 'g')}
           ${progressBar('Carboidrato', totals.carbs, meta.carb, 'g')}
           ${progressBar('Gordura', totals.fat, meta.fat, 'g')}
+          ${meta.fiber ? progressBar('Fibras', totals.fiber, meta.fiber, 'g') : ''}
+          ${temTdee ? `
           <div class="row" style="margin-top:10px">
             <div class="card" style="margin:0;padding:10px;text-align:center">
               <div class="lbl" style="font-size:0.72rem;color:var(--text-muted)">${labelDesejado}</div>
@@ -70,6 +73,9 @@ const ViewAlimentacao = (() => {
               <strong>${Math.abs(ajusteReal).toFixed(0)} kcal</strong>
             </div>
           </div>
+          ` : `
+          <p class="meta" style="margin-top:10px;color:var(--text-muted);font-size:0.78rem">Preencha altura, idade, sexo e nível de atividade no Perfil para ver o déficit/superávit real em relação ao seu gasto (TDEE).</p>
+          `}
           ${(() => {
             const strategy = MEAL_STRATEGIES.find(m => m.id === perfil.mealStrategy);
             return strategy ? `<p class="meta" style="margin-top:10px;color:var(--text-muted);font-size:0.78rem">${strategy.nome}: ${strategy.dica}</p>` : '';
@@ -287,6 +293,23 @@ const ViewAlimentacao = (() => {
       });
     });
 
+    $app.querySelectorAll('[data-editqty]').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const entry = entries.find(e => e.id === btn.dataset.editqty);
+        if (!entry) return;
+        const oldQty = entry.qty || 1;
+        const input = prompt(`Nova quantidade para "${entry.foodName}" (porções, atual: ${oldQty}):`, oldQty);
+        if (input === null) return;
+        const newQty = Number(input);
+        if (!newQty || newQty <= 0) return;
+        const factor = newQty / oldQty;
+        const data = { qty: newQty };
+        NUTRI_FIELDS.forEach(f => { data[f] = Math.round((entry[f] || 0) * factor * 10) / 10; });
+        Storage.update('alimentacao', entry.id, data);
+        api.render();
+      });
+    });
+
     $app.querySelectorAll('[data-savecombo]').forEach(btn => {
       btn.addEventListener('click', () => {
         const mealType = btn.dataset.savecombo;
@@ -322,7 +345,10 @@ const ViewAlimentacao = (() => {
               <div>${Util.escapeHtml(e.foodName)} ${e.qty !== 1 ? `<span class="meta">(${e.qty}x)</span>` : ''}</div>
               <div class="meta">${e.kcal} kcal · P ${e.protein}g · C ${e.carbs}g · G ${e.fat}g</div>
             </div>
-            <button class="link" data-remove="${e.id}">✕</button>
+            <div style="display:flex;gap:6px">
+              <button class="link" data-editqty="${e.id}">✎</button>
+              <button class="link" data-remove="${e.id}">✕</button>
+            </div>
           </div>
         `).join('')}
       </div>

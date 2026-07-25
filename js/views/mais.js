@@ -95,6 +95,8 @@ const ViewMais = (() => {
             <div><label>Carboidrato (g)</label><input type="number" id="p-carb" value="${perfil.metaCustom?.carb ?? ''}"></div>
             <div><label>Gordura (g)</label><input type="number" id="p-fat" value="${perfil.metaCustom?.fat ?? ''}"></div>
           </div>
+          <label>Fibras (g) — opcional</label>
+          <input type="number" id="p-fiber" value="${perfil.metaCustom?.fiber ?? ''}">
         </div>
         <label>Em quantas refeições você quer dividir o dia</label>
         <input type="number" id="p-num-refeicoes" min="1" max="12" value="${perfil.numRefeicoes ?? 5}">
@@ -129,6 +131,7 @@ const ViewMais = (() => {
           protein: Number(document.getElementById('p-protein').value) || null,
           carb: Number(document.getElementById('p-carb').value) || null,
           fat: Number(document.getElementById('p-fat').value) || null,
+          fiber: Number(document.getElementById('p-fiber').value) || null,
         };
       }
       return p;
@@ -159,17 +162,18 @@ const ViewMais = (() => {
       preview.innerHTML = `
         <h2>Sua meta calculada</h2>
         <div class="kcal-summary">
-          <div><div class="num">${meta.bmr}</div><div class="lbl">BMR</div></div>
-          <div><div class="num">${meta.tdee}</div><div class="lbl">TDEE</div></div>
+          <div><div class="num">${meta.bmr ?? '—'}</div><div class="lbl">BMR</div></div>
+          <div><div class="num">${meta.tdee ?? '—'}</div><div class="lbl">TDEE</div></div>
           <div><div class="num">${meta.kcal}</div><div class="lbl">Meta kcal</div></div>
         </div>
-        <p class="meta" style="text-align:center">Proteína ${meta.protein}g · Carboidrato ${meta.carb}g · Gordura ${meta.fat}g</p>
+        <p class="meta" style="text-align:center">Proteína ${meta.protein}g · Carboidrato ${meta.carb}g · Gordura ${meta.fat}g${meta.fiber ? ` · Fibras ${meta.fiber}g` : ''}</p>
+        ${meta.tdee == null ? `<p class="meta" style="text-align:center;color:var(--text-muted);font-size:0.78rem">Preencha altura, idade, sexo e nível de atividade para calcular seu gasto (TDEE) e ver o déficit/superávit real.</p>` : ''}
         <p class="meta" style="text-align:center;margin-top:10px">Por refeição (÷${numRefeicoes}): ${Math.round(meta.kcal / numRefeicoes)} kcal · P ${Math.round(meta.protein / numRefeicoes)}g · C ${Math.round(meta.carb / numRefeicoes)}g · G ${Math.round(meta.fat / numRefeicoes)}g</p>
         <p class="meta" style="text-align:center">Meta de água: ${calcularMetaAgua(formPerfil) ?? '—'}ml/dia</p>
       `;
     }
 
-    $app.querySelectorAll('#p-peso, #p-altura, #p-idade, #p-sexo, #p-atividade, #p-dieta, #p-macro-style, #p-meal-strategy, #p-num-refeicoes, #p-agua-meta, #p-kcal, #p-protein, #p-carb, #p-fat').forEach(el => {
+    $app.querySelectorAll('#p-peso, #p-altura, #p-idade, #p-sexo, #p-atividade, #p-dieta, #p-macro-style, #p-meal-strategy, #p-num-refeicoes, #p-agua-meta, #p-kcal, #p-protein, #p-carb, #p-fat, #p-fiber').forEach(el => {
       el.addEventListener('input', updatePreview);
       el.addEventListener('change', updatePreview);
     });
