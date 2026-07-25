@@ -1,5 +1,7 @@
 // Lista de atualizações recentes do app, mais recente primeiro. Editável manualmente a cada mudança.
 const CHANGELOG = [
+  { date: '2026-07-25', texto: 'Tela de musculação redesenhada: cards de exercício com séries marcáveis e peso com histórico' },
+  { date: '2026-07-25', texto: 'Novos alimentos na biblioteca: Paçoquita e Pão caseiro do sogro' },
   { date: '2026-07-25', texto: 'Editar quantidade de refeições já lançadas em porções ou gramas' },
   { date: '2026-07-25', texto: 'Dietas personalizadas nomeadas (ex: plano do nutricionista) como opção de Objetivo' },
   { date: '2026-07-25', texto: 'Vídeo do exercício incorporado direto no app, sem precisar sair pro YouTube' },
