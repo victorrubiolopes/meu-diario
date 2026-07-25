@@ -172,6 +172,15 @@ const ViewInicio = (() => {
           ${variacao != null ? ` <span class="meta">(${variacao > 0 ? '+' : ''}${variacao.toFixed(1)}kg desde a última medição)</span>` : ''}</p>
         ` : '<p class="empty">Nenhuma medição registrada ainda</p>'}
       </div>
+
+      ${typeof CHANGELOG !== 'undefined' && CHANGELOG.length > 0 ? `
+        <div class="card dashboard-section" style="padding:10px 14px">
+          <p class="meta" style="font-size:0.7rem;font-weight:600;margin-bottom:4px">🆕 Últimas atualizações</p>
+          ${CHANGELOG.slice(0, 4).map(c => `
+            <p class="meta" style="font-size:0.68rem;margin:2px 0">${Util.fmtDate(c.date)} — ${Util.escapeHtml(c.texto)}</p>
+          `).join('')}
+        </div>
+      ` : ''}
     `;
 
     $app.querySelectorAll('[data-toggle]').forEach(btn => {
