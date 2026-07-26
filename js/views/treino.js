@@ -77,6 +77,7 @@ const ViewTreino = (() => {
         <label>Notas do treino</label>
         <textarea id="treino-notes" placeholder="Sensação, observações...">${Util.escapeHtml(existing ? existing.notes : '')}</textarea>
         <button class="primary" id="save-treino">Salvar treino</button>
+        ${existing ? '<button class="danger-btn" id="delete-treino">Excluir treino do dia</button>' : ''}
       </div>
     `;
 
@@ -323,6 +324,18 @@ const ViewTreino = (() => {
       atualizarGastoAuto(state.date);
       api.render();
     });
+
+    const btnDelete = document.getElementById('delete-treino');
+    if (btnDelete) {
+      btnDelete.addEventListener('click', () => {
+        const cur = Storage.getByDate('treino', state.date)[0];
+        if (!cur) { api.render(); return; }
+        if (!confirm('Excluir o treino registrado neste dia? Esta ação não pode ser desfeita.')) return;
+        Storage.remove('treino', cur.id);
+        if (typeof atualizarGastoAuto === 'function') atualizarGastoAuto(state.date);
+        api.render();
+      });
+    }
 
     renderCards();
   }
