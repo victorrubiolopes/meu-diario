@@ -461,8 +461,9 @@ const ViewMais = (() => {
         <label>Baseado em</label>
         <select id="pack-select">
           ${Object.keys(TREINOS_PREDEFINIDOS).map(id => {
-            const nomeObjetivo = (DIETA_TEMPLATES.find(d => d.id === id) || {}).nome || id;
-            return `<option value="${id}" ${id === objetivoAtual ? 'selected' : ''}>${nomeObjetivo} — ${TREINOS_PREDEFINIDOS[id].label}</option>`;
+            const dieta = DIETA_TEMPLATES.find(d => d.id === id);
+            const rotulo = dieta ? `${dieta.nome} — ${TREINOS_PREDEFINIDOS[id].label}` : TREINOS_PREDEFINIDOS[id].label;
+            return `<option value="${id}" ${id === objetivoAtual ? 'selected' : ''}>${Util.escapeHtml(rotulo)}</option>`;
           }).join('')}
         </select>
         <p class="meta" id="pack-desc" style="color:var(--text-muted);font-size:0.78rem"></p>
