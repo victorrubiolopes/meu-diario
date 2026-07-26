@@ -1,5 +1,6 @@
 // Lista de atualizações recentes do app, mais recente primeiro. Editável manualmente a cada mudança.
 const CHANGELOG = [
+  { date: '2026-07-26', texto: 'Histórico de treinos na tela inicial, com opção de apagar cada registro' },
   { date: '2026-07-26', texto: 'Botão para excluir o treino do dia (desfazer registro feito sem querer)' },
   { date: '2026-07-25', texto: 'Tela de musculação redesenhada: cards de exercício com séries marcáveis e peso com histórico' },
   { date: '2026-07-25', texto: 'Novos alimentos na biblioteca: Paçoquita e Pão caseiro do sogro' },

@@ -77,6 +77,18 @@ const ViewInicio = (() => {
     const pesoAnterior = medidasOrdenadas[1];
     const variacao = pesoAtual && pesoAnterior ? (pesoAtual.weight - pesoAnterior.weight) : null;
 
+    // Histórico de treinos (musculação + corrida), mais recentes primeiro
+    const historicoTreinos = [
+      ...Storage.getAll('treino').map(t => ({
+        tipo: 'treino', id: t.id, date: t.date,
+        resumo: `Musculação — ${(t.exercises || []).length} exercício${(t.exercises || []).length === 1 ? '' : 's'}`,
+      })),
+      ...Storage.getAll('corridas').map(c => ({
+        tipo: 'corridas', id: c.id, date: c.date,
+        resumo: `Corrida — ${c.distanceKm}km em ${c.timeMin}min`,
+      })),
+    ].sort((a, b) => b.date.localeCompare(a.date)).slice(0, 15);
+
     $app.innerHTML = `
       <div class="card dashboard-section">
         <h2>Calorias hoje</h2>
@@ -166,6 +178,19 @@ const ViewInicio = (() => {
       </div>
 
       <div class="card dashboard-section">
+        <h2>Histórico de treinos</h2>
+        ${historicoTreinos.length === 0 ? '<div class="empty">Nenhum treino registrado ainda</div>' : historicoTreinos.map(h => `
+          <div class="list-item">
+            <div>
+              <strong>${Util.fmtDate(h.date)}</strong>
+              <div class="meta">${Util.escapeHtml(h.resumo)}</div>
+            </div>
+            <button class="link" data-del-treino="${h.tipo}:${h.id}" aria-label="Excluir">✕</button>
+          </div>
+        `).join('')}
+      </div>
+
+      <div class="card dashboard-section">
         <h2>Peso</h2>
         ${pesoAtual ? `
           <p><strong>${pesoAtual.weight}kg</strong> em ${Util.fmtDate(pesoAtual.date)}
@@ -188,6 +213,19 @@ const ViewInicio = (() => {
         const all = Storage.getAll('tarefas_conclusoes');
         all.push({ id: Storage.uid(), taskId: btn.dataset.toggle, date: state.date });
         Storage.saveAll('tarefas_conclusoes', all);
+        api.render();
+      });
+    });
+
+    $app.querySelectorAll('[data-del-treino]').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const sep = btn.dataset.delTreino.indexOf(':');
+        const tipo = btn.dataset.delTreino.slice(0, sep);
+        const id = btn.dataset.delTreino.slice(sep + 1);
+        if (!confirm('Excluir este treino do histórico? Esta ação não pode ser desfeita.')) return;
+        const item = Storage.getAll(tipo).find(x => x.id === id);
+        Storage.remove(tipo, id);
+        if (item && typeof atualizarGastoAuto === 'function') atualizarGastoAuto(item.date);
         api.render();
       });
     });
