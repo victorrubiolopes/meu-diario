@@ -31,3 +31,13 @@ const PLANO_VICTOR = {
     ] },
   ],
 };
+
+// Disponibiliza a ficha do Bronyer no dropdown "Treino pré-definido" (Mais → Planos de Treino),
+// junto com os pacotes padrão. treinosPredefinidos.js é carregado antes deste arquivo.
+if (typeof TREINOS_PREDEFINIDOS !== 'undefined') {
+  TREINOS_PREDEFINIDOS[PLANO_VICTOR.fonte] = {
+    label: 'Bronyer — Full Body (A/B/C)',
+    descricao: 'Ficha profissional do Bronyer (CREF MG049695) para cutting: Full Body A/B/C, descanso 1m30s, 1ª série de aquecimento nos compostos pesados e último exercício até a falha.',
+    planos: PLANO_VICTOR.planos,
+  };
+}
