@@ -123,19 +123,29 @@ const App = (() => {
     Storage.mergeSeeds('combos', COMBOS_PADRAO, 'nome');
     Storage.mergeSeeds('dietas_custom', DIETAS_CUSTOM_PADRAO, 'nome');
 
-    // Semeia a ficha profissional do Victor uma única vez (respeita exclusões posteriores).
-    if (typeof PLANO_VICTOR !== 'undefined' && !localStorage.getItem('seed_plano_victor')) {
-      const planosAtuais = Storage.getAll('treino_planos');
-      const maxOrdem = planosAtuais.reduce((m, p) => Math.max(m, p.ordem || 0), 0);
-      PLANO_VICTOR.planos.forEach((p, i) => {
-        Storage.add('treino_planos', {
-          nome: p.nome,
-          ordem: maxOrdem + i + 1,
-          exercises: p.exercises.map(e => ({ ...e })),
-          fonte: PLANO_VICTOR.fonte,
+    // Semeia a ficha profissional do Victor (respeita exclusões posteriores).
+    // Flag versionada: ao renomear/atualizar a ficha, re-semeia limpando a versão anterior
+    // desta mesma fonte para não duplicar.
+    if (typeof PLANO_VICTOR !== 'undefined') {
+      const SEED_FLAG = 'seed_plano_bronyer_v2';
+      if (!localStorage.getItem(SEED_FLAG)) {
+        // remove planos antigos já semeados desta mesma ficha (evita duplicar ao renomear)
+        Storage.getAll('treino_planos')
+          .filter(p => p.fonte === PLANO_VICTOR.fonte)
+          .forEach(p => Storage.remove('treino_planos', p.id));
+        const planosAtuais = Storage.getAll('treino_planos');
+        const maxOrdem = planosAtuais.reduce((m, p) => Math.max(m, p.ordem || 0), 0);
+        PLANO_VICTOR.planos.forEach((p, i) => {
+          Storage.add('treino_planos', {
+            nome: p.nome,
+            ordem: maxOrdem + i + 1,
+            exercises: p.exercises.map(e => ({ ...e })),
+            fonte: PLANO_VICTOR.fonte,
+          });
         });
-      });
-      localStorage.setItem('seed_plano_victor', '1');
+        localStorage.setItem(SEED_FLAG, '1');
+        localStorage.removeItem('seed_plano_victor');
+      }
     }
 
     $datePicker.addEventListener('change', () => {
