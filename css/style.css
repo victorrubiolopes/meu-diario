@@ -331,6 +331,19 @@ button.link {
 }
 button.link:active { transform: scale(0.92); }
 
+button.danger-btn {
+  width: 100%;
+  padding: 11px;
+  margin-top: 8px;
+  border: 1px solid var(--danger);
+  border-radius: 10px;
+  background: none;
+  color: var(--danger);
+  font-size: 0.9rem;
+  font-weight: 600;
+  font-family: inherit;
+}
+
 .list-item {
   display: flex;
   justify-content: space-between;
