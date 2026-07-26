@@ -702,13 +702,37 @@ canvas {
 
 .ex-scheme-edit {
   display: flex;
-  align-items: center;
+  flex-direction: column;
   gap: 8px;
   margin-bottom: 12px;
 }
 
-.ex-scheme-edit input { flex: 1; min-width: 0; }
-.ex-scheme-edit span { color: var(--text-muted); font-weight: 700; }
+.ex-scheme-edit-top {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.ex-scheme-edit-top input { flex: 1; min-width: 0; }
+.ex-scheme-edit-top span { color: var(--text-muted); font-weight: 700; }
+.ex-scheme-edit .ex-scheme-ok { align-self: flex-end; }
+
+.ex-scheme-pill .ex-rest {
+  font-weight: 600;
+  font-size: 0.82rem;
+  opacity: 0.85;
+  border-left: 1px solid currentColor;
+  padding-left: 8px;
+  margin-left: 2px;
+}
+
+.ex-obs {
+  font-size: 0.78rem;
+  color: var(--text-muted);
+  font-style: italic;
+  margin-top: 10px;
+  line-height: 1.35;
+}
 
 .ex-scheme-ok, .ex-weight-ok {
   padding: 10px 16px;

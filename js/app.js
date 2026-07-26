@@ -123,6 +123,21 @@ const App = (() => {
     Storage.mergeSeeds('combos', COMBOS_PADRAO, 'nome');
     Storage.mergeSeeds('dietas_custom', DIETAS_CUSTOM_PADRAO, 'nome');
 
+    // Semeia a ficha profissional do Victor uma única vez (respeita exclusões posteriores).
+    if (typeof PLANO_VICTOR !== 'undefined' && !localStorage.getItem('seed_plano_victor')) {
+      const planosAtuais = Storage.getAll('treino_planos');
+      const maxOrdem = planosAtuais.reduce((m, p) => Math.max(m, p.ordem || 0), 0);
+      PLANO_VICTOR.planos.forEach((p, i) => {
+        Storage.add('treino_planos', {
+          nome: p.nome,
+          ordem: maxOrdem + i + 1,
+          exercises: p.exercises.map(e => ({ ...e })),
+          fonte: PLANO_VICTOR.fonte,
+        });
+      });
+      localStorage.setItem('seed_plano_victor', '1');
+    }
+
     $datePicker.addEventListener('change', () => {
       state.date = $datePicker.value;
       render();

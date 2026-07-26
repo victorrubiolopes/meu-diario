@@ -101,7 +101,7 @@ const ViewTreino = (() => {
     function persist() {
       const cleaned = rows
         .filter(r => r.name && r.name.trim() !== '')
-        .map(r => ({ name: r.name.trim(), sets: r.sets, reps: r.reps, weight: r.weight, done: Array.isArray(r.done) ? r.done : [] }));
+        .map(r => ({ name: r.name.trim(), sets: r.sets, reps: r.reps, weight: r.weight, descanso: r.descanso || '', obs: r.obs || '', done: Array.isArray(r.done) ? r.done : [] }));
       const notesEl = document.getElementById('treino-notes');
       const notes = notesEl ? notesEl.value.trim() : (existing ? existing.notes : '');
       const durEl = document.getElementById('treino-duracao');
@@ -139,14 +139,19 @@ const ViewTreino = (() => {
 
       const schemeBlock = ui.scheme[i]
         ? `<div class="ex-scheme-edit">
-             <input type="number" class="ex-sets-input" placeholder="Séries" value="${Util.escapeHtml(r.sets)}">
-             <span>x</span>
-             <input type="text" class="ex-reps-input" placeholder="8 a 10" value="${Util.escapeHtml(r.reps)}">
+             <div class="ex-scheme-edit-top">
+               <input type="number" class="ex-sets-input" placeholder="Séries" value="${Util.escapeHtml(r.sets)}">
+               <span>x</span>
+               <input type="text" class="ex-reps-input" placeholder="8 a 10" value="${Util.escapeHtml(r.reps)}">
+             </div>
+             <input type="text" class="ex-descanso-input" placeholder="Descanso (ex: 1m30s)" value="${Util.escapeHtml(r.descanso || '')}">
+             <input type="text" class="ex-obs-input" placeholder="Observação (ex: 1ª série aquecimento)" value="${Util.escapeHtml(r.obs || '')}">
              <button class="ex-scheme-ok" data-scheme-ok="${i}">OK</button>
            </div>`
         : `<button class="ex-scheme-pill" data-scheme="${i}">
              ${ICON_REPEAT}
              <span>${(r.sets || r.reps) ? `${Util.escapeHtml(r.sets || '?')}x${Util.escapeHtml(r.reps || '?')}` : 'Definir séries e reps'}</span>
+             ${r.descanso ? `<span class="ex-rest">⏱ ${Util.escapeHtml(r.descanso)}</span>` : ''}
            </button>`;
 
       const seriesBlock = n > 0
@@ -183,6 +188,7 @@ const ViewTreino = (() => {
           ${schemeBlock}
           ${seriesBlock}
           ${weightBlock}
+          ${r.obs ? `<div class="ex-obs">📝 ${Util.escapeHtml(r.obs)}</div>` : ''}
           ${nameFilled ? videoBlock(r, i) : ''}
         </div>
       `;
@@ -247,6 +253,8 @@ const ViewTreino = (() => {
           const card = cardsEl.querySelector(`.ex-card[data-i="${i}"]`);
           rows[i].sets = card.querySelector('.ex-sets-input').value;
           rows[i].reps = card.querySelector('.ex-reps-input').value;
+          rows[i].descanso = card.querySelector('.ex-descanso-input').value;
+          rows[i].obs = card.querySelector('.ex-obs-input').value;
           ensureDone(rows[i]);
           ui.scheme[i] = false;
           persist();
