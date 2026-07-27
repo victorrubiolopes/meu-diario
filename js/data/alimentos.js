@@ -65,6 +65,7 @@ const ALIMENTOS_PADRAO = [
 
   // Tubérculos
   { name: 'Batata inglesa cozida', portionLabel: '100g', portionGrams: 100, kcal: 52, carbs: 11.9, sugars: 0.8, protein: 1.2, fat: 0.1, satFat: 0, transFat: 0, fiber: 1.3, sodium: 3 },
+  { name: 'Batata inglesa assada', portionLabel: '100g', portionGrams: 100, kcal: 93, carbs: 21, sugars: 1.2, protein: 2.5, fat: 0.1, satFat: 0, transFat: 0, fiber: 2.2, sodium: 5 },
   { name: 'Batata frita', portionLabel: '100g', portionGrams: 100, kcal: 267, carbs: 35, sugars: 0.3, protein: 3.4, fat: 13, satFat: 2, transFat: 0.5, fiber: 2.9, sodium: 210 },
   { name: 'Inhame cozido', portionLabel: '100g', portionGrams: 100, kcal: 116, carbs: 27.6, sugars: 0.5, protein: 2.1, fat: 0.2, satFat: 0, transFat: 0, fiber: 2.5, sodium: 9 },
 
