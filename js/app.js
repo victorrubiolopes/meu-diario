@@ -123,6 +123,19 @@ const App = (() => {
     Storage.mergeSeeds('combos', COMBOS_PADRAO, 'nome');
     Storage.mergeSeeds('dietas_custom', DIETAS_CUSTOM_PADRAO, 'nome');
 
+    // Migração: preenche o horário em combos seedados antes dessa funcionalidade existir.
+    const combosAtuais = Storage.getAll('combos');
+    let precisaSalvar = false;
+    combosAtuais.forEach(c => {
+      if (c.horario) return;
+      const seed = COMBOS_PADRAO.find(s => s.nome.toLowerCase() === c.nome.toLowerCase());
+      if (seed && seed.horario) {
+        c.horario = seed.horario;
+        precisaSalvar = true;
+      }
+    });
+    if (precisaSalvar) Storage.saveAll('combos', combosAtuais);
+
     $datePicker.addEventListener('change', () => {
       state.date = $datePicker.value;
       render();

@@ -61,6 +61,7 @@ const ViewInicio = (() => {
 
     const tendencia = typeof calcularTendenciaPeso === 'function' ? calcularTendenciaPeso() : null;
     const projecao = typeof calcularProjecaoPeso === 'function' ? calcularProjecaoPeso() : null;
+    const proximaRefeicao = typeof calcularProximaRefeicao === 'function' ? calcularProximaRefeicao() : null;
     const diasFoco = calcularDiasFoco(meta, aguaMeta);
 
     const tarefas = Storage.getAll('tarefas').filter(t => ViewTarefas.isApplicable(t, state.date));
@@ -93,6 +94,15 @@ const ViewInicio = (() => {
         ` : `<p class="empty">Complete seu perfil para ver sua meta de calorias.</p>`}
         ${aguaMeta ? progressBar('💧 Água', aguaConsumida, aguaMeta, 'ml') : ''}
       </div>
+
+      ${proximaRefeicao ? `
+        <div class="card dashboard-section">
+          <h2>🍽️ ${proximaRefeicao.amanha ? 'Próxima refeição (amanhã)' : 'Próxima refeição'}</h2>
+          <p><strong>${proximaRefeicao.combo.horario}</strong> — ${Util.escapeHtml(proximaRefeicao.combo.nome)}</p>
+          <p class="meta">${proximaRefeicao.combo.itens.map(i => `${Util.escapeHtml(i.foodName)}${i.qty !== 1 ? ` (${i.qty}x)` : ''}`).join(', ')}</p>
+          <button class="secondary" id="add-proxima-refeicao">Adicionar agora</button>
+        </div>
+      ` : ''}
 
       <div class="card dashboard-section">
         <h2>🔥 Dias em foco</h2>
@@ -182,6 +192,18 @@ const ViewInicio = (() => {
         </div>
       ` : ''}
     `;
+
+    const addProximaBtn = document.getElementById('add-proxima-refeicao');
+    if (addProximaBtn) {
+      addProximaBtn.addEventListener('click', () => {
+        const combo = proximaRefeicao.combo;
+        const mealType = inferMealTypeFromHorario(combo.horario);
+        combo.itens.forEach(item => {
+          Storage.add('alimentacao', { date: state.date, mealType, foodName: item.foodName, qty: item.qty, order: Date.now(), ...Object.fromEntries(['kcal', 'carbs', 'sugars', 'protein', 'fat', 'satFat', 'transFat', 'fiber', 'sodium'].map(f => [f, item[f] || 0])) });
+        });
+        api.render();
+      });
+    }
 
     $app.querySelectorAll('[data-toggle]').forEach(btn => {
       btn.addEventListener('click', () => {

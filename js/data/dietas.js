@@ -146,6 +146,44 @@ function calcularProjecaoPeso() {
   return { pesoAtual, kgPorSemana: Math.round(kgPorSemana * 100) / 100, horizontes };
 }
 
+// Recomendação de próxima refeição com base no horário e nos combos com horário definido.
+// Só faz sentido para uma dieta específica nomeada (ex: plano de nutricionista), não para
+// objetivos calculados automaticamente — por isso exige perfil.dietaCustomId.
+function calcularProximaRefeicao() {
+  const perfil = Storage.getPerfil();
+  if (!perfil.dietaCustomId) return null;
+
+  const combos = Storage.getAll('combos').filter(c => c.horario);
+  if (combos.length === 0) return null;
+
+  const toMin = (hhmm) => {
+    const [h, m] = hhmm.split(':').map(Number);
+    return h * 60 + m;
+  };
+
+  const agora = new Date();
+  const nowMin = agora.getHours() * 60 + agora.getMinutes();
+  const ordenados = [...combos].sort((a, b) => toMin(a.horario) - toMin(b.horario));
+
+  let proximo = ordenados.find(c => toMin(c.horario) >= nowMin);
+  let amanha = false;
+  if (!proximo) {
+    proximo = ordenados[0];
+    amanha = true;
+  }
+
+  return { combo: proximo, amanha };
+}
+
+// Heurística simples para mapear o horário de um combo a um dos tipos de refeição do app.
+function inferMealTypeFromHorario(horario) {
+  const [h] = horario.split(':').map(Number);
+  if (h < 10) return 'Café da manhã';
+  if (h < 15) return 'Almoço';
+  if (h < 18) return 'Lanche';
+  return 'Jantar';
+}
+
 // Estimativa de calorias gastas em atividades do dia (corrida + musculação),
 // usada para preencher automaticamente o campo de gasto extra em Início.
 function calcularGastoEstimado(date) {

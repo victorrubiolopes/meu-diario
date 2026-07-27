@@ -2,12 +2,14 @@
 const COMBOS_PADRAO = [
   {
     nome: 'Nutricionista - Refeição 1 (Pré-treino)',
+    horario: '05:30',
     itens: [
       { foodName: 'Paçoquita', qty: 1, kcal: 80, carbs: 7.5, sugars: 7.2, protein: 2.7, fat: 4.2, satFat: 0.6, transFat: 0, fiber: 0.6, sodium: 28 },
     ],
   },
   {
     nome: 'Nutricionista - Refeição 2',
+    horario: '08:00',
     itens: [
       { foodName: 'Pão de forma integral', qty: 2, kcal: 120, carbs: 22, sugars: 3, protein: 6, fat: 1.6, satFat: 0.4, transFat: 0, fiber: 3.6, sodium: 220 },
       { foodName: 'Ovo frito (chapa untada, sem óleo)', qty: 2, kcal: 164, carbs: 1.2, sugars: 1.2, protein: 13, fat: 11.6, satFat: 3.6, transFat: 0, fiber: 0, sodium: 140 },
@@ -16,6 +18,7 @@ const COMBOS_PADRAO = [
   },
   {
     nome: 'Nutricionista - Refeição 3 (Almoço)',
+    horario: '12:30',
     itens: [
       { foodName: 'Arroz branco cozido', qty: 1.1, kcal: 140.8, carbs: 30.8, sugars: 0, protein: 2.75, fat: 0.22, satFat: 0, transFat: 0, fiber: 0.44, sodium: 1.1 },
       { foodName: 'Peito de frango grelhado', qty: 1.5, kcal: 238.5, carbs: 0, sugars: 0, protein: 48, fat: 4.5, satFat: 1.35, transFat: 0, fiber: 0, sodium: 111 },
@@ -25,6 +28,7 @@ const COMBOS_PADRAO = [
   },
   {
     nome: 'Nutricionista - Refeição 4',
+    horario: '16:00',
     itens: [
       { foodName: 'Whey protein (pó)', qty: 1, kcal: 120, carbs: 3, sugars: 2, protein: 24, fat: 1.5, satFat: 0.5, transFat: 0, fiber: 0, sodium: 50 },
       { foodName: 'Leite desnatado', qty: 1, kcal: 70, carbs: 9.8, sugars: 9.8, protein: 6.8, fat: 0.4, satFat: 0.2, transFat: 0, fiber: 0, sodium: 80 },
@@ -32,6 +36,7 @@ const COMBOS_PADRAO = [
   },
   {
     nome: 'Nutricionista - Refeição 5 (Jantar Airfryer)',
+    horario: '20:00',
     itens: [
       { foodName: 'Batata inglesa crua', qty: 2.7, kcal: 207.9, carbs: 47.25, sugars: 2.16, protein: 5.4, fat: 0.27, satFat: 0, transFat: 0, fiber: 3.51, sodium: 16.2 },
       { foodName: 'Peito de frango grelhado', qty: 1.5, kcal: 238.5, carbs: 0, sugars: 0, protein: 48, fat: 4.5, satFat: 1.35, transFat: 0, fiber: 0, sodium: 111 },

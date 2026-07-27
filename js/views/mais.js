@@ -610,6 +610,8 @@ const ViewMais = (() => {
         <p class="meta">Salve alimentos que você come juntos com frequência (ex: seu café da manhã de sempre) para adicionar tudo com um clique depois.</p>
         <label>Nome do combo</label>
         <input type="text" id="combo-nome" placeholder="Ex: Café da manhã de sempre">
+        <label>Horário (opcional) — usado para sugerir a refeição no Início quando uma dieta específica está selecionada</label>
+        <input type="time" id="combo-horario">
         <label>Adicionar alimento</label>
         <div class="autocomplete-wrap">
           <input type="text" id="combo-food-search" placeholder="Buscar na biblioteca..." autocomplete="off">
@@ -714,8 +716,9 @@ const ViewMais = (() => {
 
     document.getElementById('save-combo').addEventListener('click', () => {
       const nome = document.getElementById('combo-nome').value.trim();
+      const horario = document.getElementById('combo-horario').value || null;
       if (!nome || itensNovoCombo.length === 0) return;
-      Storage.add('combos', { nome, itens: itensNovoCombo });
+      Storage.add('combos', { nome, horario, itens: itensNovoCombo });
       api.render();
     });
 
@@ -743,7 +746,7 @@ const ViewMais = (() => {
       return `
         <div class="list-item" data-id="${c.id}">
           <div>
-            <strong>${Util.escapeHtml(c.nome)}</strong>
+            <strong>${Util.escapeHtml(c.nome)}</strong> ${c.horario ? `<span class="meta">⏰ ${c.horario}</span>` : ''}
             <div class="meta">${c.itens.map(i => i.foodName).join(', ')}</div>
             <div class="meta">${totalKcal.toFixed(0)} kcal no total</div>
           </div>
