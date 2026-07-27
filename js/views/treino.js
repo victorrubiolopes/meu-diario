@@ -1,4 +1,7 @@
 const ViewTreino = (() => {
+  // Datas (YYYY-MM-DD) cujo treino está "aberto" pra edição nesta sessão do navegador.
+  const treinoExpandidoDates = new Set();
+
   // Ícones inline reutilizados nos cards de exercício
   const ICON_DUMBBELL = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M6 12h12"/><rect x="2.5" y="9" width="3" height="6" rx="1"/><rect x="18.5" y="9" width="3" height="6" rx="1"/><rect x="5.5" y="7" width="2" height="10" rx="1"/><rect x="16.5" y="7" width="2" height="10" rx="1"/></svg>';
   const ICON_REPEAT = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 2l4 4-4 4"/><path d="M3 11V9a4 4 0 0 1 4-4h14"/><path d="M7 22l-4-4 4-4"/><path d="M21 13v2a4 4 0 0 1-4 4H3"/></svg>';
@@ -46,9 +49,49 @@ const ViewTreino = (() => {
     const planos = Storage.getAll('treino_planos').sort((a, b) => a.ordem - b.ordem);
     const sugerido = Util.planoSugerido();
     const ultimoFeito = Util.ultimoTreinoFeito();
+    const isExpanded = treinoExpandidoDates.has(state.date);
     let planoIdAtual = existing ? existing.planoId || null : null;
 
-    let rows = (existing ? existing.exercises : [{ name: '', sets: '', reps: '', weight: '', done: [] }]).map(e => ({ ...e }));
+    if (!isExpanded) {
+      if (existing) {
+        const planoNome = existing.planoId ? (planos.find(p => p.id === existing.planoId) || {}).nome : null;
+        content.innerHTML = `
+          <div class="card">
+            <h2>✅ Treino concluído hoje</h2>
+            <p><strong>${planoNome ? Util.escapeHtml(planoNome) : 'Treino livre'}</strong> — ${(existing.exercises || []).length} exercício${(existing.exercises || []).length === 1 ? '' : 's'}${existing.duracaoMin ? ` · ${existing.duracaoMin} min` : ''}</p>
+            <button class="secondary" id="editar-treino">Editar treino</button>
+            <button class="danger-btn" id="delete-treino">Excluir treino do dia</button>
+          </div>
+        `;
+        document.getElementById('editar-treino').addEventListener('click', () => {
+          treinoExpandidoDates.add(state.date);
+          api.render();
+        });
+        document.getElementById('delete-treino').addEventListener('click', () => {
+          if (!confirm('Excluir o treino registrado neste dia? Esta ação não pode ser desfeita.')) return;
+          Storage.remove('treino', existing.id);
+          if (typeof atualizarGastoAuto === 'function') atualizarGastoAuto(state.date);
+          api.render();
+        });
+      } else {
+        content.innerHTML = `
+          <div class="card">
+            <h2>Treino de hoje</h2>
+            ${ultimoFeito ? `<p class="meta">Último feito: <strong>${Util.escapeHtml(ultimoFeito.nome)}</strong> em ${Util.fmtDate(ultimoFeito.date)}</p>` : ''}
+            <p><strong>${sugerido ? Util.escapeHtml(sugerido.nome) : 'Treino livre'}</strong> ${sugerido ? '<span class="meta">(sugerido, baseado no último treino)</span>' : ''}</p>
+            <button class="primary" id="iniciar-treino" style="width:100%">▶ Iniciar treino</button>
+          </div>
+        `;
+        document.getElementById('iniciar-treino').addEventListener('click', () => {
+          treinoExpandidoDates.add(state.date);
+          api.render();
+        });
+      }
+      return;
+    }
+
+    let rows = (existing ? existing.exercises : (sugerido ? sugerido.exercises.map(e => ({ ...e })) : [{ name: '', sets: '', reps: '', weight: '', done: [] }])).map(e => ({ ...e }));
+    if (!existing && sugerido) planoIdAtual = sugerido.id;
     if (rows.length === 0) rows = [{ name: '', sets: '', reps: '', weight: '', done: [] }];
     // Estado transitório de edição por card (não é persistido)
     const ui = { scheme: {}, weight: {} };
@@ -78,7 +121,7 @@ const ViewTreino = (() => {
         <input type="number" id="treino-duracao" placeholder="Ex: 50" value="${existing && existing.duracaoMin ? existing.duracaoMin : ''}">
         <label>Notas do treino</label>
         <textarea id="treino-notes" placeholder="Sensação, observações...">${Util.escapeHtml(existing ? existing.notes : '')}</textarea>
-        <button class="primary" id="save-treino">Salvar treino</button>
+        <button class="primary" id="save-treino">✅ Finalizar treino</button>
         ${existing ? '<button class="danger-btn" id="delete-treino">Excluir treino do dia</button>' : ''}
       </div>
     `;
@@ -330,8 +373,12 @@ const ViewTreino = (() => {
 
     document.getElementById('save-treino').addEventListener('click', () => {
       syncNames();
+      const cleaned = rows.filter(r => r.name && r.name.trim() !== '');
+      if (cleaned.length === 0) { alert('Adicione pelo menos um exercício antes de finalizar.'); return; }
       persist();
       atualizarGastoAuto(state.date);
+      treinoExpandidoDates.delete(state.date);
+      alert('Treino concluído! 💪');
       api.render();
     });
 
@@ -343,6 +390,7 @@ const ViewTreino = (() => {
         if (!confirm('Excluir o treino registrado neste dia? Esta ação não pode ser desfeita.')) return;
         Storage.remove('treino', cur.id);
         if (typeof atualizarGastoAuto === 'function') atualizarGastoAuto(state.date);
+        treinoExpandidoDates.delete(state.date);
         api.render();
       });
     }
