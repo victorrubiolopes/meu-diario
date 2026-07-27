@@ -1,5 +1,6 @@
 // Lista de atualizações recentes do app, mais recente primeiro. Editável manualmente a cada mudança.
 const CHANGELOG = [
+  { date: '2026-07-27', texto: 'Novo alimento: Banana nanica' },
   { date: '2026-07-27', texto: 'Novo alimento: Whey Protein Growth Chocolate' },
   { date: '2026-07-27', texto: 'Novos alimentos: Leite Molico + Proteína e Batata inglesa assada' },
   { date: '2026-07-26', texto: 'Ficha "Bronyer — Full Body" disponível no dropdown de treinos pré-definidos, com descanso e observação' },

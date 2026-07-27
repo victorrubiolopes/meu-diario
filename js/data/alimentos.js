@@ -7,6 +7,7 @@ const ALIMENTOS_PADRAO = [
   { name: 'Ovo cozido', portionLabel: '1 unidade (50g)', portionGrams: 50, kcal: 78, carbs: 0.6, sugars: 0.6, protein: 6.3, fat: 5.3, satFat: 1.6, transFat: 0, fiber: 0, sodium: 62 },
   { name: 'Pão francês', portionLabel: '1 unidade (50g)', portionGrams: 50, kcal: 150, carbs: 28, sugars: 1, protein: 4, fat: 1.5, satFat: 0.3, transFat: 0, fiber: 1.3, sodium: 290 },
   { name: 'Banana prata', portionLabel: '1 unidade (90g)', portionGrams: 90, kcal: 80, carbs: 20, sugars: 12, protein: 1, fat: 0.2, satFat: 0, transFat: 0, fiber: 2, sodium: 1 },
+  { name: 'Banana nanica', portionLabel: '1 unidade (120g)', portionGrams: 120, kcal: 110, carbs: 28.6, sugars: 20, protein: 1.7, fat: 0.1, satFat: 0, transFat: 0, fiber: 2.3, sodium: 1 },
   { name: 'Batata doce cozida', portionLabel: '100g', portionGrams: 100, kcal: 86, carbs: 20, sugars: 4, protein: 1.6, fat: 0.1, satFat: 0, transFat: 0, fiber: 3, sodium: 55 },
   { name: 'Leite integral', portionLabel: '1 copo (200ml)', portionGrams: 200, kcal: 122, carbs: 9.6, sugars: 9.6, protein: 6.4, fat: 6.6, satFat: 4, transFat: 0.2, fiber: 0, sodium: 76 },
   { name: 'Iogurte natural integral', portionLabel: '1 pote (170g)', portionGrams: 170, kcal: 105, carbs: 7.7, sugars: 7.7, protein: 6, fat: 5.9, satFat: 3.8, transFat: 0, fiber: 0, sodium: 76 },
