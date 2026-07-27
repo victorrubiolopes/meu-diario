@@ -4,6 +4,7 @@ const ViewAlimentacao = (() => {
 
   let selectedFood = null;
   let editingQtyId = null;
+  let expandedMacro = null;
 
   function sumNutrients(entries) {
     const totals = { kcal: 0, carbs: 0, protein: 0, fat: 0, fiber: 0, sodium: 0 };
@@ -29,6 +30,39 @@ const ViewAlimentacao = (() => {
         </div>
         <div class="progress-track"><div class="progress-fill ${over ? 'over' : ''}" style="width:${pct}%"></div></div>
       </div>
+    `;
+  }
+
+  function macroBreakdown(entries, macroKey) {
+    const byFood = {};
+    entries.forEach(e => {
+      const val = e[macroKey] || 0;
+      if (val <= 0) return;
+      byFood[e.foodName] = (byFood[e.foodName] || 0) + val;
+    });
+    return Object.entries(byFood)
+      .map(([foodName, val]) => ({ foodName, val }))
+      .sort((a, b) => b.val - a.val);
+  }
+
+  function progressBarComDetalhes(label, consumed, target, unit, macroKey, entries) {
+    const itens = macroBreakdown(entries, macroKey);
+    const isOpen = expandedMacro === macroKey;
+    return `
+      ${progressBar(label, consumed, target, unit)}
+      ${itens.length > 0 ? `
+        <button type="button" class="link" data-togglemacro="${macroKey}" style="font-size:0.75rem;margin:2px 0 8px">${isOpen ? '▲ Ocultar alimentos' : '▾ Ver quais alimentos forneceram'}</button>
+        ${isOpen ? `
+          <div style="margin-bottom:10px">
+            ${itens.map(it => `
+              <div class="meta" style="display:flex;justify-content:space-between;font-size:0.75rem;padding:2px 0">
+                <span>${Util.escapeHtml(it.foodName)}</span>
+                <span>${it.val.toFixed(1)}${unit} (${consumed ? Math.round((it.val / consumed) * 100) : 0}%)</span>
+              </div>
+            `).join('')}
+          </div>
+        ` : ''}
+      ` : ''}
     `;
   }
 
@@ -59,10 +93,10 @@ const ViewAlimentacao = (() => {
             <div><div class="num">${meta.kcal}</div><div class="lbl">Meta</div></div>
             <div><div class="num">${(meta.kcal - totals.kcal).toFixed(0)}</div><div class="lbl">${meta.kcal - totals.kcal >= 0 ? 'Restante' : 'Excedeu'}</div></div>
           </div>
-          ${progressBar('Proteína', totals.protein, meta.protein, 'g')}
-          ${progressBar('Carboidrato', totals.carbs, meta.carb, 'g')}
-          ${progressBar('Gordura', totals.fat, meta.fat, 'g')}
-          ${meta.fiber ? progressBar('Fibras', totals.fiber, meta.fiber, 'g') : ''}
+          ${progressBarComDetalhes('Proteína', totals.protein, meta.protein, 'g', 'protein', entries)}
+          ${progressBarComDetalhes('Carboidrato', totals.carbs, meta.carb, 'g', 'carbs', entries)}
+          ${progressBarComDetalhes('Gordura', totals.fat, meta.fat, 'g', 'fat', entries)}
+          ${meta.fiber ? progressBarComDetalhes('Fibras', totals.fiber, meta.fiber, 'g', 'fiber', entries) : ''}
           ${temTdee ? `
           <div class="row" style="margin-top:10px">
             <div class="card" style="margin:0;padding:10px;text-align:center">
@@ -204,6 +238,12 @@ const ViewAlimentacao = (() => {
         api.goToMais('perfil');
       });
     }
+    $app.querySelectorAll('[data-togglemacro]').forEach(btn => {
+      btn.addEventListener('click', () => {
+        expandedMacro = expandedMacro === btn.dataset.togglemacro ? null : btn.dataset.togglemacro;
+        api.render();
+      });
+    });
     document.getElementById('go-biblioteca').addEventListener('click', () => {
       state.tab = 'mais';
       api.goToMais('biblioteca-alimentos');

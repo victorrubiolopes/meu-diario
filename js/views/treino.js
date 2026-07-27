@@ -45,6 +45,7 @@ const ViewTreino = (() => {
     const biblioteca = Storage.getAll('exercicios_biblioteca');
     const planos = Storage.getAll('treino_planos').sort((a, b) => a.ordem - b.ordem);
     const sugerido = Util.planoSugerido();
+    const ultimoFeito = Util.ultimoTreinoFeito();
     let planoIdAtual = existing ? existing.planoId || null : null;
 
     let rows = (existing ? existing.exercises : [{ name: '', sets: '', reps: '', weight: '', done: [] }]).map(e => ({ ...e }));
@@ -60,6 +61,7 @@ const ViewTreino = (() => {
       ${planos.length > 0 ? `
         <div class="card">
           <h2>Treino sugerido hoje</h2>
+          ${ultimoFeito ? `<p class="meta">Último feito: <strong>${Util.escapeHtml(ultimoFeito.nome)}</strong> em ${Util.fmtDate(ultimoFeito.date)}</p>` : ''}
           <p><strong>${sugerido ? Util.escapeHtml(sugerido.nome) : '—'}</strong> <span class="meta">(baseado no último treino registrado)</span></p>
           <button class="secondary" id="usar-sugerido" ${!sugerido ? 'disabled' : ''}>Usar este plano</button>
           <label style="margin-top:12px">Ou escolha outro plano</label>

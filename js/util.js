@@ -51,6 +51,15 @@ const Util = (() => {
     return planos[(idx + 1) % planos.length];
   }
 
+  function ultimoTreinoFeito() {
+    const planos = Storage.getAll('treino_planos');
+    const entradas = Storage.getAll('treino').filter(t => t.planoId).sort((a, b) => b.date.localeCompare(a.date));
+    if (entradas.length === 0) return null;
+    const plano = planos.find(p => p.id === entradas[0].planoId);
+    if (!plano) return null;
+    return { nome: plano.nome, date: entradas[0].date };
+  }
+
   function weekdayOf(dateISO) {
     const [y, m, d] = dateISO.split('-').map(Number);
     return new Date(y, m - 1, d).getDay();
@@ -100,5 +109,5 @@ const Util = (() => {
     return null;
   }
 
-  return { todayISO, fmtDate, escapeHtml, daysAgo, daysFromNow, movingAverage, getPesoAtual, planoSugerido, weekdayOf, daysBetween, inputGroup, youtubeSearchUrl, youtubeEmbedId };
+  return { todayISO, fmtDate, escapeHtml, daysAgo, daysFromNow, movingAverage, getPesoAtual, planoSugerido, ultimoTreinoFeito, weekdayOf, daysBetween, inputGroup, youtubeSearchUrl, youtubeEmbedId };
 })();

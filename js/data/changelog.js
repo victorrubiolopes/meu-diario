@@ -1,5 +1,7 @@
 // Lista de atualizações recentes do app, mais recente primeiro. Editável manualmente a cada mudança.
 const CHANGELOG = [
+  { date: '2026-07-27', texto: 'Ver quais alimentos mais contribuíram para cada macro (proteína/carbo/gordura/fibra) na Alimentação' },
+  { date: '2026-07-27', texto: 'Último treino feito (plano e data) exibido junto com o treino sugerido' },
   { date: '2026-07-27', texto: 'Sugestão de próxima refeição no Início, com horário, quando uma dieta específica está selecionada' },
   { date: '2026-07-27', texto: 'Novo alimento: Banana nanica' },
   { date: '2026-07-27', texto: 'Novo alimento: Whey Protein Growth Chocolate' },
