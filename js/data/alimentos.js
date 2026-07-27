@@ -12,6 +12,7 @@ const ALIMENTOS_PADRAO = [
   { name: 'Iogurte natural integral', portionLabel: '1 pote (170g)', portionGrams: 170, kcal: 105, carbs: 7.7, sugars: 7.7, protein: 6, fat: 5.9, satFat: 3.8, transFat: 0, fiber: 0, sodium: 76 },
   { name: 'Aveia em flocos', portionLabel: '1 colher sopa (30g)', portionGrams: 30, kcal: 117, carbs: 20, sugars: 0.5, protein: 4.2, fat: 2.3, satFat: 0.4, transFat: 0, fiber: 3, sodium: 2 },
   { name: 'Whey protein (pó)', portionLabel: '1 scoop (30g)', portionGrams: 30, kcal: 120, carbs: 3, sugars: 2, protein: 24, fat: 1.5, satFat: 0.5, transFat: 0, fiber: 0, sodium: 50 },
+  { name: 'Whey Protein Growth Chocolate', portionLabel: '1 scoop (30g)', portionGrams: 30, kcal: 116, carbs: 4.2, sugars: 2, protein: 22, fat: 1.6, satFat: 0.9, transFat: 0, fiber: 0.5, sodium: 60 },
   { name: 'Pão de forma integral', portionLabel: '1 fatia (25g)', portionGrams: 25, kcal: 60, carbs: 11, sugars: 1.5, protein: 3, fat: 0.8, satFat: 0.2, transFat: 0, fiber: 1.8, sodium: 110 },
   { name: 'Carne bovina moída magra cozida', portionLabel: '100g', portionGrams: 100, kcal: 172, carbs: 0, sugars: 0, protein: 26, fat: 7, satFat: 2.8, transFat: 0.3, fiber: 0, sodium: 65 },
   { name: 'Tilápia grelhada', portionLabel: '100g', portionGrams: 100, kcal: 128, carbs: 0, sugars: 0, protein: 26, fat: 2.7, satFat: 0.9, transFat: 0, fiber: 0, sodium: 56 },
