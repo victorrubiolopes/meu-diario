@@ -77,6 +77,7 @@ const ALIMENTOS_PADRAO = [
   { name: 'Queijo mussarela', portionLabel: '1 fatia (30g)', portionGrams: 30, kcal: 90, carbs: 0.6, sugars: 0.6, protein: 6.6, fat: 6.9, satFat: 4.1, transFat: 0, fiber: 0, sodium: 176 },
   { name: 'Queijo prato', portionLabel: '1 fatia (30g)', portionGrams: 30, kcal: 105, carbs: 0.5, sugars: 0.5, protein: 6.6, fat: 8.5, satFat: 5.4, transFat: 0, fiber: 0, sodium: 210 },
   { name: 'Leite desnatado', portionLabel: '1 copo (200ml)', portionGrams: 200, kcal: 70, carbs: 9.8, sugars: 9.8, protein: 6.8, fat: 0.4, satFat: 0.2, transFat: 0, fiber: 0, sodium: 80 },
+  { name: 'Leite Molico + Proteína', portionLabel: '1 copo (200ml)', portionGrams: 200, kcal: 66, carbs: 10, sugars: 10, protein: 10, fat: 0, satFat: 0, transFat: 0, fiber: 0, sodium: 130 },
   { name: 'Iogurte grego natural', portionLabel: '100g', portionGrams: 100, kcal: 97, carbs: 4, sugars: 4, protein: 9, fat: 5, satFat: 3.2, transFat: 0, fiber: 0, sodium: 36 },
   { name: 'Iogurte desnatado', portionLabel: '1 pote (170g)', portionGrams: 170, kcal: 90, carbs: 12, sugars: 12, protein: 8.5, fat: 0.3, satFat: 0.2, transFat: 0, fiber: 0, sodium: 95 },
   { name: 'Queijo cottage', portionLabel: '100g', portionGrams: 100, kcal: 98, carbs: 3.4, sugars: 2.7, protein: 11.1, fat: 4.3, satFat: 2.7, transFat: 0, fiber: 0, sodium: 364 },
