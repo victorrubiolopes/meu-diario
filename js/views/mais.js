@@ -461,8 +461,9 @@ const ViewMais = (() => {
         <label>Baseado em</label>
         <select id="pack-select">
           ${Object.keys(TREINOS_PREDEFINIDOS).map(id => {
-            const nomeObjetivo = (DIETA_TEMPLATES.find(d => d.id === id) || {}).nome || id;
-            return `<option value="${id}" ${id === objetivoAtual ? 'selected' : ''}>${nomeObjetivo} — ${TREINOS_PREDEFINIDOS[id].label}</option>`;
+            const dieta = DIETA_TEMPLATES.find(d => d.id === id);
+            const rotulo = dieta ? `${dieta.nome} — ${TREINOS_PREDEFINIDOS[id].label}` : TREINOS_PREDEFINIDOS[id].label;
+            return `<option value="${id}" ${id === objetivoAtual ? 'selected' : ''}>${Util.escapeHtml(rotulo)}</option>`;
           }).join('')}
         </select>
         <p class="meta" id="pack-desc" style="color:var(--text-muted);font-size:0.78rem"></p>
@@ -526,8 +527,10 @@ const ViewMais = (() => {
         <div class="exercise-row" data-i="${i}">
           <input type="text" class="ex-name" list="exercicios-datalist-planos" placeholder="Exercício" value="${Util.escapeHtml(r.name)}">
           <input type="number" class="small ex-sets" placeholder="Séries" value="${Util.escapeHtml(r.sets)}">
-          <input type="number" class="small ex-reps" placeholder="Reps" value="${Util.escapeHtml(r.reps)}">
+          <input type="text" class="small ex-reps" placeholder="Reps" value="${Util.escapeHtml(r.reps)}">
           <input type="number" class="small ex-weight" placeholder="Kg" value="${Util.escapeHtml(r.weight)}">
+          <input type="text" class="ex-descanso" placeholder="Descanso (ex: 1m30s)" value="${Util.escapeHtml(r.descanso || '')}" style="flex-basis:100%">
+          <input type="text" class="ex-obs" placeholder="Observação (ex: 1ª série aquecimento)" value="${Util.escapeHtml(r.obs || '')}" style="flex-basis:100%">
           <button class="link" data-remove-row="${i}">✕</button>
         </div>
       `).join('');
@@ -537,11 +540,15 @@ const ViewMais = (() => {
         const sets = rowsWrap.querySelectorAll('.ex-sets');
         const reps = rowsWrap.querySelectorAll('.ex-reps');
         const weights = rowsWrap.querySelectorAll('.ex-weight');
+        const descansos = rowsWrap.querySelectorAll('.ex-descanso');
+        const obses = rowsWrap.querySelectorAll('.ex-obs');
         rows = rows.map((r, i) => ({
           name: names[i] ? names[i].value : r.name,
           sets: sets[i] ? sets[i].value : r.sets,
           reps: reps[i] ? reps[i].value : r.reps,
           weight: weights[i] ? weights[i].value : r.weight,
+          descanso: descansos[i] ? descansos[i].value : (r.descanso || ''),
+          obs: obses[i] ? obses[i].value : (r.obs || ''),
         }));
       }
 

@@ -7,11 +7,13 @@ const ALIMENTOS_PADRAO = [
   { name: 'Ovo cozido', portionLabel: '1 unidade (50g)', portionGrams: 50, kcal: 78, carbs: 0.6, sugars: 0.6, protein: 6.3, fat: 5.3, satFat: 1.6, transFat: 0, fiber: 0, sodium: 62 },
   { name: 'Pão francês', portionLabel: '1 unidade (50g)', portionGrams: 50, kcal: 150, carbs: 28, sugars: 1, protein: 4, fat: 1.5, satFat: 0.3, transFat: 0, fiber: 1.3, sodium: 290 },
   { name: 'Banana prata', portionLabel: '1 unidade (90g)', portionGrams: 90, kcal: 80, carbs: 20, sugars: 12, protein: 1, fat: 0.2, satFat: 0, transFat: 0, fiber: 2, sodium: 1 },
+  { name: 'Banana nanica', portionLabel: '1 unidade (120g)', portionGrams: 120, kcal: 110, carbs: 28.6, sugars: 20, protein: 1.7, fat: 0.1, satFat: 0, transFat: 0, fiber: 2.3, sodium: 1 },
   { name: 'Batata doce cozida', portionLabel: '100g', portionGrams: 100, kcal: 86, carbs: 20, sugars: 4, protein: 1.6, fat: 0.1, satFat: 0, transFat: 0, fiber: 3, sodium: 55 },
   { name: 'Leite integral', portionLabel: '1 copo (200ml)', portionGrams: 200, kcal: 122, carbs: 9.6, sugars: 9.6, protein: 6.4, fat: 6.6, satFat: 4, transFat: 0.2, fiber: 0, sodium: 76 },
   { name: 'Iogurte natural integral', portionLabel: '1 pote (170g)', portionGrams: 170, kcal: 105, carbs: 7.7, sugars: 7.7, protein: 6, fat: 5.9, satFat: 3.8, transFat: 0, fiber: 0, sodium: 76 },
   { name: 'Aveia em flocos', portionLabel: '1 colher sopa (30g)', portionGrams: 30, kcal: 117, carbs: 20, sugars: 0.5, protein: 4.2, fat: 2.3, satFat: 0.4, transFat: 0, fiber: 3, sodium: 2 },
   { name: 'Whey protein (pó)', portionLabel: '1 scoop (30g)', portionGrams: 30, kcal: 120, carbs: 3, sugars: 2, protein: 24, fat: 1.5, satFat: 0.5, transFat: 0, fiber: 0, sodium: 50 },
+  { name: 'Whey Protein Growth Chocolate', portionLabel: '30g (2 dosadores)', portionGrams: 30, kcal: 122, carbs: 2.7, sugars: 1.7, protein: 23, fat: 2.1, satFat: 0.9, transFat: 0, fiber: 0, sodium: 45 },
   { name: 'Pão de forma integral', portionLabel: '1 fatia (25g)', portionGrams: 25, kcal: 60, carbs: 11, sugars: 1.5, protein: 3, fat: 0.8, satFat: 0.2, transFat: 0, fiber: 1.8, sodium: 110 },
   { name: 'Carne bovina moída magra cozida', portionLabel: '100g', portionGrams: 100, kcal: 172, carbs: 0, sugars: 0, protein: 26, fat: 7, satFat: 2.8, transFat: 0.3, fiber: 0, sodium: 65 },
   { name: 'Tilápia grelhada', portionLabel: '100g', portionGrams: 100, kcal: 128, carbs: 0, sugars: 0, protein: 26, fat: 2.7, satFat: 0.9, transFat: 0, fiber: 0, sodium: 56 },
@@ -65,6 +67,7 @@ const ALIMENTOS_PADRAO = [
 
   // Tubérculos
   { name: 'Batata inglesa cozida', portionLabel: '100g', portionGrams: 100, kcal: 52, carbs: 11.9, sugars: 0.8, protein: 1.2, fat: 0.1, satFat: 0, transFat: 0, fiber: 1.3, sodium: 3 },
+  { name: 'Batata inglesa assada', portionLabel: '100g', portionGrams: 100, kcal: 93, carbs: 21, sugars: 1.2, protein: 2.5, fat: 0.1, satFat: 0, transFat: 0, fiber: 2.2, sodium: 5 },
   { name: 'Batata frita', portionLabel: '100g', portionGrams: 100, kcal: 267, carbs: 35, sugars: 0.3, protein: 3.4, fat: 13, satFat: 2, transFat: 0.5, fiber: 2.9, sodium: 210 },
   { name: 'Inhame cozido', portionLabel: '100g', portionGrams: 100, kcal: 116, carbs: 27.6, sugars: 0.5, protein: 2.1, fat: 0.2, satFat: 0, transFat: 0, fiber: 2.5, sodium: 9 },
 
@@ -76,6 +79,7 @@ const ALIMENTOS_PADRAO = [
   { name: 'Queijo mussarela', portionLabel: '1 fatia (30g)', portionGrams: 30, kcal: 90, carbs: 0.6, sugars: 0.6, protein: 6.6, fat: 6.9, satFat: 4.1, transFat: 0, fiber: 0, sodium: 176 },
   { name: 'Queijo prato', portionLabel: '1 fatia (30g)', portionGrams: 30, kcal: 105, carbs: 0.5, sugars: 0.5, protein: 6.6, fat: 8.5, satFat: 5.4, transFat: 0, fiber: 0, sodium: 210 },
   { name: 'Leite desnatado', portionLabel: '1 copo (200ml)', portionGrams: 200, kcal: 70, carbs: 9.8, sugars: 9.8, protein: 6.8, fat: 0.4, satFat: 0.2, transFat: 0, fiber: 0, sodium: 80 },
+  { name: 'Leite Molico + Proteína', portionLabel: '1 copo (200ml)', portionGrams: 200, kcal: 66, carbs: 10, sugars: 10, protein: 10, fat: 0, satFat: 0, transFat: 0, fiber: 0, sodium: 130 },
   { name: 'Iogurte grego natural', portionLabel: '100g', portionGrams: 100, kcal: 97, carbs: 4, sugars: 4, protein: 9, fat: 5, satFat: 3.2, transFat: 0, fiber: 0, sodium: 36 },
   { name: 'Iogurte desnatado', portionLabel: '1 pote (170g)', portionGrams: 170, kcal: 90, carbs: 12, sugars: 12, protein: 8.5, fat: 0.3, satFat: 0.2, transFat: 0, fiber: 0, sodium: 95 },
   { name: 'Queijo cottage', portionLabel: '100g', portionGrams: 100, kcal: 98, carbs: 3.4, sugars: 2.7, protein: 11.1, fat: 4.3, satFat: 2.7, transFat: 0, fiber: 0, sodium: 364 },

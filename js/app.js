@@ -71,6 +71,7 @@ const App = (() => {
     'biblioteca-exercicios': 'Biblioteca de Exercícios',
     'planos-treino': 'Planos de Treino',
     combos: 'Combos de Refeição',
+    'dietas-custom': 'Minhas Dietas',
     backup: 'Backup',
   };
 
@@ -135,6 +136,16 @@ const App = (() => {
       }
     });
     if (precisaSalvar) Storage.saveAll('combos', combosAtuais);
+
+    // A ficha do Bronyer agora é carregada manualmente pelo dropdown "Treino pré-definido"
+    // (Mais → Planos de Treino). Limpa, uma única vez, qualquer versão auto-semeada anterior
+    // (marcada por fonte) para não duplicar quando o usuário carregar pelo dropdown.
+    if (typeof PLANO_VICTOR !== 'undefined' && !localStorage.getItem('cleanup_plano_bronyer')) {
+      Storage.getAll('treino_planos')
+        .filter(p => p.fonte === PLANO_VICTOR.fonte)
+        .forEach(p => Storage.remove('treino_planos', p.id));
+      localStorage.setItem('cleanup_plano_bronyer', '1');
+    }
 
     $datePicker.addEventListener('change', () => {
       state.date = $datePicker.value;
