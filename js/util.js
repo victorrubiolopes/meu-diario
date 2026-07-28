@@ -1,6 +1,16 @@
 const Util = (() => {
+  // Formata uma Date para 'YYYY-MM-DD' no fuso LOCAL (não em UTC).
+  // Evita o bug de o "hoje" pular para o dia seguinte à noite (ex: após 21h no Brasil, UTC-3),
+  // que fazia o app conferir o dia errado (treino registrado hoje não marcava).
+  function toLocalISO(d) {
+    const y = d.getFullYear();
+    const m = String(d.getMonth() + 1).padStart(2, '0');
+    const day = String(d.getDate()).padStart(2, '0');
+    return `${y}-${m}-${day}`;
+  }
+
   function todayISO() {
-    return new Date().toISOString().slice(0, 10);
+    return toLocalISO(new Date());
   }
 
   function fmtDate(iso) {
@@ -17,13 +27,13 @@ const Util = (() => {
   function daysAgo(n) {
     const d = new Date();
     d.setDate(d.getDate() - n);
-    return d.toISOString().slice(0, 10);
+    return toLocalISO(d);
   }
 
   function daysFromNow(n) {
     const d = new Date();
     d.setDate(d.getDate() + n);
-    return d.toISOString().slice(0, 10);
+    return toLocalISO(d);
   }
 
   function movingAverage(points, window) {
