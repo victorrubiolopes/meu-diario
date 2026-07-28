@@ -66,15 +66,20 @@ const ViewHistorico = (() => {
     const all = Storage.getAll('treino').sort((a, b) => b.date.localeCompare(a.date));
     const planos = Storage.getAll('treino_planos');
 
-    const exerciseNames = new Set();
-    all.forEach(t => (t.exercises || []).forEach(e => { if (e.name && e.weight) exerciseNames.add(e.name); }));
-    const namesList = [...exerciseNames].sort();
+    // Agrupa por nome normalizado (trim + minúsculas) pra não separar "Supino" de "supino " em exercícios distintos.
+    const exerciseByKey = new Map();
+    all.forEach(t => (t.exercises || []).forEach(e => {
+      if (!e.name || !e.weight) return;
+      const key = e.name.trim().toLowerCase();
+      if (!exerciseByKey.has(key)) exerciseByKey.set(key, e.name.trim());
+    }));
+    const namesList = [...exerciseByKey.entries()].sort((a, b) => a[1].localeCompare(b[1]));
 
     content.innerHTML = `
       <div class="card">
         <h2>Evolução de carga por exercício</h2>
         ${namesList.length === 0 ? '<p class="empty">Registre pesos nos exercícios para ver a evolução aqui</p>' : `
-          <select id="exercicio-hist">${namesList.map(n => `<option value="${Util.escapeHtml(n)}">${Util.escapeHtml(n)}</option>`).join('')}</select>
+          <select id="exercicio-hist">${namesList.map(([key, label]) => `<option value="${Util.escapeHtml(key)}">${Util.escapeHtml(label)}</option>`).join('')}</select>
           <canvas id="chart-canvas-ex" style="margin-top:14px"></canvas>
           <p class="meta" style="color:var(--text-muted);font-size:0.78rem">Maior peso registrado por dia · linha tracejada = tendência</p>
         `}
@@ -87,7 +92,7 @@ const ViewHistorico = (() => {
           <div class="list-item">
             <div>
               <strong>${Util.fmtDate(t.date)}</strong> ${plano ? `<span class="task-tag">${Util.escapeHtml(plano.nome)}</span>` : ''}
-              <div class="meta">${(t.exercises || []).map(e => e.name).filter(Boolean).join(', ') || 'sem exercícios'}</div>
+              <div class="meta">${(t.exercises || []).filter(e => e.name).map(e => e.weight ? `${Util.escapeHtml(e.name)} (${e.weight}kg)` : Util.escapeHtml(e.name)).join(', ') || 'sem exercícios'}</div>
             </div>
           </div>
         `;
@@ -98,11 +103,11 @@ const ViewHistorico = (() => {
     if (namesList.length > 0) {
       const select = document.getElementById('exercicio-hist');
       const draw = () => {
-        const name = select.value;
+        const key = select.value;
         const byDate = {};
         all.forEach(t => {
           (t.exercises || []).forEach(e => {
-            if (e.name === name && e.weight) {
+            if (e.name && e.name.trim().toLowerCase() === key && e.weight) {
               const w = Number(e.weight);
               if (!byDate[t.date] || w > byDate[t.date]) byDate[t.date] = w;
             }

@@ -45,19 +45,21 @@ const Util = (() => {
     const planos = Storage.getAll('treino_planos').sort((a, b) => a.ordem - b.ordem);
     if (planos.length === 0) return null;
     const entradas = Storage.getAll('treino').filter(t => t.planoId).sort((a, b) => b.date.localeCompare(a.date));
-    if (entradas.length === 0) return planos[0];
-    const idx = planos.findIndex(p => p.id === entradas[0].planoId);
-    if (idx === -1) return planos[0];
+    // Ignora entradas cujo planoId não corresponde a nenhum plano atual (ex: plano apagado/recarregado),
+    // senão a rotação "reseta" silenciosamente pro primeiro plano da lista.
+    const ultimaValida = entradas.find(e => planos.some(p => p.id === e.planoId));
+    if (!ultimaValida) return planos[0];
+    const idx = planos.findIndex(p => p.id === ultimaValida.planoId);
     return planos[(idx + 1) % planos.length];
   }
 
   function ultimoTreinoFeito() {
     const planos = Storage.getAll('treino_planos');
     const entradas = Storage.getAll('treino').filter(t => t.planoId).sort((a, b) => b.date.localeCompare(a.date));
-    if (entradas.length === 0) return null;
-    const plano = planos.find(p => p.id === entradas[0].planoId);
-    if (!plano) return null;
-    return { nome: plano.nome, date: entradas[0].date };
+    const ultimaValida = entradas.find(e => planos.some(p => p.id === e.planoId));
+    if (!ultimaValida) return null;
+    const plano = planos.find(p => p.id === ultimaValida.planoId);
+    return { nome: plano.nome, date: ultimaValida.date };
   }
 
   function weekdayOf(dateISO) {
