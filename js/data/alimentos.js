@@ -156,7 +156,7 @@ const ALIMENTOS_PADRAO = [
   // Mais grãos e carboidratos
   { name: 'Arroz parboilizado cozido', portionLabel: '100g', portionGrams: 100, kcal: 123, carbs: 26.2, sugars: 0, protein: 2.6, fat: 0.7, satFat: 0.1, transFat: 0, fiber: 1.8, sodium: 1 },
   { name: 'Pão sírio', portionLabel: '1 unidade (60g)', portionGrams: 60, kcal: 165, carbs: 33, sugars: 1, protein: 5.5, fat: 1, satFat: 0.2, transFat: 0, fiber: 1.5, sodium: 320 },
-  { name: 'Pão caseiro do sogro', portionLabel: '1 fatia média (50g)', portionGrams: 50, kcal: 131, carbs: 27.1, sugars: 0, protein: 3.6, fat: 0.6, satFat: 0.2, transFat: 0, fiber: 0.9, sodium: 167 },
+  { name: 'Pão caseiro do sogro', portionLabel: '1 fatia média (50g)', portionGrams: 50, kcal: 144, carbs: 29.5, sugars: 0, protein: 4, fat: 0.6, satFat: 0.2, transFat: 0, fiber: 0.9, sodium: 183 },
 
   // Mais proteínas
   { name: 'Peito de peru fatiado', portionLabel: '1 fatia (30g)', portionGrams: 30, kcal: 30, carbs: 0.5, sugars: 0.3, protein: 6, fat: 0.4, satFat: 0.1, transFat: 0, fiber: 0, sodium: 280 },
