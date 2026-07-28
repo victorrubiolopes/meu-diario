@@ -836,3 +836,81 @@ canvas {
 }
 
 .ex-video-embed iframe { display: block; border: 0; }
+
+/* ---- calendário de foco (Início) ---- */
+.cal-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 12px;
+}
+
+.cal-nav {
+  width: 34px;
+  height: 34px;
+  border-radius: 10px;
+  border: 1px solid var(--border);
+  background: var(--bg);
+  color: var(--text);
+  font-size: 1.2rem;
+  line-height: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.cal-grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 5px;
+}
+
+.cal-dow { margin-bottom: 4px; }
+
+.cal-cell {
+  aspect-ratio: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.82rem;
+  border-radius: 9px;
+}
+
+.cal-wd { color: var(--text-muted); font-size: 0.72rem; font-weight: 600; }
+.cal-blank { background: none; }
+
+.cal-day {
+  border: 1px solid var(--border);
+  background: var(--bg);
+  color: var(--text);
+  font-family: inherit;
+  font-weight: 600;
+  padding: 0;
+}
+
+.cal-green { background: var(--good); border-color: var(--good); color: #fff; }
+.cal-yellow { background: #c9962c; border-color: #c9962c; color: #fff; }
+.cal-empty { background: var(--bg); color: var(--text-muted); }
+.cal-future { background: none; border: 1px dashed var(--border); color: var(--text-muted); opacity: 0.5; }
+
+.cal-today { box-shadow: 0 0 0 2px var(--accent); }
+.cal-sel { outline: 2px solid var(--accent); outline-offset: 1px; }
+
+.cal-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-top: 12px;
+  font-size: 0.72rem;
+  color: var(--text-muted);
+}
+
+.cal-legend span { display: flex; align-items: center; gap: 5px; }
+
+.cal-dot {
+  width: 11px;
+  height: 11px;
+  border-radius: 3px;
+  display: inline-block;
+}
+.cal-dot.cal-empty { border: 1px solid var(--border); }
