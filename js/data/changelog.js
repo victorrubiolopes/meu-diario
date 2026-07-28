@@ -1,5 +1,8 @@
 // Lista de atualizações recentes do app, mais recente primeiro. Editável manualmente a cada mudança.
 const CHANGELOG = [
+  { date: '2026-07-28', texto: 'Correção: rótulo do plano de treino podia salvar errado; agora escolhe antes de iniciar' },
+  { date: '2026-07-28', texto: 'Suporte a mais de um treino no mesmo dia (cada um editável separadamente)' },
+  { date: '2026-07-28', texto: 'Histórico de treinos mostra o peso ao lado de cada exercício' },
   { date: '2026-07-27', texto: 'Correção: "hoje" usava fuso UTC e à noite pulava de dia — treino/registro do dia agora marca certo' },
   { date: '2026-07-27', texto: 'Fluxo de Iniciar/Finalizar treino: recolhe após concluir e já sugere o próximo (A/B/C)' },
   { date: '2026-07-27', texto: 'Ver quais alimentos mais contribuíram para cada macro (proteína/carbo/gordura/fibra) na Alimentação' },
