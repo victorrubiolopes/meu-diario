@@ -1,4 +1,7 @@
 const ViewInicio = (() => {
+  // Mês exibido no calendário de foco ('YYYY-MM'). Null = deriva da data selecionada.
+  let calYearMonth = null;
+
   const STATUS_LABELS = {
     estavel: '👍 Peso estável — dentro da manutenção',
     perdendo: 'Perdendo peso mesmo em manutenção',
@@ -45,7 +48,54 @@ const ViewInicio = (() => {
     for (let i = 1; i <= 365; i++) {
       if (checar(Util.daysAgo(i)).ok) streak++; else break;
     }
-    return { streak, hoje: checar(Util.todayISO()) };
+    return { streak, hoje: checar(Util.todayISO()), checar };
+  }
+
+  // Calendário mensal colorido pela regra de "dias em foco":
+  // verde = bateu os 3, amarelo = bateu 1 ou 2, cinza = nada; dias futuros ficam apagados.
+  function calendarioHtml(checar, state) {
+    const MESES = ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho', 'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'];
+    const DOW = ['D', 'S', 'T', 'Q', 'Q', 'S', 'S'];
+    if (!calYearMonth) calYearMonth = state.date.slice(0, 7);
+    const [yy, mm] = calYearMonth.split('-').map(Number);
+    const hojeISO = Util.todayISO();
+    const primeiroDiaSemana = new Date(yy, mm - 1, 1).getDay();
+    const diasNoMes = new Date(yy, mm, 0).getDate();
+    const pad = n => String(n).padStart(2, '0');
+
+    let celulas = '';
+    for (let i = 0; i < primeiroDiaSemana; i++) celulas += '<div class="cal-cell cal-blank"></div>';
+    for (let d = 1; d <= diasNoMes; d++) {
+      const dateISO = `${yy}-${pad(mm)}-${pad(d)}`;
+      let classe = 'cal-empty';
+      if (dateISO > hojeISO) {
+        classe = 'cal-future';
+      } else {
+        const c = checar(dateISO);
+        const score = (c.exercicioOk ? 1 : 0) + (c.caloriasOk ? 1 : 0) + (c.aguaOk ? 1 : 0);
+        classe = score === 3 ? 'cal-green' : (score >= 1 ? 'cal-yellow' : 'cal-empty');
+      }
+      const hoje = dateISO === hojeISO ? ' cal-today' : '';
+      const sel = dateISO === state.date ? ' cal-sel' : '';
+      celulas += `<button class="cal-cell cal-day ${classe}${hoje}${sel}" data-cal-day="${dateISO}">${d}</button>`;
+    }
+
+    return `
+      <div class="card dashboard-section">
+        <div class="cal-head">
+          <button class="cal-nav" data-cal-prev aria-label="Mês anterior">‹</button>
+          <h2 style="margin:0">${MESES[mm - 1]} ${yy}</h2>
+          <button class="cal-nav" data-cal-next aria-label="Próximo mês">›</button>
+        </div>
+        <div class="cal-grid cal-dow">${DOW.map(w => `<div class="cal-cell cal-wd">${w}</div>`).join('')}</div>
+        <div class="cal-grid">${celulas}</div>
+        <div class="cal-legend">
+          <span><i class="cal-dot cal-green"></i> Foco total</span>
+          <span><i class="cal-dot cal-yellow"></i> Parcial</span>
+          <span><i class="cal-dot cal-empty"></i> Sem registro</span>
+        </div>
+      </div>
+    `;
   }
 
   function render($app, state, api) {
@@ -136,6 +186,8 @@ const ViewInicio = (() => {
           <span class="task-title ${diasFoco.hoje.aguaOk ? 'done' : ''}">Meta de água batida</span>
         </div>
       </div>
+
+      ${calendarioHtml(diasFoco.checar, state)}
 
       <div class="card dashboard-section">
         <h2>Tendência do seu plano</h2>
@@ -235,6 +287,25 @@ const ViewInicio = (() => {
         const all = Storage.getAll('tarefas_conclusoes');
         all.push({ id: Storage.uid(), taskId: btn.dataset.toggle, date: state.date });
         Storage.saveAll('tarefas_conclusoes', all);
+        api.render();
+      });
+    });
+
+    // Calendário de foco: navegar meses e selecionar um dia
+    function shiftMonth(delta) {
+      const [y, m] = (calYearMonth || state.date.slice(0, 7)).split('-').map(Number);
+      const d = new Date(y, m - 1 + delta, 1);
+      calYearMonth = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
+      api.render();
+    }
+    const prevBtn = $app.querySelector('[data-cal-prev]');
+    const nextBtn = $app.querySelector('[data-cal-next]');
+    if (prevBtn) prevBtn.addEventListener('click', () => shiftMonth(-1));
+    if (nextBtn) nextBtn.addEventListener('click', () => shiftMonth(1));
+    $app.querySelectorAll('[data-cal-day]').forEach(btn => {
+      btn.addEventListener('click', () => {
+        state.date = btn.dataset.calDay;
+        calYearMonth = state.date.slice(0, 7);
         api.render();
       });
     });
