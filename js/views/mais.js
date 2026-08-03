@@ -24,6 +24,7 @@ const ViewMais = (() => {
       case 'combos': return renderCombos($app, state, api);
       case 'dietas-custom': return renderDietasCustom($app, state, api);
       case 'backup': return renderBackup($app, state, api);
+      case 'admin': return renderAdmin($app, state, api);
       default: return renderMenu($app, state, api);
     }
   }
@@ -34,11 +35,14 @@ const ViewMais = (() => {
     if (user) {
       const st = Cloud.getStatus();
       const stTxt = st === 'syncing' ? '⏳ sincronizando…' : st === 'error' ? '⚠️ erro ao sincronizar' : '✅ sincronizado';
+      const ehAdmin = typeof Cloud.isAdmin === 'function' && Cloud.isAdmin();
       return `
         <div class="card">
           <h2>☁️ Conta e sincronização</h2>
-          <p class="meta">Conectado como <strong>${Util.escapeHtml(user.email || user.displayName || 'usuário')}</strong></p>
+          <p class="meta">Conectado como <strong>${Util.escapeHtml(user.email || user.displayName || 'usuário')}</strong>${ehAdmin ? ' <span class="badge pr">nutri/admin</span>' : ''}</p>
           <p class="meta">${stTxt} — seus dados abrem em qualquer navegador com este login.</p>
+          <p class="meta">Seu ID: <code id="cloud-uid" style="font-size:0.72rem">${Util.escapeHtml(user.uid)}</code> <button class="secondary" id="cloud-copy-uid" style="padding:3px 8px;font-size:0.7rem">copiar</button></p>
+          ${ehAdmin ? '<button class="primary" id="cloud-admin" style="margin-top:6px">Abrir painel do nutri</button>' : ''}
           <button class="secondary" id="cloud-logout" style="margin-top:8px">Sair</button>
         </div>
       `;
@@ -78,6 +82,14 @@ const ViewMais = (() => {
     };
     const logoutBtn = $app.querySelector('#cloud-logout');
     if (logoutBtn) logoutBtn.addEventListener('click', () => { Cloud.logout(); });
+    const copyBtn = $app.querySelector('#cloud-copy-uid');
+    if (copyBtn) copyBtn.addEventListener('click', () => {
+      const uid = Cloud.uid && Cloud.uid();
+      if (uid && navigator.clipboard) navigator.clipboard.writeText(uid).then(() => { copyBtn.textContent = 'copiado!'; });
+      else if (uid) { window.prompt('Seu ID (copie):', uid); }
+    });
+    const adminBtn = $app.querySelector('#cloud-admin');
+    if (adminBtn) adminBtn.addEventListener('click', () => api.goToMais('admin'));
     const googleBtn = $app.querySelector('#cloud-google');
     if (googleBtn) googleBtn.addEventListener('click', () => { Cloud.loginGoogle().catch(showErro); });
     const entrarBtn = $app.querySelector('#cloud-entrar');
@@ -982,6 +994,88 @@ const ViewMais = (() => {
     }
 
     return linhas.join('\n');
+  }
+
+  // ---------------- PAINEL DO NUTRI/ADMIN ----------------
+  function renderAdmin($app, state, api) {
+    if (typeof Cloud === 'undefined' || !Cloud.isEnabled() || !Cloud.isAdmin()) {
+      $app.innerHTML = '<div class="card"><p class="empty">Acesso restrito ao nutri/admin.</p></div>';
+      return;
+    }
+    $app.innerHTML = `
+      <div class="card">
+        <h2>👥 Painel do nutri</h2>
+        <p class="meta">Usuários cadastrados. Toque para ver o resumo e enviar uma dieta.</p>
+        <div id="admin-users"><div class="empty">Carregando…</div></div>
+      </div>
+      <div id="admin-detail"></div>
+    `;
+    const usersEl = $app.querySelector('#admin-users');
+    const detailEl = $app.querySelector('#admin-detail');
+
+    Cloud.listarUsuarios().then(users => {
+      if (!users.length) { usersEl.innerHTML = '<div class="empty">Nenhum usuário ainda.</div>'; return; }
+      users.sort((a, b) => (a.email || '').localeCompare(b.email || ''));
+      usersEl.innerHTML = users.map(u => `
+        <button class="menu-item" data-uid="${Util.escapeHtml(u.uid)}">
+          <span class="icon">👤</span> ${Util.escapeHtml(u.displayName || u.email || u.uid)} <span class="chev">›</span>
+        </button>
+      `).join('');
+      usersEl.querySelectorAll('[data-uid]').forEach(btn => {
+        btn.addEventListener('click', () => abrirUsuario(btn.dataset.uid, users.find(x => x.uid === btn.dataset.uid)));
+      });
+    }).catch(e => { usersEl.innerHTML = `<div class="empty">Erro ao listar: ${Util.escapeHtml(e.message || '')}</div>`; });
+
+    async function abrirUsuario(uid, info) {
+      detailEl.innerHTML = '<div class="card"><div class="empty">Carregando dados…</div></div>';
+      let dados = null; let presc = null;
+      try { dados = await Cloud.dadosUsuario(uid); } catch (e) { /* segue */ }
+      try { presc = await Cloud.prescricaoDe(uid); } catch (e) { /* segue */ }
+      const nTreino = dados && dados.treino ? dados.treino.length : 0;
+      const nRef = dados && dados.alimentacao ? dados.alimentacao.length : 0;
+      const medidas = dados && dados.medidas ? dados.medidas.filter(m => m.weight != null).sort((a, b) => b.date.localeCompare(a.date)) : [];
+      const peso = medidas.length ? medidas[0].weight : null;
+      const p = presc || {};
+      detailEl.innerHTML = `
+        <div class="card">
+          <h2>${Util.escapeHtml((info && (info.displayName || info.email)) || uid)}</h2>
+          <p class="meta">${Util.escapeHtml((info && info.email) || '')}</p>
+          <p class="meta">Treinos: ${nTreino} · Refeições lançadas: ${nRef} · Peso atual: ${peso != null ? peso + 'kg' : '—'}</p>
+          <h3 style="font-size:0.92rem;margin:14px 0 6px">Enviar / atualizar dieta</h3>
+          ${presc ? `<p class="meta">Dieta atual: <strong>${Util.escapeHtml(p.nome || '')}</strong> · ${p.kcal || '—'} kcal</p>` : '<p class="meta">Nenhuma dieta enviada ainda.</p>'}
+          <label>Nome da dieta</label>
+          <input type="text" id="ad-nome" value="${Util.escapeHtml(p.nome || '')}" placeholder="Ex: Dieta agosto">
+          <div class="row">
+            <div><label>Calorias</label><input type="number" id="ad-kcal" value="${p.kcal || ''}"></div>
+            <div><label>Proteína (g)</label><input type="number" id="ad-protein" value="${p.protein || ''}"></div>
+          </div>
+          <div class="row">
+            <div><label>Carbo (g)</label><input type="number" id="ad-carb" value="${p.carb || ''}"></div>
+            <div><label>Gordura (g)</label><input type="number" id="ad-fat" value="${p.fat || ''}"></div>
+          </div>
+          <label>Fibras (g) — opcional</label>
+          <input type="number" id="ad-fiber" value="${p.fiber || ''}">
+          <button class="primary" id="ad-enviar" style="margin-top:10px">Enviar dieta para este usuário</button>
+          <p class="meta" id="ad-msg" style="margin-top:8px"></p>
+        </div>
+      `;
+      detailEl.querySelector('#ad-enviar').addEventListener('click', async () => {
+        const msg = detailEl.querySelector('#ad-msg');
+        const nome = detailEl.querySelector('#ad-nome').value.trim();
+        const kcal = Number(detailEl.querySelector('#ad-kcal').value) || null;
+        if (!nome || !kcal) { msg.textContent = 'Informe ao menos nome e calorias.'; return; }
+        const dieta = {
+          nome, kcal,
+          protein: Number(detailEl.querySelector('#ad-protein').value) || null,
+          carb: Number(detailEl.querySelector('#ad-carb').value) || null,
+          fat: Number(detailEl.querySelector('#ad-fat').value) || null,
+          fiber: Number(detailEl.querySelector('#ad-fiber').value) || null,
+        };
+        msg.textContent = 'Enviando…';
+        try { await Cloud.enviarDieta(uid, dieta); msg.textContent = '✅ Dieta enviada! O usuário verá ao abrir/entrar no app.'; }
+        catch (e) { msg.textContent = '⚠️ Falha ao enviar: ' + (e.message || ''); }
+      });
+    }
   }
 
   return { render };
