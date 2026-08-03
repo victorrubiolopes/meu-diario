@@ -1,5 +1,6 @@
 // Lista de atualizações recentes do app, mais recente primeiro. Editável manualmente a cada mudança.
 const CHANGELOG = [
+  { date: '2026-07-28', texto: 'Nutri pode montar o plano refeição a refeição (café/almoço/janta com alimentos) e enviar ao paciente' },
   { date: '2026-07-28', texto: 'Aprovação de vídeos: vídeo sugerido para exercício passa pela análise do admin antes de valer para todos' },
   { date: '2026-07-28', texto: 'Painel do nutri (admin): lista os usuários e envia a dieta específica de cada paciente' },
   { date: '2026-07-28', texto: 'Biblioteca de exercícios compartilhada (nome/grupo/equipamento) entre todos os usuários' },

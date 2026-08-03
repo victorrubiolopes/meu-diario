@@ -1100,7 +1100,9 @@ const ViewMais = (() => {
           <button class="primary" id="ad-enviar" style="margin-top:10px">Enviar dieta para este usuário</button>
           <p class="meta" id="ad-msg" style="margin-top:8px"></p>
         </div>
+        <div id="admin-plano"></div>
       `;
+      montarPlano(uid, presc);
       detailEl.querySelector('#ad-enviar').addEventListener('click', async () => {
         const msg = detailEl.querySelector('#ad-msg');
         const nome = detailEl.querySelector('#ad-nome').value.trim();
@@ -1117,6 +1119,93 @@ const ViewMais = (() => {
         try { await Cloud.enviarDieta(uid, dieta); msg.textContent = '✅ Dieta enviada! O usuário verá ao abrir/entrar no app.'; }
         catch (e) { msg.textContent = '⚠️ Falha ao enviar: ' + (e.message || ''); }
       });
+    }
+
+    // Construtor de plano alimentar (refeição a refeição) para um paciente.
+    function montarPlano(uid, presc) {
+      const cont = detailEl.querySelector('#admin-plano');
+      if (!cont) return;
+      const NUTRI = ['kcal', 'carbs', 'sugars', 'protein', 'fat', 'satFat', 'transFat', 'fiber', 'sodium'];
+      const biblioteca = Storage.getAll('alimentos_biblioteca').sort((a, b) => a.name.localeCompare(b.name));
+      let refeicoes = (presc && Array.isArray(presc.refeicoes))
+        ? presc.refeicoes.map(r => ({ ...r, itens: (r.itens || []).map(i => ({ ...i })) })) : [];
+      let itensNovo = [];
+
+      function paint() {
+        cont.innerHTML = `
+          <div class="card">
+            <h3 style="font-size:0.92rem;margin:0 0 8px">🍽️ Plano alimentar (refeição a refeição)</h3>
+            ${refeicoes.length === 0 ? '<p class="meta">Nenhuma refeição no plano ainda.</p>' : refeicoes.map((r, i) => `
+              <div class="list-item">
+                <div>
+                  <strong>${Util.escapeHtml(r.nome)}</strong> ${r.horario ? `<span class="meta">${Util.escapeHtml(r.horario)}</span>` : ''}
+                  <div class="meta">${(r.itens || []).map(it => Util.escapeHtml(it.foodName) + (it.qty !== 1 ? ` (${it.qty}x)` : '')).join(', ')}</div>
+                </div>
+                <button class="link" data-del-ref="${i}">✕</button>
+              </div>
+            `).join('')}
+            <hr style="border:none;border-top:1px solid var(--border);margin:12px 0">
+            <label>Nome da refeição</label>
+            <input type="text" id="pl-nome" placeholder="Ex: Café da manhã">
+            <label>Horário</label>
+            <input type="time" id="pl-hora">
+            <label>Adicionar alimento</label>
+            <input type="text" id="pl-food" list="datalist-alim-adm" placeholder="Buscar alimento da biblioteca">
+            <datalist id="datalist-alim-adm">${biblioteca.map(f => `<option value="${Util.escapeHtml(f.name)}">`).join('')}</datalist>
+            <div class="row" style="margin-top:6px">
+              <input type="number" id="pl-qty" value="1" min="0.01" step="0.1" placeholder="Porções">
+              <button class="secondary" id="pl-add-item" style="flex:0 0 auto">+ item</button>
+            </div>
+            <div id="pl-itens" style="margin-top:8px"></div>
+            <button class="secondary" id="pl-add-ref" style="width:100%;margin-top:10px">+ Adicionar refeição ao plano</button>
+            <button class="primary" id="pl-enviar" style="margin-top:8px">Enviar plano alimentar</button>
+            <p class="meta" id="pl-msg" style="margin-top:6px"></p>
+          </div>
+        `;
+        pintarItens();
+        cont.querySelectorAll('[data-del-ref]').forEach(b => b.addEventListener('click', () => { refeicoes.splice(Number(b.dataset.delRef), 1); paint(); }));
+        cont.querySelector('#pl-add-item').addEventListener('click', () => {
+          const nomeFood = cont.querySelector('#pl-food').value.trim();
+          const qty = Number(cont.querySelector('#pl-qty').value) || 1;
+          if (!nomeFood) return;
+          const food = biblioteca.find(f => f.name.trim().toLowerCase() === nomeFood.toLowerCase());
+          const item = { foodName: food ? food.name : nomeFood, qty };
+          NUTRI.forEach(f => { item[f] = food ? Math.round((food[f] || 0) * qty * 10) / 10 : 0; });
+          itensNovo.push(item);
+          cont.querySelector('#pl-food').value = '';
+          cont.querySelector('#pl-qty').value = '1';
+          pintarItens();
+        });
+        cont.querySelector('#pl-add-ref').addEventListener('click', () => {
+          const nome = cont.querySelector('#pl-nome').value.trim();
+          const horario = cont.querySelector('#pl-hora').value || null;
+          if (!nome || itensNovo.length === 0) { cont.querySelector('#pl-msg').textContent = 'Dê um nome e adicione ao menos 1 alimento.'; return; }
+          refeicoes.push({ nome, horario, itens: itensNovo });
+          itensNovo = [];
+          paint();
+        });
+        cont.querySelector('#pl-enviar').addEventListener('click', async () => {
+          const msg = cont.querySelector('#pl-msg');
+          if (refeicoes.length === 0) { msg.textContent = 'Adicione ao menos uma refeição.'; return; }
+          msg.textContent = 'Enviando…';
+          try { await Cloud.enviarPlano(uid, refeicoes); msg.textContent = '✅ Plano alimentar enviado! O paciente recebe como refeições prontas.'; }
+          catch (e) { msg.textContent = '⚠️ Falha: ' + (e.message || ''); }
+        });
+      }
+
+      function pintarItens() {
+        const wrap = cont.querySelector('#pl-itens');
+        if (!wrap) return;
+        wrap.innerHTML = itensNovo.length === 0 ? '<p class="meta">Nenhum alimento nesta refeição ainda.</p>' : itensNovo.map((it, i) => `
+          <div class="list-item">
+            <div class="meta">${Util.escapeHtml(it.foodName)} ${it.qty !== 1 ? `(${it.qty}x)` : ''} · ${Math.round(it.kcal || 0)} kcal</div>
+            <button class="link" data-del-item="${i}">✕</button>
+          </div>
+        `).join('');
+        wrap.querySelectorAll('[data-del-item]').forEach(b => b.addEventListener('click', () => { itensNovo.splice(Number(b.dataset.delItem), 1); pintarItens(); }));
+      }
+
+      paint();
     }
   }
 
