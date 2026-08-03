@@ -18,9 +18,8 @@ const Cloud = (() => {
   let status = 'local'; // 'local' | 'syncing' | 'synced' | 'error'
   const listeners = [];
 
-  // Alimentos compartilhados entre TODOS os usuários (coleção global 'sharedFoods').
-  let sharedFoodsUnsub = null;
-  const nomesCompartilhados = new Set(); // nomes (lowercase) já vistos no compartilhado
+  // Coleções compartilhadas entre TODOS os usuários (alimentos e exercícios).
+  // O estado de cada uma vive dentro do gerenciador criado por criarCompartilhado().
 
   function isEnabled() { return enabled; }
   function currentUser() { return user; }
@@ -35,59 +34,72 @@ const Cloud = (() => {
     Storage.saveAll = function (k, items) { _saveAll(k, items); markDirty(); };
     const _savePerfil = Storage.savePerfil;
     Storage.savePerfil = function (d) { _savePerfil(d); markDirty(); };
-    // Ao adicionar um alimento na biblioteca, compartilha com todos os usuários.
+    // Ao adicionar um item custom na biblioteca, compartilha com todos os usuários.
     const _add = Storage.add;
     Storage.add = function (k, entry) {
       const r = _add(k, entry);
-      if (k === 'alimentos_biblioteca' && r && r.custom) compartilharAlimento(r);
+      if (r && r.custom) {
+        if (k === 'alimentos_biblioteca') compAlimentos.push(r);
+        else if (k === 'exercicios_biblioteca') compExercicios.push(r);
+      }
       return r;
     };
   }
 
-  // ---- Alimentos compartilhados (globais) ----
+  // ---- Coleções compartilhadas (globais) ----
   function nomeChave(f) { return (f && f.name ? f.name : '').trim().toLowerCase(); }
 
-  function startSharedFoods() {
-    if (!enabled || !user || !db || sharedFoodsUnsub) return;
-    sharedFoodsUnsub = db.collection('sharedFoods').onSnapshot(snap => {
-      const locais = Storage.getAll('alimentos_biblioteca');
-      const nomesLocais = new Set(locais.map(nomeChave));
-      const novos = [];
-      snap.forEach(doc => {
-        const f = doc.data();
-        const nome = nomeChave(f);
-        if (!nome) return;
-        nomesCompartilhados.add(nome);
-        if (!nomesLocais.has(nome)) {
-          novos.push({ ...f, id: Storage.uid(), custom: true });
-          nomesLocais.add(nome);
+  // Gerencia uma coleção compartilhada: envia itens custom locais e mescla os de outros
+  // usuários na biblioteca local (em tempo real), sem duplicar por nome.
+  // stripFields: campos NÃO compartilhados (ex: 'videoUrl' — vídeo passa por aprovação).
+  function criarCompartilhado(colName, storageKey, stripFields, defaults) {
+    const vistos = new Set();
+    let unsub = null;
+
+    function push(item) {
+      if (!enabled || !user || !db || !item) return;
+      const nome = nomeChave(item);
+      if (!nome || vistos.has(nome)) return;
+      vistos.add(nome);
+      const dados = { ...item };
+      ['id', 'custom'].concat(stripFields || []).forEach(f => delete dados[f]);
+      db.collection(colName).add({ ...dados, addedBy: user.uid })
+        .catch(e => { console.error('Compartilhar falhou', colName, e); vistos.delete(nome); });
+    }
+
+    function start() {
+      if (!enabled || !user || !db || unsub) return;
+      unsub = db.collection(colName).onSnapshot(snap => {
+        const locais = Storage.getAll(storageKey);
+        const nomesLocais = new Set(locais.map(nomeChave));
+        const novos = [];
+        snap.forEach(doc => {
+          const it = doc.data();
+          const nome = nomeChave(it);
+          if (!nome) return;
+          vistos.add(nome);
+          if (!nomesLocais.has(nome)) {
+            novos.push({ ...(defaults || {}), ...it, id: Storage.uid(), custom: true });
+            nomesLocais.add(nome);
+          }
+        });
+        if (novos.length) {
+          localStorage.setItem(Storage.KEYS[storageKey], JSON.stringify([...locais, ...novos]));
+          emit();
         }
-      });
-      if (novos.length) {
-        localStorage.setItem(Storage.KEYS.alimentos_biblioteca, JSON.stringify([...locais, ...novos]));
-        emit();
-      }
-      // Envia alimentos custom locais que ainda não estão no compartilhado.
-      Storage.getAll('alimentos_biblioteca')
-        .filter(f => f.custom === true && !nomesCompartilhados.has(nomeChave(f)))
-        .forEach(compartilharAlimento);
-    }, err => console.error('Listener de alimentos compartilhados falhou', err));
+        Storage.getAll(storageKey)
+          .filter(f => f.custom === true && !vistos.has(nomeChave(f)))
+          .forEach(push);
+      }, err => console.error('Listener compartilhado falhou', colName, err));
+    }
+
+    function stop() { if (unsub) { unsub(); unsub = null; } vistos.clear(); }
+
+    return { push, start, stop };
   }
 
-  function stopSharedFoods() {
-    if (sharedFoodsUnsub) { sharedFoodsUnsub(); sharedFoodsUnsub = null; }
-    nomesCompartilhados.clear();
-  }
-
-  function compartilharAlimento(food) {
-    if (!enabled || !user || !db || !food) return;
-    const nome = nomeChave(food);
-    if (!nome || nomesCompartilhados.has(nome)) return;
-    nomesCompartilhados.add(nome);
-    const { id, custom, ...dados } = food;
-    db.collection('sharedFoods').add({ ...dados, addedBy: user.uid })
-      .catch(e => { console.error('Compartilhar alimento falhou', e); nomesCompartilhados.delete(nome); });
-  }
+  const compAlimentos = criarCompartilhado('sharedFoods', 'alimentos_biblioteca', [], {});
+  const compExercicios = criarCompartilhado('sharedExercises', 'exercicios_biblioteca', ['videoUrl'], { videoUrl: '' });
 
   function init() {
     if (typeof FIREBASE_CONFIG === 'undefined' || !FIREBASE_CONFIG) return;
@@ -104,9 +116,11 @@ const Cloud = (() => {
           status = 'syncing'; emit();
           try { await onLogin(); status = 'synced'; }
           catch (e) { console.error('Sincronização falhou', e); status = 'error'; }
-          startSharedFoods();
+          compAlimentos.start();
+          compExercicios.start();
         } else {
-          stopSharedFoods();
+          compAlimentos.stop();
+          compExercicios.stop();
           status = 'local';
         }
         emit();

@@ -1,5 +1,6 @@
 // Lista de atualizações recentes do app, mais recente primeiro. Editável manualmente a cada mudança.
 const CHANGELOG = [
+  { date: '2026-07-28', texto: 'Biblioteca de exercícios compartilhada (nome/grupo/equipamento) entre todos os usuários' },
   { date: '2026-07-28', texto: 'Tela de login ao abrir o app (Google ou e-mail) para quem usa a nuvem' },
   { date: '2026-07-28', texto: 'Biblioteca de alimentos compartilhada: alimento que qualquer usuário adiciona aparece para todos' },
   { date: '2026-07-28', texto: 'Login e sincronização na nuvem (opcional) em Mais: entre com Google ou e-mail e abra seus dados em qualquer navegador' },
