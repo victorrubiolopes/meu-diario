@@ -252,6 +252,19 @@ const Cloud = (() => {
       // Ativa a dieta prescrita como objetivo atual (o paciente ainda pode trocar depois).
       const perfil = Storage.getPerfil();
       localStorage.setItem('perfil', JSON.stringify({ ...perfil, dietaTemplate: null, metaCustom: null, dietaCustomId: dieta.id }));
+
+      // Plano alimentar (refeições) prescrito → vira combos prontos do paciente.
+      if (Array.isArray(d.refeicoes) && d.refeicoes.length) {
+        const combos = Storage.getAll('combos');
+        d.refeicoes.forEach(ref => {
+          if (!ref || !ref.nome) return;
+          const combo = { nome: ref.nome, horario: ref.horario || null, itens: ref.itens || [], fonte: 'nutri' };
+          const j = combos.findIndex(c => (c.nome || '').trim().toLowerCase() === ref.nome.trim().toLowerCase());
+          if (j >= 0) { combo.id = combos[j].id; combos[j] = combo; }
+          else { combo.id = Storage.uid(); combos.push(combo); }
+        });
+        localStorage.setItem(Storage.KEYS.combos, JSON.stringify(combos));
+      }
       emit();
     } catch (e) { console.error('Aplicar prescrição falhou', e); }
   }
@@ -274,6 +287,12 @@ const Cloud = (() => {
   async function enviarDieta(uidAlvo, dieta) {
     await db.collection('prescricoes').doc(uidAlvo).set(
       { ...dieta, updatedAt: Date.now(), byUid: user.uid }, { merge: true }
+    );
+  }
+
+  async function enviarPlano(uidAlvo, refeicoes) {
+    await db.collection('prescricoes').doc(uidAlvo).set(
+      { refeicoes, updatedAt: Date.now(), byUid: user.uid }, { merge: true }
     );
   }
 
@@ -314,7 +333,7 @@ const Cloud = (() => {
   return {
     init, wrapStorage, isEnabled, currentUser, getStatus, onChange,
     loginGoogle, loginEmail, signupEmail, logout, push,
-    isAdmin, uid, listarUsuarios, dadosUsuario, prescricaoDe, enviarDieta,
+    isAdmin, uid, listarUsuarios, dadosUsuario, prescricaoDe, enviarDieta, enviarPlano,
     sugerirVideo, listarVideosPendentes, aprovarVideoPendente, rejeitarVideoPendente,
   };
 })();
