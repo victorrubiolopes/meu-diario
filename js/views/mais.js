@@ -28,8 +28,75 @@ const ViewMais = (() => {
     }
   }
 
+  function contaCardHtml() {
+    if (typeof Cloud === 'undefined' || !Cloud.isEnabled()) return '';
+    const user = Cloud.currentUser();
+    if (user) {
+      const st = Cloud.getStatus();
+      const stTxt = st === 'syncing' ? '⏳ sincronizando…' : st === 'error' ? '⚠️ erro ao sincronizar' : '✅ sincronizado';
+      return `
+        <div class="card">
+          <h2>☁️ Conta e sincronização</h2>
+          <p class="meta">Conectado como <strong>${Util.escapeHtml(user.email || user.displayName || 'usuário')}</strong></p>
+          <p class="meta">${stTxt} — seus dados abrem em qualquer navegador com este login.</p>
+          <button class="secondary" id="cloud-logout" style="margin-top:8px">Sair</button>
+        </div>
+      `;
+    }
+    return `
+      <div class="card">
+        <h2>☁️ Sincronizar na nuvem</h2>
+        <p class="meta">Entre para salvar seus dados na sua conta e abrir o app em qualquer navegador/aparelho.</p>
+        <button class="primary" id="cloud-google">Entrar com Google</button>
+        <div style="text-align:center;color:var(--text-muted);font-size:0.75rem;margin:10px 0">ou com e-mail</div>
+        <input type="email" id="cloud-email" placeholder="seu@email.com" autocomplete="email">
+        <input type="password" id="cloud-senha" placeholder="senha (mín. 6 caracteres)" autocomplete="current-password" style="margin-top:8px">
+        <div class="row" style="margin-top:8px">
+          <button class="secondary" id="cloud-entrar">Entrar</button>
+          <button class="secondary" id="cloud-criar">Criar conta</button>
+        </div>
+        <p class="meta" id="cloud-erro" style="color:var(--danger);margin-top:8px"></p>
+      </div>
+    `;
+  }
+
+  function bindContaCard($app, api) {
+    if (typeof Cloud === 'undefined' || !Cloud.isEnabled()) return;
+    const erroEl = $app.querySelector('#cloud-erro');
+    const showErro = e => {
+      const map = {
+        'auth/invalid-credential': 'E-mail ou senha incorretos.',
+        'auth/wrong-password': 'Senha incorreta.',
+        'auth/user-not-found': 'Conta não encontrada — use "Criar conta".',
+        'auth/email-already-in-use': 'Este e-mail já tem conta — use "Entrar".',
+        'auth/weak-password': 'Senha muito curta (mínimo 6 caracteres).',
+        'auth/invalid-email': 'E-mail inválido.',
+        'auth/popup-closed-by-user': 'Login cancelado.',
+        'auth/unauthorized-domain': 'Domínio não autorizado no Firebase (configuração pendente).',
+      };
+      if (erroEl) erroEl.textContent = (e && map[e.code]) || (e && e.message) || 'Falha no login.';
+    };
+    const logoutBtn = $app.querySelector('#cloud-logout');
+    if (logoutBtn) logoutBtn.addEventListener('click', () => { Cloud.logout(); });
+    const googleBtn = $app.querySelector('#cloud-google');
+    if (googleBtn) googleBtn.addEventListener('click', () => { Cloud.loginGoogle().catch(showErro); });
+    const entrarBtn = $app.querySelector('#cloud-entrar');
+    if (entrarBtn) entrarBtn.addEventListener('click', () => {
+      const email = $app.querySelector('#cloud-email').value.trim();
+      const senha = $app.querySelector('#cloud-senha').value;
+      Cloud.loginEmail(email, senha).catch(showErro);
+    });
+    const criarBtn = $app.querySelector('#cloud-criar');
+    if (criarBtn) criarBtn.addEventListener('click', () => {
+      const email = $app.querySelector('#cloud-email').value.trim();
+      const senha = $app.querySelector('#cloud-senha').value;
+      Cloud.signupEmail(email, senha).catch(showErro);
+    });
+  }
+
   function renderMenu($app, state, api) {
     $app.innerHTML = `
+      ${contaCardHtml()}
       <div class="card" style="padding:4px 16px">
         <div class="menu-list">
           ${MENU.map(m => `
@@ -40,6 +107,7 @@ const ViewMais = (() => {
         </div>
       </div>
     `;
+    bindContaCard($app, api);
     $app.querySelectorAll('[data-go]').forEach(btn => {
       btn.addEventListener('click', () => api.goToMais(btn.dataset.go));
     });
