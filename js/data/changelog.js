@@ -1,5 +1,6 @@
 // Lista de atualizações recentes do app, mais recente primeiro. Editável manualmente a cada mudança.
 const CHANGELOG = [
+  { date: '2026-07-28', texto: 'Login e sincronização na nuvem (opcional) em Mais: entre com Google ou e-mail e abra seus dados em qualquer navegador' },
   { date: '2026-07-28', texto: 'Calendário mensal de foco no Início: cada dia colorido (verde/amarelo) conforme metas batidas; toque para abrir o dia' },
   { date: '2026-07-28', texto: 'Correção: rótulo do plano de treino podia salvar errado; agora escolhe antes de iniciar' },
   { date: '2026-07-28', texto: 'Suporte a mais de um treino no mesmo dia (cada um editável separadamente)' },

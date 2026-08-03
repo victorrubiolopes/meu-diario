@@ -118,7 +118,7 @@ const App = (() => {
     });
   }
 
-  function init() {
+  function aplicarSeeds() {
     Storage.mergeSeeds('exercicios_biblioteca', EXERCICIOS_PADRAO);
     Storage.mergeSeeds('alimentos_biblioteca', ALIMENTOS_PADRAO);
     Storage.mergeSeeds('combos', COMBOS_PADRAO, 'nome');
@@ -146,6 +146,18 @@ const App = (() => {
         .forEach(p => Storage.remove('treino_planos', p.id));
       localStorage.setItem('cleanup_plano_bronyer', '1');
     }
+  }
+
+  function init() {
+    // Nuvem (opcional): envolve o Storage e conecta o login antes de tudo.
+    // Ao entrar/baixar dados, re-aplica seeds e re-renderiza.
+    if (typeof Cloud !== 'undefined') {
+      Cloud.wrapStorage();
+      Cloud.onChange(() => { aplicarSeeds(); render(); });
+      Cloud.init();
+    }
+
+    aplicarSeeds();
 
     $datePicker.addEventListener('change', () => {
       state.date = $datePicker.value;
