@@ -18,6 +18,10 @@ const Cloud = (() => {
   let status = 'local'; // 'local' | 'syncing' | 'synced' | 'error'
   const listeners = [];
 
+  // Alimentos compartilhados entre TODOS os usuários (coleção global 'sharedFoods').
+  let sharedFoodsUnsub = null;
+  const nomesCompartilhados = new Set(); // nomes (lowercase) já vistos no compartilhado
+
   function isEnabled() { return enabled; }
   function currentUser() { return user; }
   function getStatus() { return status; }
@@ -31,6 +35,58 @@ const Cloud = (() => {
     Storage.saveAll = function (k, items) { _saveAll(k, items); markDirty(); };
     const _savePerfil = Storage.savePerfil;
     Storage.savePerfil = function (d) { _savePerfil(d); markDirty(); };
+    // Ao adicionar um alimento na biblioteca, compartilha com todos os usuários.
+    const _add = Storage.add;
+    Storage.add = function (k, entry) {
+      const r = _add(k, entry);
+      if (k === 'alimentos_biblioteca' && r && r.custom) compartilharAlimento(r);
+      return r;
+    };
+  }
+
+  // ---- Alimentos compartilhados (globais) ----
+  function nomeChave(f) { return (f && f.name ? f.name : '').trim().toLowerCase(); }
+
+  function startSharedFoods() {
+    if (!enabled || !user || !db || sharedFoodsUnsub) return;
+    sharedFoodsUnsub = db.collection('sharedFoods').onSnapshot(snap => {
+      const locais = Storage.getAll('alimentos_biblioteca');
+      const nomesLocais = new Set(locais.map(nomeChave));
+      const novos = [];
+      snap.forEach(doc => {
+        const f = doc.data();
+        const nome = nomeChave(f);
+        if (!nome) return;
+        nomesCompartilhados.add(nome);
+        if (!nomesLocais.has(nome)) {
+          novos.push({ ...f, id: Storage.uid(), custom: true });
+          nomesLocais.add(nome);
+        }
+      });
+      if (novos.length) {
+        localStorage.setItem(Storage.KEYS.alimentos_biblioteca, JSON.stringify([...locais, ...novos]));
+        emit();
+      }
+      // Envia alimentos custom locais que ainda não estão no compartilhado.
+      Storage.getAll('alimentos_biblioteca')
+        .filter(f => f.custom === true && !nomesCompartilhados.has(nomeChave(f)))
+        .forEach(compartilharAlimento);
+    }, err => console.error('Listener de alimentos compartilhados falhou', err));
+  }
+
+  function stopSharedFoods() {
+    if (sharedFoodsUnsub) { sharedFoodsUnsub(); sharedFoodsUnsub = null; }
+    nomesCompartilhados.clear();
+  }
+
+  function compartilharAlimento(food) {
+    if (!enabled || !user || !db || !food) return;
+    const nome = nomeChave(food);
+    if (!nome || nomesCompartilhados.has(nome)) return;
+    nomesCompartilhados.add(nome);
+    const { id, custom, ...dados } = food;
+    db.collection('sharedFoods').add({ ...dados, addedBy: user.uid })
+      .catch(e => { console.error('Compartilhar alimento falhou', e); nomesCompartilhados.delete(nome); });
   }
 
   function init() {
@@ -48,7 +104,9 @@ const Cloud = (() => {
           status = 'syncing'; emit();
           try { await onLogin(); status = 'synced'; }
           catch (e) { console.error('Sincronização falhou', e); status = 'error'; }
+          startSharedFoods();
         } else {
+          stopSharedFoods();
           status = 'local';
         }
         emit();

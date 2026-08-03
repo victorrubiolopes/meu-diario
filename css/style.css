@@ -914,3 +914,45 @@ canvas {
   display: inline-block;
 }
 .cal-dot.cal-empty { border: 1px solid var(--border); }
+
+/* ---- tela de login (gate) ---- */
+.auth-gate {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  background: var(--bg);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+}
+
+.auth-box {
+  width: 100%;
+  max-width: 360px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 28px 22px;
+  box-shadow: var(--shadow);
+  text-align: center;
+}
+
+.auth-logo { font-size: 2.6rem; line-height: 1; }
+.auth-box h1 { margin: 10px 0 6px; font-size: 1.4rem; }
+.auth-sub { color: var(--text-muted); font-size: 0.85rem; margin: 0 0 18px; }
+.auth-box .primary { margin-top: 0; }
+
+.auth-sep {
+  color: var(--text-muted);
+  font-size: 0.75rem;
+  margin: 14px 0 10px;
+  position: relative;
+}
+
+.auth-box input[type="email"],
+.auth-box input[type="password"] { margin-bottom: 8px; }
+
+.auth-box .row .secondary { flex: 1; text-align: center; padding: 10px; }
+
+.auth-erro { color: var(--danger); font-size: 0.8rem; margin: 10px 0 0; min-height: 1em; }
