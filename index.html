@@ -8,6 +8,23 @@
 </head>
 <body>
 
+<div id="auth-gate" class="auth-gate" style="display:none">
+  <div class="auth-box">
+    <div class="auth-logo">📔</div>
+    <h1>Meu Diário</h1>
+    <p class="auth-sub">Entre para acessar seu diário e sincronizar em qualquer aparelho.</p>
+    <button class="primary" id="gate-google">Entrar com Google</button>
+    <div class="auth-sep">ou com e-mail</div>
+    <input type="email" id="gate-email" placeholder="seu@email.com" autocomplete="email">
+    <input type="password" id="gate-senha" placeholder="senha (mín. 6 caracteres)" autocomplete="current-password">
+    <div class="row" style="margin-top:10px">
+      <button class="secondary" id="gate-entrar">Entrar</button>
+      <button class="secondary" id="gate-criar">Criar conta</button>
+    </div>
+    <p class="auth-erro" id="gate-erro"></p>
+  </div>
+</div>
+
 <header class="topbar">
   <button class="back-btn" id="back-btn" style="display:none">←</button>
   <h1 id="page-title">Início</h1>

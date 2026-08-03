@@ -148,13 +148,49 @@ const App = (() => {
     }
   }
 
+  // Tela de login: aparece quando a nuvem está ativa e ninguém está logado.
+  // Se a nuvem não estiver disponível (SDK falhou/sem config), NÃO bloqueia — app roda local.
+  function atualizarGate() {
+    const gate = document.getElementById('auth-gate');
+    if (!gate) return;
+    const bloquear = typeof Cloud !== 'undefined' && Cloud.isEnabled() && !Cloud.currentUser();
+    gate.style.display = bloquear ? 'flex' : 'none';
+  }
+
+  function initGate() {
+    const erroEl = document.getElementById('gate-erro');
+    const showErro = e => {
+      const map = {
+        'auth/invalid-credential': 'E-mail ou senha incorretos.',
+        'auth/wrong-password': 'Senha incorreta.',
+        'auth/user-not-found': 'Conta não encontrada — use "Criar conta".',
+        'auth/email-already-in-use': 'Este e-mail já tem conta — use "Entrar".',
+        'auth/weak-password': 'Senha muito curta (mínimo 6 caracteres).',
+        'auth/invalid-email': 'E-mail inválido.',
+        'auth/popup-closed-by-user': 'Login cancelado.',
+        'auth/unauthorized-domain': 'Domínio não autorizado no Firebase.',
+      };
+      if (erroEl) erroEl.textContent = (e && map[e.code]) || (e && e.message) || 'Falha no login.';
+    };
+    const email = () => (document.getElementById('gate-email').value || '').trim();
+    const senha = () => document.getElementById('gate-senha').value || '';
+    const g = document.getElementById('gate-google');
+    if (g) g.addEventListener('click', () => Cloud.loginGoogle().catch(showErro));
+    const e = document.getElementById('gate-entrar');
+    if (e) e.addEventListener('click', () => Cloud.loginEmail(email(), senha()).catch(showErro));
+    const c = document.getElementById('gate-criar');
+    if (c) c.addEventListener('click', () => Cloud.signupEmail(email(), senha()).catch(showErro));
+  }
+
   function init() {
     // Nuvem (opcional): envolve o Storage e conecta o login antes de tudo.
-    // Ao entrar/baixar dados, re-aplica seeds e re-renderiza.
+    // Ao entrar/baixar dados, re-aplica seeds, re-renderiza e atualiza a tela de login.
     if (typeof Cloud !== 'undefined') {
       Cloud.wrapStorage();
-      Cloud.onChange(() => { aplicarSeeds(); render(); });
+      Cloud.onChange(() => { aplicarSeeds(); render(); atualizarGate(); });
+      initGate();
       Cloud.init();
+      atualizarGate();
     }
 
     aplicarSeeds();
