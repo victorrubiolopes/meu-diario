@@ -16,6 +16,7 @@ const Cloud = (() => {
   let user = null;
   let dirtyTimer = null;
   let status = 'local'; // 'local' | 'syncing' | 'synced' | 'error'
+  let isAdminFlag = false;
   const listeners = [];
 
   // Coleções compartilhadas entre TODOS os usuários (alimentos e exercícios).
@@ -116,11 +117,15 @@ const Cloud = (() => {
           status = 'syncing'; emit();
           try { await onLogin(); status = 'synced'; }
           catch (e) { console.error('Sincronização falhou', e); status = 'error'; }
+          await escreverPerfilPublico();
+          await verificarAdmin();
+          await aplicarPrescricao();
           compAlimentos.start();
           compExercicios.start();
         } else {
           compAlimentos.stop();
           compExercicios.stop();
+          isAdminFlag = false;
           status = 'local';
         }
         emit();
@@ -204,8 +209,70 @@ const Cloud = (() => {
   function signupEmail(email, senha) { return auth.createUserWithEmailAndPassword(email, senha); }
   function logout() { return auth.signOut(); }
 
+  // ---- Perfil público (para o admin listar usuários) ----
+  async function escreverPerfilPublico() {
+    try {
+      await db.collection('profiles').doc(user.uid).set({
+        email: user.email || '', displayName: user.displayName || '', updatedAt: Date.now(),
+      }, { merge: true });
+    } catch (e) { console.error('Perfil público falhou', e); }
+  }
+
+  // ---- Papel de admin (nutricionista/mestre) ----
+  async function verificarAdmin() {
+    try { const s = await db.collection('admins').doc(user.uid).get(); isAdminFlag = !!(s && s.exists); }
+    catch (e) { isAdminFlag = false; }
+  }
+  function isAdmin() { return isAdminFlag; }
+  function uid() { return user ? user.uid : null; }
+
+  // ---- Prescrição de dieta (lado do paciente) ----
+  async function aplicarPrescricao() {
+    try {
+      const s = await db.collection('prescricoes').doc(user.uid).get();
+      if (!s || !s.exists) return;
+      const d = s.data();
+      if (!d || !d.nome) return;
+      const dietas = Storage.getAll('dietas_custom');
+      const dieta = {
+        nome: d.nome, kcal: d.kcal || null, protein: d.protein || null,
+        carb: d.carb || null, fat: d.fat || null, fiber: d.fiber || null, fonte: 'nutri',
+      };
+      const idx = dietas.findIndex(x => (x.nome || '').trim().toLowerCase() === d.nome.trim().toLowerCase());
+      if (idx >= 0) { dieta.id = dietas[idx].id; dietas[idx] = dieta; }
+      else { dieta.id = Storage.uid(); dietas.push(dieta); }
+      localStorage.setItem(Storage.KEYS.dietas_custom, JSON.stringify(dietas));
+      // Ativa a dieta prescrita como objetivo atual (o paciente ainda pode trocar depois).
+      const perfil = Storage.getPerfil();
+      localStorage.setItem('perfil', JSON.stringify({ ...perfil, dietaTemplate: null, metaCustom: null, dietaCustomId: dieta.id }));
+      emit();
+    } catch (e) { console.error('Aplicar prescrição falhou', e); }
+  }
+
+  // ---- Operações do admin ----
+  async function listarUsuarios() {
+    const snap = await db.collection('profiles').get();
+    const arr = [];
+    snap.forEach(doc => arr.push({ uid: doc.id, ...doc.data() }));
+    return arr;
+  }
+  async function dadosUsuario(uidAlvo) {
+    const s = await db.collection('users').doc(uidAlvo).get();
+    return s && s.exists ? s.data() : null;
+  }
+  async function prescricaoDe(uidAlvo) {
+    const s = await db.collection('prescricoes').doc(uidAlvo).get();
+    return s && s.exists ? s.data() : null;
+  }
+  async function enviarDieta(uidAlvo, dieta) {
+    await db.collection('prescricoes').doc(uidAlvo).set(
+      { ...dieta, updatedAt: Date.now(), byUid: user.uid }, { merge: true }
+    );
+  }
+
   return {
     init, wrapStorage, isEnabled, currentUser, getStatus, onChange,
     loginGoogle, loginEmail, signupEmail, logout, push,
+    isAdmin, uid, listarUsuarios, dadosUsuario, prescricaoDe, enviarDieta,
   };
 })();
