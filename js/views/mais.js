@@ -489,6 +489,7 @@ const ViewMais = (() => {
       const videoUrl = document.getElementById('e-video').value.trim();
       if (!name) return;
       Storage.add('exercicios_biblioteca', { name, grupo, equipamento, videoUrl, custom: true });
+      if (videoUrl && typeof Cloud !== 'undefined' && Cloud.isEnabled() && Cloud.sugerirVideo) Cloud.sugerirVideo(name, videoUrl);
       api.render();
     });
 
@@ -499,7 +500,9 @@ const ViewMais = (() => {
           const atual = lib.find(e => e.id === id);
           const novoLink = prompt('Cole o link do vídeo (deixe em branco para voltar a usar a busca automática do YouTube):', atual?.videoUrl || '');
           if (novoLink === null) return;
-          Storage.update('exercicios_biblioteca', id, { videoUrl: novoLink.trim() });
+          const link = novoLink.trim();
+          Storage.update('exercicios_biblioteca', id, { videoUrl: link });
+          if (link && atual && typeof Cloud !== 'undefined' && Cloud.isEnabled() && Cloud.sugerirVideo) Cloud.sugerirVideo(atual.name, link);
           api.render();
         });
       });
@@ -1004,6 +1007,10 @@ const ViewMais = (() => {
     }
     $app.innerHTML = `
       <div class="card">
+        <h2>🎬 Vídeos para aprovar</h2>
+        <div id="admin-videos"><div class="empty">Carregando…</div></div>
+      </div>
+      <div class="card">
         <h2>👥 Painel do nutri</h2>
         <p class="meta">Usuários cadastrados. Toque para ver o resumo e enviar uma dieta.</p>
         <div id="admin-users"><div class="empty">Carregando…</div></div>
@@ -1012,6 +1019,41 @@ const ViewMais = (() => {
     `;
     const usersEl = $app.querySelector('#admin-users');
     const detailEl = $app.querySelector('#admin-detail');
+    const videosEl = $app.querySelector('#admin-videos');
+
+    function carregarVideos() {
+      Cloud.listarVideosPendentes().then(vids => {
+        if (!vids.length) { videosEl.innerHTML = '<div class="empty">Nenhum vídeo pendente.</div>'; return; }
+        videosEl.innerHTML = vids.map(v => `
+          <div class="list-item" data-vid="${Util.escapeHtml(v.id)}">
+            <div>
+              <strong>${Util.escapeHtml(v.exercicio || '')}</strong>
+              <div class="meta">sugerido por ${Util.escapeHtml(v.byEmail || v.byUid || '')}</div>
+              <a href="${Util.escapeHtml(v.videoUrl || '')}" target="_blank" rel="noopener" class="meta" style="color:var(--accent)">▶ ver vídeo</a>
+            </div>
+            <div style="display:flex;gap:6px">
+              <button class="secondary" data-aprovar="${Util.escapeHtml(v.id)}" style="font-size:0.75rem;padding:6px 10px">Aprovar</button>
+              <button class="link" data-rejeitar="${Util.escapeHtml(v.id)}">Rejeitar</button>
+            </div>
+          </div>
+        `).join('');
+        videosEl.querySelectorAll('[data-aprovar]').forEach(btn => {
+          btn.addEventListener('click', async () => {
+            const v = vids.find(x => x.id === btn.dataset.aprovar);
+            btn.textContent = '...';
+            try { await Cloud.aprovarVideoPendente(v.id, v.exercicio, v.videoUrl); carregarVideos(); }
+            catch (e) { btn.textContent = 'erro'; }
+          });
+        });
+        videosEl.querySelectorAll('[data-rejeitar]').forEach(btn => {
+          btn.addEventListener('click', async () => {
+            try { await Cloud.rejeitarVideoPendente(btn.dataset.rejeitar); carregarVideos(); }
+            catch (e) { /* segue */ }
+          });
+        });
+      }).catch(e => { videosEl.innerHTML = `<div class="empty">Erro: ${Util.escapeHtml(e.message || '')}</div>`; });
+    }
+    carregarVideos();
 
     Cloud.listarUsuarios().then(users => {
       if (!users.length) { usersEl.innerHTML = '<div class="empty">Nenhum usuário ainda.</div>'; return; }
