@@ -52,8 +52,10 @@ const Cloud = (() => {
 
   // Gerencia uma coleção compartilhada: envia itens custom locais e mescla os de outros
   // usuários na biblioteca local (em tempo real), sem duplicar por nome.
-  // stripFields: campos NÃO compartilhados (ex: 'videoUrl' — vídeo passa por aprovação).
-  function criarCompartilhado(colName, storageKey, stripFields, defaults) {
+  // stripFields: campos NÃO compartilhados ao enviar (ex: 'videoUrl' — vídeo passa por aprovação).
+  // applyFields: campos que, quando presentes no doc compartilhado, atualizam o item local já
+  //   existente (ex: 'videoUrl' aprovado passa a valer para todos).
+  function criarCompartilhado(colName, storageKey, stripFields, defaults, applyFields) {
     const vistos = new Set();
     let unsub = null;
 
@@ -72,20 +74,25 @@ const Cloud = (() => {
       if (!enabled || !user || !db || unsub) return;
       unsub = db.collection(colName).onSnapshot(snap => {
         const locais = Storage.getAll(storageKey);
-        const nomesLocais = new Set(locais.map(nomeChave));
-        const novos = [];
+        const porNome = new Map(locais.map(l => [nomeChave(l), l]));
+        let mudou = false;
         snap.forEach(doc => {
           const it = doc.data();
           const nome = nomeChave(it);
           if (!nome) return;
           vistos.add(nome);
-          if (!nomesLocais.has(nome)) {
-            novos.push({ ...(defaults || {}), ...it, id: Storage.uid(), custom: true });
-            nomesLocais.add(nome);
+          const local = porNome.get(nome);
+          if (!local) {
+            const novo = { ...(defaults || {}), ...it, id: Storage.uid(), custom: true };
+            locais.push(novo); porNome.set(nome, novo); mudou = true;
+          } else if (applyFields && applyFields.length) {
+            applyFields.forEach(f => {
+              if (it[f] && local[f] !== it[f]) { local[f] = it[f]; mudou = true; }
+            });
           }
         });
-        if (novos.length) {
-          localStorage.setItem(Storage.KEYS[storageKey], JSON.stringify([...locais, ...novos]));
+        if (mudou) {
+          localStorage.setItem(Storage.KEYS[storageKey], JSON.stringify(locais));
           emit();
         }
         Storage.getAll(storageKey)
@@ -99,8 +106,8 @@ const Cloud = (() => {
     return { push, start, stop };
   }
 
-  const compAlimentos = criarCompartilhado('sharedFoods', 'alimentos_biblioteca', [], {});
-  const compExercicios = criarCompartilhado('sharedExercises', 'exercicios_biblioteca', ['videoUrl'], { videoUrl: '' });
+  const compAlimentos = criarCompartilhado('sharedFoods', 'alimentos_biblioteca', [], {}, []);
+  const compExercicios = criarCompartilhado('sharedExercises', 'exercicios_biblioteca', ['videoUrl'], { videoUrl: '' }, ['videoUrl']);
 
   function init() {
     if (typeof FIREBASE_CONFIG === 'undefined' || !FIREBASE_CONFIG) return;
@@ -270,9 +277,44 @@ const Cloud = (() => {
     );
   }
 
+  // ---- Vídeos de exercício: sugestão (usuário) e aprovação (admin) ----
+  // Aplica o vídeo no exercício compartilhado (cria/atualiza), tornando-o global.
+  async function aplicarVideoCompartilhado(nome, videoUrl) {
+    const q = await db.collection('sharedExercises').where('name', '==', nome).limit(1).get();
+    if (!q.empty) await q.docs[0].ref.set({ videoUrl }, { merge: true });
+    else await db.collection('sharedExercises').add({ name: nome, videoUrl, addedBy: user.uid });
+  }
+
+  // Chamado quando um usuário define/edita o vídeo de um exercício.
+  // Admin: aplica direto (vale pra todos). Usuário comum: cria uma sugestão para aprovação.
+  async function sugerirVideo(nome, videoUrl) {
+    if (!enabled || !user || !db || !nome || !videoUrl) return;
+    try {
+      if (isAdminFlag) await aplicarVideoCompartilhado(nome, videoUrl);
+      else await db.collection('pendingVideos').add({
+        exercicio: nome, videoUrl, byUid: user.uid, byEmail: user.email || '', createdAt: Date.now(),
+      });
+    } catch (e) { console.error('Sugerir vídeo falhou', e); }
+  }
+
+  async function listarVideosPendentes() {
+    const snap = await db.collection('pendingVideos').get();
+    const arr = [];
+    snap.forEach(doc => arr.push({ id: doc.id, ...doc.data() }));
+    return arr;
+  }
+  async function aprovarVideoPendente(pendingId, nome, videoUrl) {
+    await aplicarVideoCompartilhado(nome, videoUrl);
+    await db.collection('pendingVideos').doc(pendingId).delete();
+  }
+  async function rejeitarVideoPendente(pendingId) {
+    await db.collection('pendingVideos').doc(pendingId).delete();
+  }
+
   return {
     init, wrapStorage, isEnabled, currentUser, getStatus, onChange,
     loginGoogle, loginEmail, signupEmail, logout, push,
     isAdmin, uid, listarUsuarios, dadosUsuario, prescricaoDe, enviarDieta,
+    sugerirVideo, listarVideosPendentes, aprovarVideoPendente, rejeitarVideoPendente,
   };
 })();
