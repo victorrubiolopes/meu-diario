@@ -1,6 +1,6 @@
 const ViewInicio = (() => {
-  // Mês exibido no calendário de foco ('YYYY-MM'). Null = deriva da data selecionada.
-  let calYearMonth = null;
+  // Domingo que inicia a semana exibida no calendário de foco ('YYYY-MM-DD'). Null = deriva da data selecionada.
+  let calWeekStart = null;
   // Histórico de treinos: recolhido por padrão, mostra só os mais recentes até expandir.
   let historicoTreinosAberto = false;
   const HISTORICO_TREINOS_RESUMO = 3;
@@ -54,22 +54,19 @@ const ViewInicio = (() => {
     return { streak, hoje: checar(Util.todayISO()), checar };
   }
 
-  // Calendário mensal colorido pela regra de "dias em foco":
+  // Calendário semanal colorido pela regra de "dias em foco":
   // verde = bateu os 3, amarelo = bateu 1 ou 2, cinza = nada; dias futuros ficam apagados.
   function calendarioHtml(checar, state) {
-    const MESES = ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho', 'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'];
     const DOW = ['D', 'S', 'T', 'Q', 'Q', 'S', 'S'];
-    if (!calYearMonth) calYearMonth = state.date.slice(0, 7);
-    const [yy, mm] = calYearMonth.split('-').map(Number);
+    if (!calWeekStart) calWeekStart = Util.addDaysISO(state.date, -Util.weekdayOf(state.date));
     const hojeISO = Util.todayISO();
-    const primeiroDiaSemana = new Date(yy, mm - 1, 1).getDay();
-    const diasNoMes = new Date(yy, mm, 0).getDate();
-    const pad = n => String(n).padStart(2, '0');
+    const fmtCurto = iso => `${iso.slice(8, 10)}/${iso.slice(5, 7)}`;
+    const fimSemana = Util.addDaysISO(calWeekStart, 6);
 
     let celulas = '';
-    for (let i = 0; i < primeiroDiaSemana; i++) celulas += '<div class="cal-cell cal-blank"></div>';
-    for (let d = 1; d <= diasNoMes; d++) {
-      const dateISO = `${yy}-${pad(mm)}-${pad(d)}`;
+    for (let i = 0; i < 7; i++) {
+      const dateISO = Util.addDaysISO(calWeekStart, i);
+      const d = Number(dateISO.slice(8, 10));
       let classe = 'cal-empty';
       if (dateISO > hojeISO) {
         classe = 'cal-future';
@@ -86,9 +83,9 @@ const ViewInicio = (() => {
     return `
       <div class="card dashboard-section">
         <div class="cal-head">
-          <button class="cal-nav" data-cal-prev aria-label="Mês anterior">‹</button>
-          <h2 style="margin:0">${MESES[mm - 1]} ${yy}</h2>
-          <button class="cal-nav" data-cal-next aria-label="Próximo mês">›</button>
+          <button class="cal-nav" data-cal-prev aria-label="Semana anterior">‹</button>
+          <h2 style="margin:0">${fmtCurto(calWeekStart)} – ${fmtCurto(fimSemana)}</h2>
+          <button class="cal-nav" data-cal-next aria-label="Próxima semana">›</button>
         </div>
         <div class="cal-grid cal-dow">${DOW.map(w => `<div class="cal-cell cal-wd">${w}</div>`).join('')}</div>
         <div class="cal-grid">${celulas}</div>
@@ -299,21 +296,19 @@ const ViewInicio = (() => {
       });
     });
 
-    // Calendário de foco: navegar meses e selecionar um dia
-    function shiftMonth(delta) {
-      const [y, m] = (calYearMonth || state.date.slice(0, 7)).split('-').map(Number);
-      const d = new Date(y, m - 1 + delta, 1);
-      calYearMonth = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
+    // Calendário de foco: navegar semanas e selecionar um dia
+    function shiftWeek(delta) {
+      calWeekStart = Util.addDaysISO(calWeekStart || Util.addDaysISO(state.date, -Util.weekdayOf(state.date)), delta * 7);
       api.render();
     }
     const prevBtn = $app.querySelector('[data-cal-prev]');
     const nextBtn = $app.querySelector('[data-cal-next]');
-    if (prevBtn) prevBtn.addEventListener('click', () => shiftMonth(-1));
-    if (nextBtn) nextBtn.addEventListener('click', () => shiftMonth(1));
+    if (prevBtn) prevBtn.addEventListener('click', () => shiftWeek(-1));
+    if (nextBtn) nextBtn.addEventListener('click', () => shiftWeek(1));
     $app.querySelectorAll('[data-cal-day]').forEach(btn => {
       btn.addEventListener('click', () => {
         state.date = btn.dataset.calDay;
-        calYearMonth = state.date.slice(0, 7);
+        calWeekStart = Util.addDaysISO(state.date, -Util.weekdayOf(state.date));
         api.render();
       });
     });
