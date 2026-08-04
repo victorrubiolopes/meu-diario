@@ -1,5 +1,7 @@
 // Lista de atualizações recentes do app, mais recente primeiro. Editável manualmente a cada mudança.
 const CHANGELOG = [
+  { date: '2026-08-04', texto: 'Card "Composição corporal" logo abaixo de Calorias hoje: peso, massa magra (calculada ou manual) e % gordura, com barras de referência por altura/sexo' },
+  { date: '2026-08-04', texto: 'Medidas: novo campo opcional "Massa magra (kg)" — se não preencher, o Início calcula sozinho' },
   { date: '2026-08-04', texto: 'Calendário de Dias em foco mostra só a semana atual, com setas para trocar de semana' },
   { date: '2026-08-04', texto: 'Correção: às vezes perdia registros de comida/água ao dar refresh logo após anotar (sincronização com a nuvem sobrescrevia o local antes de enviar)' },
   { date: '2026-08-04', texto: 'Data no topo: cartão centralizado, só com setas (sem abrir seletor de data — use o calendário de Dias em foco pra pular de dia)' },

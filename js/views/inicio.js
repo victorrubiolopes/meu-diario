@@ -15,6 +15,39 @@ const ViewInicio = (() => {
     oposto: '⚠️ Tendência oposta ao seu objetivo',
   };
 
+  // Faixas de referência (não são "metas" cadastradas — estimativas gerais por altura/sexo).
+  function faixaPesoSaudavel(alturaCm) {
+    if (!alturaCm) return null;
+    const h = alturaCm / 100;
+    return { min: 18.5 * h * h, max: 24.9 * h * h };
+  }
+  function faixaGorduraSaudavel(sexo) {
+    if (sexo === 'masculino') return { min: 10, max: 20 };
+    if (sexo === 'feminino') return { min: 18, max: 28 };
+    return { min: 14, max: 24 };
+  }
+
+  // Uma linha do card "Composição corporal": ícone + valor + barra (verde = posição na faixa
+  // de referência, marcador laranja = valor atual). pct null = sem dado suficiente pra calcular a barra.
+  function compRowHtml(icon, valor, unidade, casas, pct, corIcone, semDadoLabel) {
+    if (valor == null) {
+      return `
+        <div class="comp-row">
+          <div class="comp-icon ${corIcone}">${icon}</div>
+          <div class="comp-value"><span class="comp-unit">${semDadoLabel}</span></div>
+        </div>
+      `;
+    }
+    const p = pct == null ? 50 : Math.max(4, Math.min(100, pct));
+    return `
+      <div class="comp-row">
+        <div class="comp-icon ${corIcone}">${icon}</div>
+        <div class="comp-value"><strong>${valor.toFixed(casas)}</strong><span class="comp-unit"> ${unidade}</span></div>
+        <div class="comp-track"><div class="comp-fill" style="width:${p}%"></div><div class="comp-marker" style="left:${p}%"></div></div>
+      </div>
+    `;
+  }
+
   function progressBar(label, consumed, target, unit) {
     const pct = target ? Math.min(100, (consumed / target) * 100) : 0;
     const over = target && consumed > target;
@@ -128,6 +161,25 @@ const ViewInicio = (() => {
     const pesoAnterior = medidasOrdenadas[1];
     const variacao = pesoAtual && pesoAnterior ? (pesoAtual.weight - pesoAnterior.weight) : null;
 
+    // Composição corporal: peso + massa magra (manual ou calculada) + % gordura, com barras
+    // posicionadas em faixas de referência saudáveis estimadas por altura/sexo do perfil.
+    const pesoVal = pesoAtual ? pesoAtual.weight : null;
+    const bodyFatVal = pesoAtual && pesoAtual.bodyFat != null ? pesoAtual.bodyFat : null;
+    const leanMassVal = pesoAtual && pesoAtual.leanMass != null
+      ? pesoAtual.leanMass
+      : (pesoVal != null && bodyFatVal != null ? pesoVal * (1 - bodyFatVal / 100) : null);
+
+    const faixaPeso = faixaPesoSaudavel(perfil.altura);
+    let pesoPct = null;
+    if (pesoVal != null && faixaPeso) {
+      const trackMin = faixaPeso.min * 0.75;
+      const trackMax = faixaPeso.max * 1.35;
+      pesoPct = ((pesoVal - trackMin) / (trackMax - trackMin)) * 100;
+    }
+    const magraPct = leanMassVal != null && pesoVal ? (leanMassVal / pesoVal) * 100 : null;
+    const faixaGordura = faixaGorduraSaudavel(perfil.sexo);
+    const gorduraPct = bodyFatVal != null ? (bodyFatVal / (faixaGordura.max * 1.7)) * 100 : null;
+
     // Histórico de treinos (musculação + corrida), mais recentes primeiro
     const historicoTreinos = [
       ...Storage.getAll('treino').map(t => ({
@@ -155,6 +207,17 @@ const ViewInicio = (() => {
           <p class="meta" style="font-size:0.72rem">Só informativo — não altera sua meta de calorias. Preenche sozinho quando você registra treino (com duração) ou corrida; edite se quiser ajustar.</p>
         ` : `<p class="empty">Complete seu perfil para ver sua meta de calorias.</p>`}
         ${aguaMeta ? progressBar('💧 Água', aguaConsumida, aguaMeta, 'ml') : ''}
+      </div>
+
+      <div class="card dashboard-section">
+        <h2>Composição corporal</h2>
+        ${pesoAtual ? `
+          ${compRowHtml('⚖️', pesoVal, 'kg', 1, pesoPct, '', 'Peso não registrado')}
+          ${compRowHtml('💪', leanMassVal, 'kg', 1, magraPct, '', 'Massa magra não registrada')}
+          ${compRowHtml('🍃', bodyFatVal, '%', 1, gorduraPct, 'good', '% Gordura não registrada')}
+          <p class="meta" style="margin-top:8px">${variacao != null ? `${variacao > 0 ? '+' : ''}${variacao.toFixed(1)}kg desde a última medição — ` : ''}medido em ${Util.fmtDate(pesoAtual.date)}</p>
+          <p class="meta" style="font-size:0.68rem;margin-top:2px">Barras usam faixas de referência estimadas por altura/sexo (IMC saudável, % gordura de referência) — não substitui avaliação profissional.</p>
+        ` : `<p class="empty">Nenhuma medição registrada ainda</p>`}
       </div>
 
       ${proximaRefeicao ? `
@@ -255,14 +318,6 @@ const ViewInicio = (() => {
             <button class="link" data-del-treino="${h.tipo}:${h.id}" aria-label="Excluir">✕</button>
           </div>
         `).join('')}
-      </div>
-
-      <div class="card dashboard-section">
-        <h2>Peso</h2>
-        ${pesoAtual ? `
-          <p><strong>${pesoAtual.weight}kg</strong> em ${Util.fmtDate(pesoAtual.date)}
-          ${variacao != null ? ` <span class="meta">(${variacao > 0 ? '+' : ''}${variacao.toFixed(1)}kg desde a última medição)</span>` : ''}</p>
-        ` : '<p class="empty">Nenhuma medição registrada ainda</p>'}
       </div>
 
       ${typeof CHANGELOG !== 'undefined' && CHANGELOG.length > 0 && (typeof Cloud === 'undefined' || !Cloud.isEnabled() || (typeof Cloud.isAdmin === 'function' && Cloud.isAdmin())) ? `

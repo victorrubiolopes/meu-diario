@@ -8,6 +8,7 @@ const ViewMedidas = (() => {
     { key: 'arm', label: 'Braço (cm)' },
     { key: 'thigh', label: 'Coxa (cm)' },
     { key: 'bodyFat', label: '% Gordura corporal' },
+    { key: 'leanMass', label: 'Massa magra (kg) — opcional' },
   ];
 
   function pares(arr) {
@@ -26,6 +27,7 @@ const ViewMedidas = (() => {
             ${par.map(f => fieldHtml(f, existing)).join('')}
           </div>
         `).join('')}
+        <p class="meta" style="font-size:0.72rem">Se souber sua massa magra (balança de bioimpedância, etc.), preencha; se deixar em branco, o Início calcula automaticamente a partir do peso e % de gordura.</p>
         <label>Notas</label>
         <textarea id="medidas-notes" placeholder="Observações...">${Util.escapeHtml(existing ? existing.notes : '')}</textarea>
         <button class="primary" id="save-medidas">Salvar medidas</button>
