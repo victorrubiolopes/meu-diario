@@ -534,6 +534,13 @@ const ViewMais = (() => {
     const perfil = Storage.getPerfil();
     const objetivoAtual = perfil.dietaTemplate || 'manutencao';
 
+    // A ficha do personal do Victor (Bronyer) só aparece pra ele — não é um pacote
+    // genérico do app, é a ficha pessoal dele. Some do dropdown pra todo mundo mais.
+    const souDono = typeof Cloud === 'undefined' || !Cloud.isEnabled()
+      || (typeof Cloud.isSuperAdmin === 'function' && Cloud.isSuperAdmin());
+    const fontePessoal = typeof PLANO_VICTOR !== 'undefined' ? PLANO_VICTOR.fonte : null;
+    const pacotesVisiveis = Object.keys(TREINOS_PREDEFINIDOS).filter(id => souDono || id !== fontePessoal);
+
     $app.innerHTML = `
       <datalist id="exercicios-datalist-planos">
         ${biblioteca.map(e => `<option value="${Util.escapeHtml(e.name)}">`).join('')}
@@ -545,7 +552,7 @@ const ViewMais = (() => {
         <h2>Treino pré-definido</h2>
         <label>Baseado em</label>
         <select id="pack-select">
-          ${Object.keys(TREINOS_PREDEFINIDOS).map(id => {
+          ${pacotesVisiveis.map(id => {
             const dieta = DIETA_TEMPLATES.find(d => d.id === id);
             const rotulo = dieta ? `${dieta.nome} — ${TREINOS_PREDEFINIDOS[id].label}` : TREINOS_PREDEFINIDOS[id].label;
             return `<option value="${id}" ${id === objetivoAtual ? 'selected' : ''}>${Util.escapeHtml(rotulo)}</option>`;
