@@ -1,9 +1,6 @@
 const ViewInicio = (() => {
   // Domingo que inicia a semana exibida no calendário de foco ('YYYY-MM-DD'). Null = deriva da data selecionada.
   let calWeekStart = null;
-  // Histórico de treinos: recolhido por padrão, mostra só os mais recentes até expandir.
-  let historicoTreinosAberto = false;
-  const HISTORICO_TREINOS_RESUMO = 3;
 
   const STATUS_LABELS = {
     estavel: '👍 Peso estável — dentro da manutenção',
@@ -167,9 +164,6 @@ const ViewInicio = (() => {
     const faixaGordura = Util.faixaGorduraSaudavel(perfil.sexo);
     const gorduraPct = bodyFatVal != null ? (bodyFatVal / (faixaGordura.max * 1.7)) * 100 : null;
 
-    // Histórico de treinos (musculação + corrida), mais recentes primeiro
-    const historicoTreinos = Util.historicoTreinos(15);
-
     $app.innerHTML = `
       <div class="card dashboard-section">
         <h2>Calorias hoje</h2>
@@ -280,24 +274,6 @@ const ViewInicio = (() => {
         <p>${corridasHoje.length > 0 ? `✅ ${corridasHoje.length} corrida(s) registrada(s)` : '⬜ Nenhuma corrida registrada hoje'}</p>
       </div>
 
-      <div class="card dashboard-section">
-        <div class="row" style="align-items:center;justify-content:space-between">
-          <h2 style="margin:0">Histórico de treinos</h2>
-          ${historicoTreinos.length > HISTORICO_TREINOS_RESUMO ? `
-            <button type="button" class="link" data-toggle-historico-treinos style="font-size:0.8rem">${historicoTreinosAberto ? '▲ Minimizar' : `▾ Ver todos (${historicoTreinos.length})`}</button>
-          ` : ''}
-        </div>
-        ${historicoTreinos.length === 0 ? '<div class="empty">Nenhum treino registrado ainda</div>' : (historicoTreinosAberto ? historicoTreinos : historicoTreinos.slice(0, HISTORICO_TREINOS_RESUMO)).map(h => `
-          <div class="list-item">
-            <div>
-              <strong>${Util.fmtDate(h.date)}</strong>
-              <div class="meta">${Util.escapeHtml(h.resumo)}</div>
-            </div>
-            <button class="link" data-del-treino="${h.tipo}:${h.id}" aria-label="Excluir">✕</button>
-          </div>
-        `).join('')}
-      </div>
-
       ${typeof CHANGELOG !== 'undefined' && CHANGELOG.length > 0 && (typeof Cloud === 'undefined' || !Cloud.isEnabled() || (typeof Cloud.isAdmin === 'function' && Cloud.isAdmin())) ? `
         <div class="card dashboard-section" style="padding:10px 14px">
           <p class="meta" style="font-size:0.7rem;font-weight:600;margin-bottom:4px">🆕 Últimas atualizações</p>
@@ -342,27 +318,6 @@ const ViewInicio = (() => {
       btn.addEventListener('click', () => {
         state.date = btn.dataset.calDay;
         calWeekStart = Util.addDaysISO(state.date, -Util.weekdayOf(state.date));
-        api.render();
-      });
-    });
-
-    const toggleHistoricoBtn = $app.querySelector('[data-toggle-historico-treinos]');
-    if (toggleHistoricoBtn) {
-      toggleHistoricoBtn.addEventListener('click', () => {
-        historicoTreinosAberto = !historicoTreinosAberto;
-        api.render();
-      });
-    }
-
-    $app.querySelectorAll('[data-del-treino]').forEach(btn => {
-      btn.addEventListener('click', () => {
-        const sep = btn.dataset.delTreino.indexOf(':');
-        const tipo = btn.dataset.delTreino.slice(0, sep);
-        const id = btn.dataset.delTreino.slice(sep + 1);
-        if (!confirm('Excluir este treino do histórico? Esta ação não pode ser desfeita.')) return;
-        const item = Storage.getAll(tipo).find(x => x.id === id);
-        Storage.remove(tipo, id);
-        if (item && typeof atualizarGastoAuto === 'function') atualizarGastoAuto(item.date);
         api.render();
       });
     });

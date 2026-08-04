@@ -1,5 +1,6 @@
 // Lista de atualizações recentes do app, mais recente primeiro. Editável manualmente a cada mudança.
 const CHANGELOG = [
+  { date: '2026-08-04', texto: 'Histórico de treinos saiu do Início — fica só na aba Treino' },
   { date: '2026-08-04', texto: 'Histórico de treinos na aba Treino agora separa por sub-aba: só musculação em Musculação, só corridas em Corrida' },
   { date: '2026-08-04', texto: 'Medidas ganha "Sua composição corporal" e "Análise corporal": peso, massa magra, massa gorda, água corporal, % gordura e IMC, com variação desde a última medição e faixa de referência' },
   { date: '2026-08-04', texto: 'Histórico de treinos também aparece na aba Treino (não só no Início), minimizado com opção de ver todos' },
