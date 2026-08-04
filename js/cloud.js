@@ -166,6 +166,13 @@ const Cloud = (() => {
     if (data.perfil) localStorage.setItem('perfil', JSON.stringify(data.perfil));
   }
 
+  // Guarda quando (timestamp da nuvem) este aparelho ficou sincronizado pela última vez,
+  // pra saber se um dado da nuvem é realmente mais novo antes de sobrescrever o local.
+  function chaveUltimoSync(u) { return 'cloud_last_synced_' + u; }
+  function marcarSincronizado(ts) {
+    if (user) localStorage.setItem(chaveUltimoSync(user.uid), String(ts || Date.now()));
+  }
+
   async function onLogin() {
     const ref = db.collection('users').doc(user.uid);
     const snap = await ref.get();
@@ -179,18 +186,28 @@ const Cloud = (() => {
 
     if (cloudHas && !localHas) {
       writeLocalRaw(cloudData);
+      marcarSincronizado(cloudData._updatedAt);
     } else if (!cloudHas && localHas) {
       await push();
     } else if (cloudHas && localHas) {
       if (jaReconciliado) {
-        writeLocalRaw(cloudData);
+        // Escrever local (com debounce de 1.5s) pode não ter chegado à nuvem ainda —
+        // só puxa a nuvem se ela for realmente mais nova que a última sincronização
+        // deste aparelho; senão empurra o local (que pode ter mudanças recentes não enviadas).
+        const ultimoSync = Number(localStorage.getItem(chaveUltimoSync(user.uid)) || 0);
+        if ((cloudData._updatedAt || 0) > ultimoSync) {
+          writeLocalRaw(cloudData);
+          marcarSincronizado(cloudData._updatedAt);
+        } else {
+          await push();
+        }
       } else {
         const usarNuvem = window.confirm(
           'Encontramos dados na sua conta na nuvem e também neste aparelho.\n\n' +
           'OK = usar os dados da NUVEM (substitui os deste aparelho).\n' +
           'Cancelar = enviar os dados deste APARELHO para a nuvem (substitui os da nuvem).'
         );
-        if (usarNuvem) writeLocalRaw(cloudData);
+        if (usarNuvem) { writeLocalRaw(cloudData); marcarSincronizado(cloudData._updatedAt); }
         else await push();
       }
     }
@@ -208,7 +225,9 @@ const Cloud = (() => {
   async function push() {
     if (!enabled || !user) return;
     try {
-      await db.collection('users').doc(user.uid).set(localSnapshot(), { merge: true });
+      const snapshot = localSnapshot();
+      await db.collection('users').doc(user.uid).set(snapshot, { merge: true });
+      marcarSincronizado(snapshot._updatedAt);
       status = 'synced';
     } catch (e) {
       console.error('Envio pra nuvem falhou', e);

@@ -1,6 +1,7 @@
 // Lista de atualizações recentes do app, mais recente primeiro. Editável manualmente a cada mudança.
 const CHANGELOG = [
-  { date: '2026-08-04', texto: 'Data no topo agora é um cartão com dia da semana (ex: "ter., 4 de ago.") e setas para navegar' },
+  { date: '2026-08-04', texto: 'Correção: às vezes perdia registros de comida/água ao dar refresh logo após anotar (sincronização com a nuvem sobrescrevia o local antes de enviar)' },
+  { date: '2026-08-04', texto: 'Data no topo: cartão centralizado, só com setas (sem abrir seletor de data — use o calendário de Dias em foco pra pular de dia)' },
   { date: '2026-08-04', texto: 'Histórico de treinos no Início vem minimizado (3 mais recentes) com opção de ver todos' },
   { date: '2026-08-04', texto: 'Correção: foto passa a ser do prato inteiro (por refeição), não mais por ingrediente separado' },
   { date: '2026-08-04', texto: 'Painel do nutri: diário completo do paciente por dia (refeições, fotos, treino, corrida, água)' },

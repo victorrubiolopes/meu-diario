@@ -9,7 +9,6 @@ const App = (() => {
 
   const $app = document.getElementById('app');
   const $title = document.getElementById('page-title');
-  const $datePicker = document.getElementById('date-picker');
   const $dateNav = document.getElementById('date-nav');
   const $datePillLabel = document.getElementById('date-pill-label');
   const $datePrev = document.getElementById('date-prev');
@@ -46,7 +45,6 @@ const App = (() => {
   function render() {
     const showDate = DATE_TABS.includes(state.tab) || (state.tab === 'mais' && MAIS_DATE_VIEWS.includes(state.maisView));
     $dateNav.style.display = showDate ? '' : 'none';
-    $datePicker.value = state.date;
     $datePillLabel.textContent = Util.fmtDatePill(state.date);
     $backBtn.style.display = state.tab === 'mais' && state.maisView ? '' : 'none';
 
@@ -202,10 +200,6 @@ const App = (() => {
 
     aplicarSeeds();
 
-    $datePicker.addEventListener('change', () => {
-      state.date = $datePicker.value;
-      render();
-    });
     $datePrev.addEventListener('click', () => {
       state.date = Util.addDaysISO(state.date, -1);
       render();
