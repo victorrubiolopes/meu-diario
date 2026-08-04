@@ -72,6 +72,45 @@ const Util = (() => {
     return { nome: plano.nome, date: ultimaValida.date };
   }
 
+  // Faixas de referência de composição corporal (não são "metas" cadastradas — estimativas
+  // gerais por altura/sexo, tipo IMC saudável). Usadas no Início e em Medidas.
+  function faixaPesoSaudavel(alturaCm) {
+    if (!alturaCm) return null;
+    const h = alturaCm / 100;
+    return { min: 18.5 * h * h, max: 24.9 * h * h };
+  }
+  function faixaGorduraSaudavel(sexo) {
+    if (sexo === 'masculino') return { min: 10, max: 20 };
+    if (sexo === 'feminino') return { min: 18, max: 28 };
+    return { min: 14, max: 24 };
+  }
+  // % do peso total que costuma ser considerado massa magra saudável.
+  function faixaMassaMagraSaudavel(sexo) {
+    if (sexo === 'masculino') return { min: 75, max: 90 };
+    if (sexo === 'feminino') return { min: 68, max: 85 };
+    return { min: 72, max: 87 };
+  }
+  // % do peso total que costuma ser considerado água corporal saudável.
+  function faixaAguaSaudavel(sexo) {
+    if (sexo === 'masculino') return { min: 50, max: 65 };
+    if (sexo === 'feminino') return { min: 45, max: 60 };
+    return { min: 48, max: 62 };
+  }
+  function faixaImcSaudavel() { return { min: 18.5, max: 24.9 }; }
+
+  // Métricas derivadas de um registro de medida (peso + % gordura + massa magra manual/opcional).
+  // massaMagra: usa o valor manual se preenchido, senão calcula peso × (1 − %gordura/100).
+  // água: estimada como 73% da massa magra (fração de água no tecido livre de gordura).
+  function metricasComposicao(m) {
+    if (!m || m.weight == null) return null;
+    const peso = m.weight;
+    const bodyFat = m.bodyFat != null ? m.bodyFat : null;
+    const massaMagra = m.leanMass != null ? m.leanMass : (bodyFat != null ? peso * (1 - bodyFat / 100) : null);
+    const massaGorda = bodyFat != null ? peso * (bodyFat / 100) : null;
+    const agua = massaMagra != null ? massaMagra * 0.73 : null;
+    return { peso, bodyFat, massaMagra, massaGorda, agua };
+  }
+
   // Histórico combinado de treinos (musculação + corrida), mais recente primeiro.
   function historicoTreinos(limit) {
     const lista = [
@@ -185,5 +224,6 @@ const Util = (() => {
     });
   }
 
-  return { todayISO, fmtDate, escapeHtml, daysAgo, daysFromNow, movingAverage, getPesoAtual, planoSugerido, ultimoTreinoFeito, weekdayOf, daysBetween, addDaysISO, fmtDatePill, historicoTreinos, inputGroup, youtubeSearchUrl, youtubeEmbedId, fileToDataURL, compressImageToDataURL };
+  return { todayISO, fmtDate, escapeHtml, daysAgo, daysFromNow, movingAverage, getPesoAtual, planoSugerido, ultimoTreinoFeito, weekdayOf, daysBetween, addDaysISO, fmtDatePill, historicoTreinos,
+    faixaPesoSaudavel, faixaGorduraSaudavel, faixaMassaMagraSaudavel, faixaAguaSaudavel, faixaImcSaudavel, metricasComposicao, inputGroup, youtubeSearchUrl, youtubeEmbedId, fileToDataURL, compressImageToDataURL };
 })();

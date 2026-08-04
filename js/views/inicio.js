@@ -15,18 +15,6 @@ const ViewInicio = (() => {
     oposto: '⚠️ Tendência oposta ao seu objetivo',
   };
 
-  // Faixas de referência (não são "metas" cadastradas — estimativas gerais por altura/sexo).
-  function faixaPesoSaudavel(alturaCm) {
-    if (!alturaCm) return null;
-    const h = alturaCm / 100;
-    return { min: 18.5 * h * h, max: 24.9 * h * h };
-  }
-  function faixaGorduraSaudavel(sexo) {
-    if (sexo === 'masculino') return { min: 10, max: 20 };
-    if (sexo === 'feminino') return { min: 18, max: 28 };
-    return { min: 14, max: 24 };
-  }
-
   // Uma linha do card "Composição corporal": ícone + valor + barra (verde = posição na faixa
   // de referência, marcador laranja = valor atual). pct null = sem dado suficiente pra calcular a barra.
   function compRowHtml(icon, valor, unidade, casas, pct, corIcone, semDadoLabel) {
@@ -163,13 +151,12 @@ const ViewInicio = (() => {
 
     // Composição corporal: peso + massa magra (manual ou calculada) + % gordura, com barras
     // posicionadas em faixas de referência saudáveis estimadas por altura/sexo do perfil.
-    const pesoVal = pesoAtual ? pesoAtual.weight : null;
-    const bodyFatVal = pesoAtual && pesoAtual.bodyFat != null ? pesoAtual.bodyFat : null;
-    const leanMassVal = pesoAtual && pesoAtual.leanMass != null
-      ? pesoAtual.leanMass
-      : (pesoVal != null && bodyFatVal != null ? pesoVal * (1 - bodyFatVal / 100) : null);
+    const composicaoAtual = Util.metricasComposicao(pesoAtual);
+    const pesoVal = composicaoAtual ? composicaoAtual.peso : null;
+    const bodyFatVal = composicaoAtual ? composicaoAtual.bodyFat : null;
+    const leanMassVal = composicaoAtual ? composicaoAtual.massaMagra : null;
 
-    const faixaPeso = faixaPesoSaudavel(perfil.altura);
+    const faixaPeso = Util.faixaPesoSaudavel(perfil.altura);
     let pesoPct = null;
     if (pesoVal != null && faixaPeso) {
       const trackMin = faixaPeso.min * 0.75;
@@ -177,7 +164,7 @@ const ViewInicio = (() => {
       pesoPct = ((pesoVal - trackMin) / (trackMax - trackMin)) * 100;
     }
     const magraPct = leanMassVal != null && pesoVal ? (leanMassVal / pesoVal) * 100 : null;
-    const faixaGordura = faixaGorduraSaudavel(perfil.sexo);
+    const faixaGordura = Util.faixaGorduraSaudavel(perfil.sexo);
     const gorduraPct = bodyFatVal != null ? (bodyFatVal / (faixaGordura.max * 1.7)) * 100 : null;
 
     // Histórico de treinos (musculação + corrida), mais recentes primeiro

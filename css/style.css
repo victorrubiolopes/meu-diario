@@ -799,6 +799,34 @@ canvas {
   transform: translateX(-50%);
 }
 
+/* ---- Composição corporal / Análise corporal (Medidas) ---- */
+.comp2-row { padding: 12px 0; }
+
+.comp2-row + .comp2-row { border-top: 1px solid var(--border); }
+
+.comp2-label { font-size: 0.82rem; color: var(--text-muted); margin-bottom: 6px; }
+
+.comp2-value-row {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  margin-bottom: 8px;
+}
+
+.comp2-value strong { font-size: 1.4rem; }
+
+.comp2-unit { font-size: 0.82rem; color: var(--text-muted); }
+
+.comp2-delta { font-size: 0.82rem; color: var(--text-muted); }
+
+.comp2-range {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.72rem;
+  color: var(--text-muted);
+  margin-top: 4px;
+}
+
 /* ---- cards de exercício (Treino / Musculação) ---- */
 .ex-card {
   background: var(--surface);
