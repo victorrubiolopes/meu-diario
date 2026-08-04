@@ -32,7 +32,9 @@ const ViewTreino = (() => {
   }
 
   function render($app, state, api) {
-    const historico = Util.historicoTreinos(15);
+    const tipoHistorico = state.treinoSub === 'musculacao' ? 'treino' : 'corridas';
+    const historico = Util.historicoTreinos().filter(h => h.tipo === tipoHistorico).slice(0, 15);
+    const tituloHistorico = state.treinoSub === 'musculacao' ? 'Histórico de musculação' : 'Histórico de corridas';
     $app.innerHTML = `
       <div class="tabs-sub">
         <button data-sub="musculacao" class="${state.treinoSub === 'musculacao' ? 'active' : ''}">Musculação</button>
@@ -41,7 +43,7 @@ const ViewTreino = (() => {
       <div id="treino-content"></div>
       <div class="card dashboard-section">
         <div class="row" style="align-items:center;justify-content:space-between">
-          <h2 style="margin:0">Histórico de treinos</h2>
+          <h2 style="margin:0">${tituloHistorico}</h2>
           ${historico.length > HISTORICO_RESUMO ? `
             <button type="button" class="link" data-toggle-historico style="font-size:0.8rem">${historicoAberto ? '▲ Minimizar' : `▾ Ver todos (${historico.length})`}</button>
           ` : ''}
