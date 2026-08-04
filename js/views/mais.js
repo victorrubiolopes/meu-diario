@@ -1140,8 +1140,10 @@ const ViewMais = (() => {
           <p class="meta" id="ad-msg" style="margin-top:8px"></p>
         </div>
         <div id="admin-plano"></div>
+        <div id="admin-reatribuir"></div>
       `;
       montarPlano(uid, presc);
+      montarReatribuir(uid, info);
       const diarioConteudo = detailEl.querySelector('#ad-diario-conteudo');
       const diarioData = detailEl.querySelector('#ad-diario-data');
       const pintarDiario = () => { diarioConteudo.innerHTML = renderDiarioDia(dados || {}, diarioData.value); };
@@ -1210,6 +1212,43 @@ const ViewMais = (() => {
         `;
         }).join('')}
       `;
+    }
+
+    // Reatribuir paciente a uma nutri (só super-admin). Resolve pacientes "soltos"
+    // (sem nutriId) ou vinculados à nutri errada, sem o paciente precisar recriar a conta.
+    function montarReatribuir(uid, info) {
+      const cont = detailEl.querySelector('#admin-reatribuir');
+      if (!cont) return;
+      if (typeof Cloud.isSuperAdmin !== 'function' || !Cloud.isSuperAdmin()) return;
+      cont.innerHTML = '<div class="card"><div class="empty">Carregando nutris…</div></div>';
+      Cloud.listarNutris().then(nutris => {
+        const atual = (info && info.nutriId) || '';
+        const nomeDe = n => Util.escapeHtml(n.displayName || n.email || n.nome || n.uid);
+        const atualNome = nutris.find(n => n.uid === atual);
+        cont.innerHTML = `
+          <div class="card">
+            <h3 style="font-size:0.92rem;margin:0 0 6px">🔗 Nutri responsável (super-admin)</h3>
+            <p class="meta">Atual: <strong>${atual ? (atualNome ? nomeDe(atualNome) : Util.escapeHtml(atual)) : 'nenhuma (paciente solto)'}</strong></p>
+            <label>Vincular a</label>
+            <select id="reat-nutri">
+              ${nutris.map(n => `<option value="${Util.escapeHtml(n.uid)}" ${n.uid === atual ? 'selected' : ''}>${nomeDe(n)}</option>`).join('')}
+            </select>
+            <button class="primary" id="reat-btn" style="margin-top:10px">Reatribuir paciente</button>
+            <p class="meta" id="reat-msg" style="margin-top:6px"></p>
+          </div>
+        `;
+        cont.querySelector('#reat-btn').addEventListener('click', async () => {
+          const nutriUid = cont.querySelector('#reat-nutri').value;
+          const msg = cont.querySelector('#reat-msg');
+          if (!nutriUid) { msg.textContent = 'Escolha uma nutri.'; return; }
+          msg.textContent = 'Salvando…';
+          try {
+            await Cloud.reatribuirPaciente(uid, nutriUid);
+            if (info) info.nutriId = nutriUid;
+            msg.textContent = '✅ Paciente vinculado! Ele já aparece para essa nutri.';
+          } catch (e) { msg.textContent = '⚠️ Falha: ' + (e.message || ''); }
+        });
+      }).catch(e => { cont.innerHTML = `<div class="card"><div class="empty">Erro ao carregar nutris: ${Util.escapeHtml(e.message || '')}</div></div>`; });
     }
 
     // Construtor de plano alimentar (refeição a refeição) para um paciente.

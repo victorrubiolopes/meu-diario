@@ -257,13 +257,15 @@ const Cloud = (() => {
       const payload = { email: user.email || '', displayName: user.displayName || '', updatedAt: Date.now() };
       const snap = await ref.get();
       if (!snap.exists) {
-        const code = sessionStorage.getItem('pendingInviteCode');
+        // Código guardado em localStorage (sobrevive ao redirect do login Google no celular).
+        const code = localStorage.getItem('pendingInviteCode') || sessionStorage.getItem('pendingInviteCode');
         if (code) {
           try {
             const inv = await db.collection('inviteCodes').doc(code).get();
             if (inv.exists && inv.data().ativo) payload.nutriId = inv.data().nutriUid;
           } catch (e) { /* código inválido ou sem permissão — segue sem nutriId */ }
         }
+        localStorage.removeItem('pendingInviteCode');
         sessionStorage.removeItem('pendingInviteCode');
       }
       await ref.set(payload, { merge: true });
@@ -363,6 +365,26 @@ const Cloud = (() => {
     );
   }
 
+  // ---- Reatribuição de paciente a uma nutri (só super-admin, permitido nas regras) ----
+  async function listarNutris() {
+    const snap = await db.collection('admins').get();
+    const nutris = [];
+    snap.forEach(d => nutris.push({ uid: d.id, ...d.data() }));
+    // Enriquece com email/nome do perfil, quando existir.
+    for (const n of nutris) {
+      try {
+        const p = await db.collection('profiles').doc(n.uid).get();
+        if (p && p.exists) { n.email = p.data().email || n.email; n.displayName = p.data().displayName || n.nome || n.displayName; }
+      } catch (e) { /* segue sem enriquecer */ }
+    }
+    return nutris;
+  }
+  async function reatribuirPaciente(uidAlvo, nutriUid) {
+    await db.collection('profiles').doc(uidAlvo).set(
+      { nutriId: nutriUid, updatedAt: Date.now() }, { merge: true }
+    );
+  }
+
   // ---- Vídeos de exercício: sugestão (usuário) e aprovação (admin) ----
   // Aplica o vídeo no exercício compartilhado (cria/atualiza), tornando-o global.
   async function aplicarVideoCompartilhado(nome, videoUrl) {
@@ -401,7 +423,7 @@ const Cloud = (() => {
     init, wrapStorage, isEnabled, currentUser, getStatus, onChange,
     loginGoogle, loginEmail, signupEmail, logout, push,
     isAdmin, isSuperAdmin, uid, listarUsuarios, dadosUsuario, prescricaoDe, enviarDieta, enviarPlano,
-    gerarConviteLink,
+    gerarConviteLink, listarNutris, reatribuirPaciente,
     sugerirVideo, listarVideosPendentes, aprovarVideoPendente, rejeitarVideoPendente,
   };
 })();
