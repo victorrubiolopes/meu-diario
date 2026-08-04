@@ -15,6 +15,7 @@ const Storage = (() => {
     agua: 'agua_entries',
     gastos: 'gastos_entries',
     exames_meta: 'exames_meta',
+    refeicao_fotos: 'refeicao_fotos',
   };
 
   function uid() {

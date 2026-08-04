@@ -1154,18 +1154,24 @@ const ViewMais = (() => {
 
       const grupos = {};
       alimentacao.forEach(e => { grupos[e.mealType] = grupos[e.mealType] || []; grupos[e.mealType].push(e); });
+      const fotosRefeicao = (dados.refeicao_fotos || []).filter(f => f.date === dateISO);
+      const fotoDe = tipo => fotosRefeicao.find(f => f.mealType === tipo);
 
       return `
         <p class="meta"><strong>${totals.kcal.toFixed(0)} kcal</strong> · P ${totals.protein.toFixed(0)}g · C ${totals.carbs.toFixed(0)}g · G ${totals.fat.toFixed(0)}g · Fibra ${totals.fiber.toFixed(0)}g</p>
         <p class="meta">💧 Água: ${aguaTotal}ml</p>
         <p class="meta">${treinos.length > 0 ? `✅ Treino: ${treinos.map(t => (t.exercises || []).map(e => `${Util.escapeHtml(e.name)}${e.weight ? ` (${e.weight}kg)` : ''}`).join(', ') || 'sem exercícios').join(' | ')}` : '⬜ Sem treino registrado'}</p>
         <p class="meta">${corridas.length > 0 ? `🏃 Corrida: ${corridas.map(c => `${c.distanceKm}km em ${c.timeMin}min`).join(', ')}` : '⬜ Sem corrida registrada'}</p>
-        ${Object.keys(grupos).length === 0 ? '<p class="empty">Nenhuma refeição registrada neste dia</p>' : Object.keys(grupos).map(tipo => `
+        ${Object.keys(grupos).length === 0 ? '<p class="empty">Nenhuma refeição registrada neste dia</p>' : Object.keys(grupos).map(tipo => {
+          const foto = fotoDe(tipo);
+          return `
           <div style="margin-top:10px">
-            <strong style="font-size:0.85rem">${Util.escapeHtml(tipo)}</strong>
+            <div class="row" style="align-items:center">
+              ${foto ? `<img src="${foto.fotoDataURL}" class="meal-thumb" alt="Foto do prato">` : ''}
+              <strong style="font-size:0.85rem">${Util.escapeHtml(tipo)}</strong>
+            </div>
             ${grupos[tipo].map(e => `
               <div class="list-item">
-                ${e.fotoDataURL ? `<img src="${e.fotoDataURL}" class="meal-thumb" alt="Foto da refeição">` : ''}
                 <div>
                   <div>${Util.escapeHtml(e.foodName)} ${e.qty !== 1 ? `<span class="meta">(${e.qty}x)</span>` : ''}</div>
                   <div class="meta">${e.kcal} kcal · P ${e.protein}g · C ${e.carbs}g · G ${e.fat}g</div>
@@ -1173,7 +1179,8 @@ const ViewMais = (() => {
               </div>
             `).join('')}
           </div>
-        `).join('')}
+        `;
+        }).join('')}
       `;
     }
 

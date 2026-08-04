@@ -270,7 +270,7 @@ const ViewAlimentacao = (() => {
       <div class="card">
         <h2>Refeições do dia</h2>
         <div id="meal-list">
-          ${entries.length === 0 ? '<div class="empty">Nenhuma refeição registrada ainda</div>' : renderMealList(entries)}
+          ${entries.length === 0 ? '<div class="empty">Nenhuma refeição registrada ainda</div>' : renderMealList(entries, state.date)}
         </div>
       </div>
       <input type="file" id="meal-photo-input" accept="image/*" capture="environment" style="display:none">
@@ -414,35 +414,36 @@ const ViewAlimentacao = (() => {
       });
     });
 
-    let pendingPhotoEntryId = null;
+    let pendingPhotoMealType = null;
     const mealPhotoInput = document.getElementById('meal-photo-input');
     if (mealPhotoInput) {
       mealPhotoInput.addEventListener('change', async () => {
         const file = mealPhotoInput.files[0];
         mealPhotoInput.value = '';
-        if (!file || !pendingPhotoEntryId) return;
-        const entry = entries.find(x => x.id === pendingPhotoEntryId);
-        if (!entry) return;
-        // Comprime e guarda direto no registro (sincroniza na nuvem) — não no IndexedDB local,
-        // senão o nutri nunca conseguiria ver a foto de outro aparelho.
+        if (!file || !pendingPhotoMealType) return;
+        // Comprime e guarda como registro próprio por data+tipo de refeição (não por
+        // ingrediente) — sincroniza na nuvem, não fica só no IndexedDB local, senão o
+        // nutri nunca conseguiria ver a foto do prato de outro aparelho.
         const fotoDataURL = await Util.compressImageToDataURL(file);
-        Storage.update('alimentacao', entry.id, { fotoDataURL });
-        pendingPhotoEntryId = null;
+        const existente = fotoRefeicaoDe(state.date, pendingPhotoMealType);
+        if (existente) Storage.update('refeicao_fotos', existente.id, { fotoDataURL });
+        else Storage.add('refeicao_fotos', { date: state.date, mealType: pendingPhotoMealType, fotoDataURL });
+        pendingPhotoMealType = null;
         api.render();
       });
     }
-    $app.querySelectorAll('[data-attach-photo]').forEach(el => {
+    $app.querySelectorAll('[data-attach-meal-photo]').forEach(el => {
       el.addEventListener('click', () => {
-        const id = el.dataset.attachPhoto;
-        const entry = entries.find(x => x.id === id);
-        if (entry && entry.fotoDataURL && el.tagName === 'IMG') {
-          if (confirm('Remover foto desta refeição?')) {
-            Storage.update('alimentacao', entry.id, { fotoDataURL: null });
+        const tipo = el.dataset.attachMealPhoto;
+        const existente = fotoRefeicaoDe(state.date, tipo);
+        if (existente) {
+          if (confirm('Remover a foto do prato desta refeição? (toque em Cancelar pra trocar por outra foto)')) {
+            Storage.remove('refeicao_fotos', existente.id);
             api.render();
+            return;
           }
-          return;
         }
-        pendingPhotoEntryId = id;
+        pendingPhotoMealType = tipo;
         mealPhotoInput.click();
       });
     });
@@ -514,30 +515,38 @@ const ViewAlimentacao = (() => {
     });
   }
 
-  function renderMealList(entries) {
+  function fotoRefeicaoDe(date, mealType) {
+    return Storage.getAll('refeicao_fotos').find(f => f.date === date && f.mealType === mealType) || null;
+  }
+
+  function renderMealList(entries, date) {
     const lib = Storage.getAll('alimentos_biblioteca');
     const groups = {};
     entries.forEach(e => {
       groups[e.mealType] = groups[e.mealType] || [];
       groups[e.mealType].push(e);
     });
-    return Object.keys(groups).map(type => `
+    return Object.keys(groups).map(type => {
+      const fotoRef = fotoRefeicaoDe(date, type);
+      return `
       <div style="margin-bottom:10px">
         <div class="row" style="align-items:center;justify-content:space-between">
           <strong>${Util.escapeHtml(type)}</strong>
           <button class="secondary" data-savecombo="${Util.escapeHtml(type)}" style="flex:0 0 auto;font-size:0.75rem;padding:6px 10px">💾 Salvar como combo</button>
         </div>
+        <div class="row" style="align-items:center;margin:6px 0">
+          ${fotoRef ? `<img src="${fotoRef.fotoDataURL}" data-attach-meal-photo="${Util.escapeHtml(type)}" class="meal-thumb" alt="Foto do prato">` : ''}
+          <button class="link" data-attach-meal-photo="${Util.escapeHtml(type)}" style="font-size:0.78rem">${fotoRef ? '✎ Trocar/remover foto do prato' : '📷 Foto do prato'}</button>
+        </div>
         ${groups[type].map(e => {
           if (e.id !== editingQtyId) {
             return `
               <div class="list-item" data-id="${e.id}">
-                ${e.fotoDataURL ? `<img src="${e.fotoDataURL}" data-attach-photo="${e.id}" class="meal-thumb" alt="Foto da refeição">` : ''}
                 <div>
                   <div>${Util.escapeHtml(e.foodName)} ${e.qty !== 1 ? `<span class="meta">(${e.qty}x)</span>` : ''}</div>
                   <div class="meta">${e.kcal} kcal · P ${e.protein}g · C ${e.carbs}g · G ${e.fat}g</div>
                 </div>
                 <div style="display:flex;gap:6px">
-                  ${!e.fotoDataURL ? `<button class="link" data-attach-photo="${e.id}">📷</button>` : ''}
                   <button class="link" data-editqty="${e.id}">✎</button>
                   <button class="link" data-remove="${e.id}">✕</button>
                 </div>
@@ -568,7 +577,8 @@ const ViewAlimentacao = (() => {
           `;
         }).join('')}
       </div>
-    `).join('');
+    `;
+    }).join('');
   }
 
   return { render };
