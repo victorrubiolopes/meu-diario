@@ -29,12 +29,6 @@ const MEAL_STRATEGIES = [
   { id: 'jejum', nome: 'Jejum intermitente (janela ~8h)', dica: 'Concentre suas refeições em uma janela de cerca de 8 horas (ex: 12h-20h), com 2-3 refeições maiores.' },
 ];
 
-// Dietas personalizadas nomeadas (ex: planos recebidos de nutricionista), com metas fixas.
-// Selecionáveis no Objetivo do Perfil, ao lado das dietas calculadas automaticamente.
-const DIETAS_CUSTOM_PADRAO = [
-  { nome: 'Dieta do mês 07/2026 - Victor', kcal: 1543, protein: 168.4, carb: 120.5, fat: 42.2, fiber: 18.4 },
-];
-
 function calcularBMR({ peso, altura, idade, sexo }) {
   if (!peso || !altura || !idade || !sexo) return null;
   const base = 10 * peso + 6.25 * altura - 5 * idade;

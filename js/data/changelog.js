@@ -1,5 +1,6 @@
 // Lista de atualizações recentes do app, mais recente primeiro. Editável manualmente a cada mudança.
 const CHANGELOG = [
+  { date: '2026-07-28', texto: 'Correção: dieta e combos do Victor não são mais copiados automaticamente pra contas novas' },
   { date: '2026-07-28', texto: 'Correção: aviso de conflito nuvem/aparelho não pergunta mais toda vez, só na primeira vez' },
   { date: '2026-07-28', texto: 'Últimas atualizações e ID do usuário agora só aparecem para o admin (comuns não veem); admin vê o ID de cada paciente no painel' },
   { date: '2026-07-28', texto: 'Nutri pode montar o plano refeição a refeição (café/almoço/janta com alimentos) e enviar ao paciente' },

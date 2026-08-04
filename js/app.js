@@ -121,8 +121,9 @@ const App = (() => {
   function aplicarSeeds() {
     Storage.mergeSeeds('exercicios_biblioteca', EXERCICIOS_PADRAO);
     Storage.mergeSeeds('alimentos_biblioteca', ALIMENTOS_PADRAO);
-    Storage.mergeSeeds('combos', COMBOS_PADRAO, 'nome');
-    Storage.mergeSeeds('dietas_custom', DIETAS_CUSTOM_PADRAO, 'nome');
+    // Combos e dietas nomeadas NÃO são mais semeados por padrão pra contas novas —
+    // eram específicos do Victor (dieta/refeições do nutri dele) e vazavam pra todo usuário
+    // multi-conta. Quem já tinha esses itens continua com eles (mergeSeeds nunca removia nada).
 
     // Migração: preenche o horário em combos seedados antes dessa funcionalidade existir.
     const combosAtuais = Storage.getAll('combos');
