@@ -28,7 +28,14 @@
 <header class="topbar">
   <button class="back-btn" id="back-btn" style="display:none">←</button>
   <h1 id="page-title">Início</h1>
-  <input type="date" id="date-picker">
+  <div class="date-nav" id="date-nav">
+    <button type="button" class="date-nav-arrow" id="date-prev" aria-label="Dia anterior">‹</button>
+    <div class="date-pill-wrap">
+      <span class="date-pill" id="date-pill-label"></span>
+      <input type="date" id="date-picker" class="date-pill-input">
+    </div>
+    <button type="button" class="date-nav-arrow" id="date-next" aria-label="Próximo dia">›</button>
+  </div>
 </header>
 
 <main id="app"></main>

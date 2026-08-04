@@ -77,6 +77,20 @@ const Util = (() => {
     return new Date(y, m - 1, d).getDay();
   }
 
+  function addDaysISO(dateISO, n) {
+    const [y, m, d] = dateISO.split('-').map(Number);
+    const date = new Date(y, m - 1, d);
+    date.setDate(date.getDate() + n);
+    return toLocalISO(date);
+  }
+
+  // Ex: "sex., 24 de jul."
+  function fmtDatePill(dateISO) {
+    const [y, m, d] = dateISO.split('-').map(Number);
+    const date = new Date(y, m - 1, d);
+    return date.toLocaleDateString('pt-BR', { weekday: 'short', day: 'numeric', month: 'short' });
+  }
+
   function daysBetween(d1ISO, d2ISO) {
     const [y1, m1, d1] = d1ISO.split('-').map(Number);
     const [y2, m2, d2] = d2ISO.split('-').map(Number);
@@ -156,5 +170,5 @@ const Util = (() => {
     });
   }
 
-  return { todayISO, fmtDate, escapeHtml, daysAgo, daysFromNow, movingAverage, getPesoAtual, planoSugerido, ultimoTreinoFeito, weekdayOf, daysBetween, inputGroup, youtubeSearchUrl, youtubeEmbedId, fileToDataURL, compressImageToDataURL };
+  return { todayISO, fmtDate, escapeHtml, daysAgo, daysFromNow, movingAverage, getPesoAtual, planoSugerido, ultimoTreinoFeito, weekdayOf, daysBetween, addDaysISO, fmtDatePill, inputGroup, youtubeSearchUrl, youtubeEmbedId, fileToDataURL, compressImageToDataURL };
 })();
