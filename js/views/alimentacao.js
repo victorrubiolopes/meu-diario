@@ -45,23 +45,106 @@ const ViewAlimentacao = (() => {
       .sort((a, b) => b.val - a.val);
   }
 
-  function progressBarComDetalhes(label, consumed, target, unit, macroKey, entries) {
-    const itens = macroBreakdown(entries, macroKey);
-    const isOpen = expandedMacro === macroKey;
+  function macroVisual(totals, meta, entries) {
+    const carbKcalReal = totals.carbs * 4;
+    const fatKcalReal = totals.fat * 9;
+    const proteinKcalReal = totals.protein * 4;
+    const totalReal = carbKcalReal + fatKcalReal + proteinKcalReal;
+    const realPct = {
+      carbs: totalReal > 0 ? Math.round((carbKcalReal / totalReal) * 100) : 0,
+      fat: totalReal > 0 ? Math.round((fatKcalReal / totalReal) * 100) : 0,
+      protein: totalReal > 0 ? Math.round((proteinKcalReal / totalReal) * 100) : 0,
+    };
+
+    const carbKcalMeta = (meta.carb || 0) * 4;
+    const fatKcalMeta = (meta.fat || 0) * 9;
+    const proteinKcalMeta = (meta.protein || 0) * 4;
+    const totalMetaKcal = carbKcalMeta + fatKcalMeta + proteinKcalMeta;
+    const metaPct = {
+      carbs: totalMetaKcal > 0 ? Math.round((carbKcalMeta / totalMetaKcal) * 100) : 0,
+      fat: totalMetaKcal > 0 ? Math.round((fatKcalMeta / totalMetaKcal) * 100) : 0,
+      protein: totalMetaKcal > 0 ? Math.round((proteinKcalMeta / totalMetaKcal) * 100) : 0,
+    };
+
+    const fiberPct = meta.fiber ? Math.min(100, Math.round((totals.fiber / meta.fiber) * 100)) : null;
+
+    const boxes = [
+      { label: 'Carboidr.', val: totals.carbs, color: 'var(--macro-carb)' },
+      { label: 'Gord.', val: totals.fat, color: 'var(--macro-fat)' },
+      { label: 'Proteína', val: totals.protein, color: 'var(--macro-protein)' },
+    ];
+
+    const infoAberto = expandedMacro === 'info';
+    const macrosParaDetalhe = [
+      { key: 'protein', label: 'Proteína' },
+      { key: 'carbs', label: 'Carboidrato' },
+      { key: 'fat', label: 'Gordura' },
+      { key: 'fiber', label: 'Fibra' },
+    ];
+
     return `
-      ${progressBar(label, consumed, target, unit)}
-      ${itens.length > 0 ? `
-        <button type="button" class="link" data-togglemacro="${macroKey}" style="font-size:0.75rem;margin:2px 0 8px">${isOpen ? '▲ Ocultar alimentos' : '▾ Ver quais alimentos forneceram'}</button>
-        ${isOpen ? `
-          <div style="margin-bottom:10px">
-            ${itens.map(it => `
-              <div class="meta" style="display:flex;justify-content:space-between;font-size:0.75rem;padding:2px 0">
-                <span>${Util.escapeHtml(it.foodName)}</span>
-                <span>${it.val.toFixed(1)}${unit} (${consumed ? Math.round((it.val / consumed) * 100) : 0}%)</span>
-              </div>
-            `).join('')}
+      <div class="macro-box-row">
+        ${boxes.map(b => `
+          <div class="macro-box" style="--mc:${b.color}">
+            <div class="macro-box-lbl">${b.label}</div>
+            <div class="macro-box-val">${b.val.toFixed(1)}<span>g</span></div>
+          </div>
+        `).join('')}
+        ${meta.fiber ? `
+          <div class="macro-box" style="--mc:var(--macro-fiber)">
+            <div class="macro-box-lbl">Fibra</div>
+            <div class="macro-box-val">${totals.fiber.toFixed(1)}<span>g</span></div>
+            <div class="macro-box-pct">${fiberPct}% da meta</div>
           </div>
         ` : ''}
+      </div>
+
+      <div class="macro-split-row">
+        <span style="color:var(--macro-carb)">${realPct.carbs}%</span>
+        <span style="color:var(--macro-fat)">${realPct.fat}%</span>
+        <span style="color:var(--macro-protein)">${realPct.protein}%</span>
+      </div>
+      <div class="macro-split-bar">
+        <div style="width:${realPct.carbs}%;background:var(--macro-carb)"></div>
+        <div style="width:${realPct.fat}%;background:var(--macro-fat)"></div>
+        <div style="width:${realPct.protein}%;background:var(--macro-protein)"></div>
+      </div>
+      <div class="macro-split-caption">Real</div>
+
+      <div class="macro-split-bar macro-split-bar-thin">
+        <div style="width:${metaPct.carbs}%;background:var(--macro-carb)"></div>
+        <div style="width:${metaPct.fat}%;background:var(--macro-fat)"></div>
+        <div style="width:${metaPct.protein}%;background:var(--macro-protein)"></div>
+      </div>
+      <div class="macro-split-row">
+        <span style="color:var(--macro-carb)">${metaPct.carbs}%</span>
+        <span style="color:var(--macro-fat)">${metaPct.fat}%</span>
+        <span style="color:var(--macro-protein)">${metaPct.protein}%</span>
+      </div>
+      <div class="macro-split-caption">Recomendados</div>
+
+      <button type="button" class="macro-info-toggle" data-toggle-info-nutric>
+        <span>Infor. nutric.</span><span class="chev">${infoAberto ? '⌄' : '›'}</span>
+      </button>
+      ${infoAberto ? `
+        <div class="macro-info-detail">
+          ${macrosParaDetalhe.map(m => {
+            const itens = macroBreakdown(entries, m.key);
+            if (itens.length === 0) return '';
+            const totalM = itens.reduce((s, i) => s + i.val, 0);
+            return `
+              <div class="macro-info-group">
+                <div class="macro-info-group-title">${m.label}</div>
+                ${itens.map(it => `
+                  <div class="meta" style="display:flex;justify-content:space-between;font-size:0.75rem;padding:2px 0">
+                    <span>${Util.escapeHtml(it.foodName)}</span>
+                    <span>${it.val.toFixed(1)}g (${totalM ? Math.round((it.val / totalM) * 100) : 0}%)</span>
+                  </div>
+                `).join('')}
+              </div>
+            `;
+          }).join('') || '<p class="empty" style="font-size:0.8rem">Nenhum alimento registrado ainda hoje.</p>'}
+        </div>
       ` : ''}
     `;
   }
@@ -93,10 +176,7 @@ const ViewAlimentacao = (() => {
             <div><div class="num">${meta.kcal}</div><div class="lbl">Meta</div></div>
             <div><div class="num">${(meta.kcal - totals.kcal).toFixed(0)}</div><div class="lbl">${meta.kcal - totals.kcal >= 0 ? 'Restante' : 'Excedeu'}</div></div>
           </div>
-          ${progressBarComDetalhes('Proteína', totals.protein, meta.protein, 'g', 'protein', entries)}
-          ${progressBarComDetalhes('Carboidrato', totals.carbs, meta.carb, 'g', 'carbs', entries)}
-          ${progressBarComDetalhes('Gordura', totals.fat, meta.fat, 'g', 'fat', entries)}
-          ${meta.fiber ? progressBarComDetalhes('Fibras', totals.fiber, meta.fiber, 'g', 'fiber', entries) : ''}
+          ${macroVisual(totals, meta, entries)}
           ${temTdee ? `
           <div class="row" style="margin-top:10px">
             <div class="card" style="margin:0;padding:10px;text-align:center">
@@ -134,15 +214,13 @@ const ViewAlimentacao = (() => {
         <h2>Água</h2>
         ${progressBar('Consumida', aguaConsumida, aguaMeta, 'ml')}
         <div class="row">
-          <button class="secondary" id="add-agua-200">+200ml</button>
+          <button class="secondary" id="add-agua-250">+250ml</button>
           <button class="secondary" id="add-agua-500">+500ml</button>
-          <div class="row" style="flex:1">
-            <input type="number" id="agua-custom" placeholder="ml">
-            <button class="secondary" id="add-agua-custom" style="flex:0 0 auto">+</button>
-          </div>
+          <button class="secondary" id="add-agua-1500">+1500ml</button>
         </div>
         <div class="row" style="margin-top:8px">
-          <button class="secondary" id="sub-agua-200">-200ml</button>
+          <input type="number" id="agua-custom" placeholder="ml">
+          <button class="secondary" id="add-agua-custom" style="flex:0 0 auto">+</button>
         </div>
         ${aguaEntradas.length > 0 ? `
           <div style="margin-top:10px">
@@ -195,6 +273,7 @@ const ViewAlimentacao = (() => {
           ${entries.length === 0 ? '<div class="empty">Nenhuma refeição registrada ainda</div>' : renderMealList(entries)}
         </div>
       </div>
+      <input type="file" id="meal-photo-input" accept="image/*" capture="environment" style="display:none">
     `;
 
     if (combos.length > 0) {
@@ -219,9 +298,9 @@ const ViewAlimentacao = (() => {
       Storage.add('agua', { date: state.date, ml, order: Date.now() });
       api.render();
     }
-    document.getElementById('add-agua-200').addEventListener('click', () => addAgua(200));
+    document.getElementById('add-agua-250').addEventListener('click', () => addAgua(250));
     document.getElementById('add-agua-500').addEventListener('click', () => addAgua(500));
-    document.getElementById('sub-agua-200').addEventListener('click', () => addAgua(-200));
+    document.getElementById('add-agua-1500').addEventListener('click', () => addAgua(1500));
     document.getElementById('add-agua-custom').addEventListener('click', () => {
       addAgua(Number(document.getElementById('agua-custom').value));
     });
@@ -238,12 +317,13 @@ const ViewAlimentacao = (() => {
         api.goToMais('perfil');
       });
     }
-    $app.querySelectorAll('[data-togglemacro]').forEach(btn => {
-      btn.addEventListener('click', () => {
-        expandedMacro = expandedMacro === btn.dataset.togglemacro ? null : btn.dataset.togglemacro;
+    const infoNutricBtn = $app.querySelector('[data-toggle-info-nutric]');
+    if (infoNutricBtn) {
+      infoNutricBtn.addEventListener('click', () => {
+        expandedMacro = expandedMacro === 'info' ? null : 'info';
         api.render();
       });
-    });
+    }
     document.getElementById('go-biblioteca').addEventListener('click', () => {
       state.tab = 'mais';
       api.goToMais('biblioteca-alimentos');
@@ -334,6 +414,39 @@ const ViewAlimentacao = (() => {
       });
     });
 
+    let pendingPhotoEntryId = null;
+    const mealPhotoInput = document.getElementById('meal-photo-input');
+    if (mealPhotoInput) {
+      mealPhotoInput.addEventListener('change', async () => {
+        const file = mealPhotoInput.files[0];
+        mealPhotoInput.value = '';
+        if (!file || !pendingPhotoEntryId) return;
+        const entry = entries.find(x => x.id === pendingPhotoEntryId);
+        if (!entry) return;
+        // Comprime e guarda direto no registro (sincroniza na nuvem) — não no IndexedDB local,
+        // senão o nutri nunca conseguiria ver a foto de outro aparelho.
+        const fotoDataURL = await Util.compressImageToDataURL(file);
+        Storage.update('alimentacao', entry.id, { fotoDataURL });
+        pendingPhotoEntryId = null;
+        api.render();
+      });
+    }
+    $app.querySelectorAll('[data-attach-photo]').forEach(el => {
+      el.addEventListener('click', () => {
+        const id = el.dataset.attachPhoto;
+        const entry = entries.find(x => x.id === id);
+        if (entry && entry.fotoDataURL && el.tagName === 'IMG') {
+          if (confirm('Remover foto desta refeição?')) {
+            Storage.update('alimentacao', entry.id, { fotoDataURL: null });
+            api.render();
+          }
+          return;
+        }
+        pendingPhotoEntryId = id;
+        mealPhotoInput.click();
+      });
+    });
+
     $app.querySelectorAll('[data-editqty]').forEach(btn => {
       btn.addEventListener('click', () => {
         editingQtyId = btn.dataset.editqty;
@@ -418,11 +531,13 @@ const ViewAlimentacao = (() => {
           if (e.id !== editingQtyId) {
             return `
               <div class="list-item" data-id="${e.id}">
+                ${e.fotoDataURL ? `<img src="${e.fotoDataURL}" data-attach-photo="${e.id}" class="meal-thumb" alt="Foto da refeição">` : ''}
                 <div>
                   <div>${Util.escapeHtml(e.foodName)} ${e.qty !== 1 ? `<span class="meta">(${e.qty}x)</span>` : ''}</div>
                   <div class="meta">${e.kcal} kcal · P ${e.protein}g · C ${e.carbs}g · G ${e.fat}g</div>
                 </div>
                 <div style="display:flex;gap:6px">
+                  ${!e.fotoDataURL ? `<button class="link" data-attach-photo="${e.id}">📷</button>` : ''}
                   <button class="link" data-editqty="${e.id}">✎</button>
                   <button class="link" data-remove="${e.id}">✕</button>
                 </div>

@@ -1,5 +1,11 @@
 // Lista de atualizações recentes do app, mais recente primeiro. Editável manualmente a cada mudança.
 const CHANGELOG = [
+  { date: '2026-08-04', texto: 'Painel do nutri: diário completo do paciente por dia (refeições, fotos, treino, corrida, água)' },
+  { date: '2026-08-04', texto: 'Aba de Exames Médicos em Mais (upload de foto/PDF com data e tipo)' },
+  { date: '2026-08-04', texto: 'Pode anexar foto ao registrar uma refeição — visível também pro nutri' },
+  { date: '2026-08-04', texto: 'Macros redesenhados: gramas reais, % Real vs % Recomendado em barra segmentada, fibra com % da meta' },
+  { date: '2026-08-04', texto: '"Infor. nutric." unificado: um clique mostra quais alimentos contribuíram pra cada macro' },
+  { date: '2026-08-04', texto: 'Água: botões viram +250ml/+500ml/+1500ml + personalizado (removido o -200ml)' },
   { date: '2026-07-28', texto: 'Correção: dieta e combos do Victor não são mais copiados automaticamente pra contas novas' },
   { date: '2026-07-28', texto: 'Correção: aviso de conflito nuvem/aparelho não pergunta mais toda vez, só na primeira vez' },
   { date: '2026-07-28', texto: 'Últimas atualizações e ID do usuário agora só aparecem para o admin (comuns não veem); admin vê o ID de cada paciente no painel' },

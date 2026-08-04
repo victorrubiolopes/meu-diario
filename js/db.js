@@ -16,11 +16,11 @@ const PhotoDB = (() => {
     return dbPromise;
   }
 
-  async function addPhoto({ id, date, note, dataURL }) {
+  async function addPhoto(record) {
     const db = await open();
     return new Promise((resolve, reject) => {
       const tx = db.transaction(STORE, 'readwrite');
-      tx.objectStore(STORE).put({ id, date, note, dataURL });
+      tx.objectStore(STORE).put(record);
       tx.oncomplete = () => resolve();
       tx.onerror = () => reject(tx.error);
     });

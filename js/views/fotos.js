@@ -74,7 +74,7 @@ const ViewFotos = (() => {
       if (!file) return;
       const date = document.getElementById('photo-date').value || state.date;
       const note = document.getElementById('photo-note').value.trim();
-      const dataURL = await fileToDataURL(file);
+      const dataURL = await Util.fileToDataURL(file);
       const id = Storage.uid();
       await PhotoDB.addPhoto({ id, date, note, dataURL });
       const items = Storage.getAll('fotos_meta');
@@ -99,15 +99,6 @@ const ViewFotos = (() => {
     }
     selA.addEventListener('change', () => updateCompare(selA, 'compare-img-a', 'compare-lbl-a'));
     selB.addEventListener('change', () => updateCompare(selB, 'compare-img-b', 'compare-lbl-b'));
-  }
-
-  function fileToDataURL(file) {
-    return new Promise((resolve, reject) => {
-      const reader = new FileReader();
-      reader.onload = () => resolve(reader.result);
-      reader.onerror = reject;
-      reader.readAsDataURL(file);
-    });
   }
 
   return { render };

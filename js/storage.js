@@ -14,6 +14,7 @@ const Storage = (() => {
     combos: 'combos_alimentos',
     agua: 'agua_entries',
     gastos: 'gastos_entries',
+    exames_meta: 'exames_meta',
   };
 
   function uid() {

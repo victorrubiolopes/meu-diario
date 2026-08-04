@@ -2,6 +2,7 @@ const ViewMais = (() => {
   const MENU = [
     { key: 'tarefas', icon: '📋', label: 'Tarefas' },
     { key: 'fotos', icon: '📸', label: 'Fotos' },
+    { key: 'exames', icon: '🩺', label: 'Exames Médicos' },
     { key: 'historico', icon: '📊', label: 'Histórico' },
     { key: 'perfil', icon: '👤', label: 'Meu Perfil' },
     { key: 'biblioteca-alimentos', icon: '🍎', label: 'Biblioteca de Alimentos' },
@@ -16,6 +17,7 @@ const ViewMais = (() => {
     switch (state.maisView) {
       case 'tarefas': return ViewTarefas.render($app, state, api);
       case 'fotos': return ViewFotos.render($app, state, api);
+      case 'exames': return ViewExames.render($app, state, api);
       case 'historico': return ViewHistorico.render($app, state, api);
       case 'perfil': return renderPerfil($app, state, api);
       case 'biblioteca-alimentos': return renderBibliotecaAlimentos($app, state, api);
@@ -1084,7 +1086,15 @@ const ViewMais = (() => {
           <p class="meta">${Util.escapeHtml((info && info.email) || '')}</p>
           <p class="meta">ID: <code style="font-size:0.72rem">${Util.escapeHtml(uid)}</code></p>
           <p class="meta">Treinos: ${nTreino} · Refeições lançadas: ${nRef} · Peso atual: ${peso != null ? peso + 'kg' : '—'}</p>
-          <h3 style="font-size:0.92rem;margin:14px 0 6px">Enviar / atualizar dieta</h3>
+        </div>
+        <div class="card">
+          <h3 style="font-size:0.92rem;margin:0 0 8px">📅 Diário do paciente</h3>
+          <label>Escolha o dia</label>
+          <input type="date" id="ad-diario-data" value="${Util.todayISO()}">
+          <div id="ad-diario-conteudo" style="margin-top:10px"></div>
+        </div>
+        <div class="card">
+          <h3 style="font-size:0.92rem;margin:0 0 8px">Enviar / atualizar dieta</h3>
           ${presc ? `<p class="meta">Dieta atual: <strong>${Util.escapeHtml(p.nome || '')}</strong> · ${p.kcal || '—'} kcal</p>` : '<p class="meta">Nenhuma dieta enviada ainda.</p>'}
           <label>Nome da dieta</label>
           <input type="text" id="ad-nome" value="${Util.escapeHtml(p.nome || '')}" placeholder="Ex: Dieta agosto">
@@ -1104,6 +1114,11 @@ const ViewMais = (() => {
         <div id="admin-plano"></div>
       `;
       montarPlano(uid, presc);
+      const diarioConteudo = detailEl.querySelector('#ad-diario-conteudo');
+      const diarioData = detailEl.querySelector('#ad-diario-data');
+      const pintarDiario = () => { diarioConteudo.innerHTML = renderDiarioDia(dados || {}, diarioData.value); };
+      diarioData.addEventListener('change', pintarDiario);
+      pintarDiario();
       detailEl.querySelector('#ad-enviar').addEventListener('click', async () => {
         const msg = detailEl.querySelector('#ad-msg');
         const nome = detailEl.querySelector('#ad-nome').value.trim();
@@ -1120,6 +1135,46 @@ const ViewMais = (() => {
         try { await Cloud.enviarDieta(uid, dieta); msg.textContent = '✅ Dieta enviada! O usuário verá ao abrir/entrar no app.'; }
         catch (e) { msg.textContent = '⚠️ Falha ao enviar: ' + (e.message || ''); }
       });
+    }
+
+    // Espelha o diário do paciente (Alimentação + Treino + Corrida + Água) num dia específico,
+    // só leitura — usa o snapshot já baixado (dados), sem nova consulta por troca de data.
+    function renderDiarioDia(dados, dateISO) {
+      const alimentacao = (dados.alimentacao || []).filter(e => e.date === dateISO).sort((a, b) => (a.order || 0) - (b.order || 0));
+      const treinos = (dados.treino || []).filter(t => t.date === dateISO);
+      const corridas = (dados.corridas || []).filter(c => c.date === dateISO);
+      const agua = (dados.agua || []).filter(a => a.date === dateISO);
+      const aguaTotal = agua.reduce((s, a) => s + (a.ml || 0), 0);
+
+      const totals = { kcal: 0, carbs: 0, protein: 0, fat: 0, fiber: 0 };
+      alimentacao.forEach(e => {
+        totals.kcal += e.kcal || 0; totals.carbs += e.carbs || 0;
+        totals.protein += e.protein || 0; totals.fat += e.fat || 0; totals.fiber += e.fiber || 0;
+      });
+
+      const grupos = {};
+      alimentacao.forEach(e => { grupos[e.mealType] = grupos[e.mealType] || []; grupos[e.mealType].push(e); });
+
+      return `
+        <p class="meta"><strong>${totals.kcal.toFixed(0)} kcal</strong> · P ${totals.protein.toFixed(0)}g · C ${totals.carbs.toFixed(0)}g · G ${totals.fat.toFixed(0)}g · Fibra ${totals.fiber.toFixed(0)}g</p>
+        <p class="meta">💧 Água: ${aguaTotal}ml</p>
+        <p class="meta">${treinos.length > 0 ? `✅ Treino: ${treinos.map(t => (t.exercises || []).map(e => `${Util.escapeHtml(e.name)}${e.weight ? ` (${e.weight}kg)` : ''}`).join(', ') || 'sem exercícios').join(' | ')}` : '⬜ Sem treino registrado'}</p>
+        <p class="meta">${corridas.length > 0 ? `🏃 Corrida: ${corridas.map(c => `${c.distanceKm}km em ${c.timeMin}min`).join(', ')}` : '⬜ Sem corrida registrada'}</p>
+        ${Object.keys(grupos).length === 0 ? '<p class="empty">Nenhuma refeição registrada neste dia</p>' : Object.keys(grupos).map(tipo => `
+          <div style="margin-top:10px">
+            <strong style="font-size:0.85rem">${Util.escapeHtml(tipo)}</strong>
+            ${grupos[tipo].map(e => `
+              <div class="list-item">
+                ${e.fotoDataURL ? `<img src="${e.fotoDataURL}" class="meal-thumb" alt="Foto da refeição">` : ''}
+                <div>
+                  <div>${Util.escapeHtml(e.foodName)} ${e.qty !== 1 ? `<span class="meta">(${e.qty}x)</span>` : ''}</div>
+                  <div class="meta">${e.kcal} kcal · P ${e.protein}g · C ${e.carbs}g · G ${e.fat}g</div>
+                </div>
+              </div>
+            `).join('')}
+          </div>
+        `).join('')}
+      `;
     }
 
     // Construtor de plano alimentar (refeição a refeição) para um paciente.

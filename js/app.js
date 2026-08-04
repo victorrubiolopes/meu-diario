@@ -65,6 +65,7 @@ const App = (() => {
   const MAIS_TITLES = {
     tarefas: 'Tarefas',
     fotos: 'Fotos',
+    exames: 'Exames Médicos',
     historico: 'Histórico',
     perfil: 'Meu Perfil',
     'biblioteca-alimentos': 'Biblioteca de Alimentos',
