@@ -1,5 +1,6 @@
 // Lista de atualizações recentes do app, mais recente primeiro. Editável manualmente a cada mudança.
 const CHANGELOG = [
+  { date: '2026-08-04', texto: 'Histórico de treinos no Início vem minimizado (3 mais recentes) com opção de ver todos' },
   { date: '2026-08-04', texto: 'Correção: foto passa a ser do prato inteiro (por refeição), não mais por ingrediente separado' },
   { date: '2026-08-04', texto: 'Painel do nutri: diário completo do paciente por dia (refeições, fotos, treino, corrida, água)' },
   { date: '2026-08-04', texto: 'Aba de Exames Médicos em Mais (upload de foto/PDF com data e tipo)' },

@@ -1,6 +1,9 @@
 const ViewInicio = (() => {
   // Mês exibido no calendário de foco ('YYYY-MM'). Null = deriva da data selecionada.
   let calYearMonth = null;
+  // Histórico de treinos: recolhido por padrão, mostra só os mais recentes até expandir.
+  let historicoTreinosAberto = false;
+  const HISTORICO_TREINOS_RESUMO = 3;
 
   const STATUS_LABELS = {
     estavel: '👍 Peso estável — dentro da manutenção',
@@ -240,8 +243,13 @@ const ViewInicio = (() => {
       </div>
 
       <div class="card dashboard-section">
-        <h2>Histórico de treinos</h2>
-        ${historicoTreinos.length === 0 ? '<div class="empty">Nenhum treino registrado ainda</div>' : historicoTreinos.map(h => `
+        <div class="row" style="align-items:center;justify-content:space-between">
+          <h2 style="margin:0">Histórico de treinos</h2>
+          ${historicoTreinos.length > HISTORICO_TREINOS_RESUMO ? `
+            <button type="button" class="link" data-toggle-historico-treinos style="font-size:0.8rem">${historicoTreinosAberto ? '▲ Minimizar' : `▾ Ver todos (${historicoTreinos.length})`}</button>
+          ` : ''}
+        </div>
+        ${historicoTreinos.length === 0 ? '<div class="empty">Nenhum treino registrado ainda</div>' : (historicoTreinosAberto ? historicoTreinos : historicoTreinos.slice(0, HISTORICO_TREINOS_RESUMO)).map(h => `
           <div class="list-item">
             <div>
               <strong>${Util.fmtDate(h.date)}</strong>
@@ -309,6 +317,14 @@ const ViewInicio = (() => {
         api.render();
       });
     });
+
+    const toggleHistoricoBtn = $app.querySelector('[data-toggle-historico-treinos]');
+    if (toggleHistoricoBtn) {
+      toggleHistoricoBtn.addEventListener('click', () => {
+        historicoTreinosAberto = !historicoTreinosAberto;
+        api.render();
+      });
+    }
 
     $app.querySelectorAll('[data-del-treino]').forEach(btn => {
       btn.addEventListener('click', () => {
