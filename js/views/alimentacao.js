@@ -5,6 +5,10 @@ const ViewAlimentacao = (() => {
   let selectedFood = null;
   let editingQtyId = null;
   let expandedMacro = null;
+  // Lembra o último tipo de refeição escolhido, pra não voltar sempre pro padrão (Café da manhã).
+  let ultimoMealType = null;
+  // Itens escolhidos mas ainda não salvos — permite adicionar vários alimentos e salvar tudo de uma vez.
+  let carrinho = [];
 
   function sumNutrients(entries) {
     const totals = { kcal: 0, carbs: 0, protein: 0, fat: 0, fiber: 0, sodium: 0 };
@@ -244,7 +248,7 @@ const ViewAlimentacao = (() => {
             </div>
             <div style="flex:1">
               <select id="combo-meal-type">
-                ${MEAL_TYPES.map(t => `<option value="${t}">${t}</option>`).join('')}
+                ${MEAL_TYPES.map(t => `<option value="${t}" ${t === (ultimoMealType || MEAL_TYPES[0]) ? 'selected' : ''}>${t}</option>`).join('')}
               </select>
             </div>
           </div>
@@ -255,7 +259,7 @@ const ViewAlimentacao = (() => {
         <h2>Adicionar refeição</h2>
         <label>Tipo</label>
         <select id="meal-type">
-          ${MEAL_TYPES.map(t => `<option value="${t}">${t}</option>`).join('')}
+          ${MEAL_TYPES.map(t => `<option value="${t}" ${t === (ultimoMealType || MEAL_TYPES[0]) ? 'selected' : ''}>${t}</option>`).join('')}
         </select>
         <label>Alimento</label>
         <div class="autocomplete-wrap">
@@ -263,7 +267,22 @@ const ViewAlimentacao = (() => {
           <div class="autocomplete-list" id="food-results" style="display:none"></div>
         </div>
         <div id="selected-food-box"></div>
-        <button class="primary" id="add-meal" disabled>Adicionar</button>
+        <button class="primary" id="add-meal" disabled>+ Adicionar à lista</button>
+        ${carrinho.length > 0 ? `
+          <div class="card" style="margin:12px 0 0;padding:10px 14px;background:var(--bg)">
+            <p class="meta" style="font-weight:600;margin-bottom:6px">Prontos pra salvar (${carrinho.length})</p>
+            ${carrinho.map((it, i) => `
+              <div class="list-item">
+                <div>
+                  <strong>${Util.escapeHtml(it.foodName)}</strong>
+                  <div class="meta">${it.qty}x — ${it.kcal.toFixed(0)} kcal</div>
+                </div>
+                <button class="link" data-remove-carrinho="${i}" aria-label="Remover">✕</button>
+              </div>
+            `).join('')}
+            <button class="primary" id="salvar-carrinho" style="width:100%;margin-top:8px">✅ Adicionar tudo (${carrinho.length})</button>
+          </div>
+        ` : ''}
         <button class="secondary" style="margin-top:8px" id="go-biblioteca">+ Gerenciar biblioteca de alimentos</button>
         <button class="secondary" style="margin-top:8px" id="go-combos">+ Gerenciar combos de refeição</button>
       </div>
@@ -281,11 +300,13 @@ const ViewAlimentacao = (() => {
         const combo = combos.find(c => c.id === document.getElementById('combo-select').value);
         const mealType = document.getElementById('combo-meal-type').value;
         if (!combo) return;
+        ultimoMealType = mealType;
         combo.itens.forEach(item => {
           Storage.add('alimentacao', { date: state.date, mealType, foodName: item.foodName, qty: item.qty, order: Date.now(), ...Object.fromEntries(NUTRI_FIELDS.map(f => [f, item[f] || 0])) });
         });
         api.render();
       });
+      document.getElementById('combo-meal-type').addEventListener('change', e => { ultimoMealType = e.target.value; });
     }
 
     document.getElementById('go-combos').addEventListener('click', () => {
@@ -395,17 +416,39 @@ const ViewAlimentacao = (() => {
       updatePreview();
     }
 
+    document.getElementById('meal-type').addEventListener('change', e => { ultimoMealType = e.target.value; });
+
     addBtn.addEventListener('click', () => {
       if (!selectedFood) return;
       const qty = Number(document.getElementById('qty-input').value) || 1;
-      const mealType = document.getElementById('meal-type').value;
-      const entry = { date: state.date, mealType, foodName: selectedFood.name, qty, order: Date.now() };
+      const item = { foodName: selectedFood.name, qty };
       NUTRI_FIELDS.forEach(f => {
-        entry[f] = Math.round((selectedFood[f] || 0) * qty * 10) / 10;
+        item[f] = Math.round((selectedFood[f] || 0) * qty * 10) / 10;
       });
-      Storage.add('alimentacao', entry);
+      carrinho.push(item);
+      selectedFood = null;
       api.render();
     });
+
+    $app.querySelectorAll('[data-remove-carrinho]').forEach(btn => {
+      btn.addEventListener('click', () => {
+        carrinho.splice(Number(btn.dataset.removeCarrinho), 1);
+        api.render();
+      });
+    });
+
+    const salvarCarrinhoBtn = document.getElementById('salvar-carrinho');
+    if (salvarCarrinhoBtn) {
+      salvarCarrinhoBtn.addEventListener('click', () => {
+        const mealType = document.getElementById('meal-type').value;
+        ultimoMealType = mealType;
+        carrinho.forEach(item => {
+          Storage.add('alimentacao', { date: state.date, mealType, order: Date.now(), ...item });
+        });
+        carrinho = [];
+        api.render();
+      });
+    }
 
     $app.querySelectorAll('[data-remove]').forEach(btn => {
       btn.addEventListener('click', () => {
