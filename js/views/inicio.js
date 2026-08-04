@@ -181,16 +181,7 @@ const ViewInicio = (() => {
     const gorduraPct = bodyFatVal != null ? (bodyFatVal / (faixaGordura.max * 1.7)) * 100 : null;
 
     // Histórico de treinos (musculação + corrida), mais recentes primeiro
-    const historicoTreinos = [
-      ...Storage.getAll('treino').map(t => ({
-        tipo: 'treino', id: t.id, date: t.date,
-        resumo: `Musculação — ${(t.exercises || []).length} exercício${(t.exercises || []).length === 1 ? '' : 's'}`,
-      })),
-      ...Storage.getAll('corridas').map(c => ({
-        tipo: 'corridas', id: c.id, date: c.date,
-        resumo: `Corrida — ${c.distanceKm}km em ${c.timeMin}min`,
-      })),
-    ].sort((a, b) => b.date.localeCompare(a.date)).slice(0, 15);
+    const historicoTreinos = Util.historicoTreinos(15);
 
     $app.innerHTML = `
       <div class="card dashboard-section">

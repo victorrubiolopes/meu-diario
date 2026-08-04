@@ -72,6 +72,21 @@ const Util = (() => {
     return { nome: plano.nome, date: ultimaValida.date };
   }
 
+  // Histórico combinado de treinos (musculação + corrida), mais recente primeiro.
+  function historicoTreinos(limit) {
+    const lista = [
+      ...Storage.getAll('treino').map(t => ({
+        tipo: 'treino', id: t.id, date: t.date,
+        resumo: `Musculação — ${(t.exercises || []).length} exercício${(t.exercises || []).length === 1 ? '' : 's'}`,
+      })),
+      ...Storage.getAll('corridas').map(c => ({
+        tipo: 'corridas', id: c.id, date: c.date,
+        resumo: `Corrida — ${c.distanceKm}km em ${c.timeMin}min`,
+      })),
+    ].sort((a, b) => b.date.localeCompare(a.date));
+    return limit ? lista.slice(0, limit) : lista;
+  }
+
   function weekdayOf(dateISO) {
     const [y, m, d] = dateISO.split('-').map(Number);
     return new Date(y, m - 1, d).getDay();
@@ -170,5 +185,5 @@ const Util = (() => {
     });
   }
 
-  return { todayISO, fmtDate, escapeHtml, daysAgo, daysFromNow, movingAverage, getPesoAtual, planoSugerido, ultimoTreinoFeito, weekdayOf, daysBetween, addDaysISO, fmtDatePill, inputGroup, youtubeSearchUrl, youtubeEmbedId, fileToDataURL, compressImageToDataURL };
+  return { todayISO, fmtDate, escapeHtml, daysAgo, daysFromNow, movingAverage, getPesoAtual, planoSugerido, ultimoTreinoFeito, weekdayOf, daysBetween, addDaysISO, fmtDatePill, historicoTreinos, inputGroup, youtubeSearchUrl, youtubeEmbedId, fileToDataURL, compressImageToDataURL };
 })();

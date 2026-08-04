@@ -2,6 +2,9 @@ const ViewTreino = (() => {
   // Sessão de edição aberta por data (permite mais de um treino no mesmo dia).
   // Valor: { editId: string|null, plano: object|null } — editId=null significa "treino novo".
   const treinoSessaoPorData = new Map();
+  // Histórico de treinos: recolhido por padrão, mostra só os mais recentes até expandir.
+  let historicoAberto = false;
+  const HISTORICO_RESUMO = 3;
 
   // Ícones inline reutilizados nos cards de exercício
   const ICON_DUMBBELL = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M6 12h12"/><rect x="2.5" y="9" width="3" height="6" rx="1"/><rect x="18.5" y="9" width="3" height="6" rx="1"/><rect x="5.5" y="7" width="2" height="10" rx="1"/><rect x="16.5" y="7" width="2" height="10" rx="1"/></svg>';
@@ -29,15 +32,52 @@ const ViewTreino = (() => {
   }
 
   function render($app, state, api) {
+    const historico = Util.historicoTreinos(15);
     $app.innerHTML = `
       <div class="tabs-sub">
         <button data-sub="musculacao" class="${state.treinoSub === 'musculacao' ? 'active' : ''}">Musculação</button>
         <button data-sub="corrida" class="${state.treinoSub === 'corrida' ? 'active' : ''}">Corrida</button>
       </div>
       <div id="treino-content"></div>
+      <div class="card dashboard-section">
+        <div class="row" style="align-items:center;justify-content:space-between">
+          <h2 style="margin:0">Histórico de treinos</h2>
+          ${historico.length > HISTORICO_RESUMO ? `
+            <button type="button" class="link" data-toggle-historico style="font-size:0.8rem">${historicoAberto ? '▲ Minimizar' : `▾ Ver todos (${historico.length})`}</button>
+          ` : ''}
+        </div>
+        ${historico.length === 0 ? '<div class="empty">Nenhum treino registrado ainda</div>' : (historicoAberto ? historico : historico.slice(0, HISTORICO_RESUMO)).map(h => `
+          <div class="list-item">
+            <div>
+              <strong>${Util.fmtDate(h.date)}</strong>
+              <div class="meta">${Util.escapeHtml(h.resumo)}</div>
+            </div>
+            <button class="link" data-del-historico="${h.tipo}:${h.id}" aria-label="Excluir">✕</button>
+          </div>
+        `).join('')}
+      </div>
     `;
     $app.querySelectorAll('[data-sub]').forEach(btn => {
       btn.addEventListener('click', () => { state.treinoSub = btn.dataset.sub; api.render(); });
+    });
+    const toggleHistoricoBtn = $app.querySelector('[data-toggle-historico]');
+    if (toggleHistoricoBtn) {
+      toggleHistoricoBtn.addEventListener('click', () => {
+        historicoAberto = !historicoAberto;
+        api.render();
+      });
+    }
+    $app.querySelectorAll('[data-del-historico]').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const sep = btn.dataset.delHistorico.indexOf(':');
+        const tipo = btn.dataset.delHistorico.slice(0, sep);
+        const id = btn.dataset.delHistorico.slice(sep + 1);
+        if (!confirm('Excluir este treino do histórico? Esta ação não pode ser desfeita.')) return;
+        const item = Storage.getAll(tipo).find(x => x.id === id);
+        Storage.remove(tipo, id);
+        if (item && typeof atualizarGastoAuto === 'function') atualizarGastoAuto(item.date);
+        api.render();
+      });
     });
     const content = document.getElementById('treino-content');
     if (state.treinoSub === 'musculacao') renderMusculacao(content, state, api);
