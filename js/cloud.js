@@ -172,20 +172,29 @@ const Cloud = (() => {
     const cloudData = snap.exists ? snap.data() : null;
     const cloudHas = !!cloudData && SYNC_KEYS.some(k => Array.isArray(cloudData[k]) && cloudData[k].length > 0);
     const localHas = localHasData();
+    // Marca por conta (uid) se esse aparelho já passou pela reconciliação inicial,
+    // pra não perguntar de novo a cada login — depois da primeira vez a nuvem já é a fonte de verdade.
+    const chaveReconciliado = 'cloud_reconciliado_' + user.uid;
+    const jaReconciliado = localStorage.getItem(chaveReconciliado) === '1';
 
     if (cloudHas && !localHas) {
       writeLocalRaw(cloudData);
     } else if (!cloudHas && localHas) {
       await push();
     } else if (cloudHas && localHas) {
-      const usarNuvem = window.confirm(
-        'Encontramos dados na sua conta na nuvem e também neste aparelho.\n\n' +
-        'OK = usar os dados da NUVEM (substitui os deste aparelho).\n' +
-        'Cancelar = enviar os dados deste APARELHO para a nuvem (substitui os da nuvem).'
-      );
-      if (usarNuvem) writeLocalRaw(cloudData);
-      else await push();
+      if (jaReconciliado) {
+        writeLocalRaw(cloudData);
+      } else {
+        const usarNuvem = window.confirm(
+          'Encontramos dados na sua conta na nuvem e também neste aparelho.\n\n' +
+          'OK = usar os dados da NUVEM (substitui os deste aparelho).\n' +
+          'Cancelar = enviar os dados deste APARELHO para a nuvem (substitui os da nuvem).'
+        );
+        if (usarNuvem) writeLocalRaw(cloudData);
+        else await push();
+      }
     }
+    localStorage.setItem(chaveReconciliado, '1');
     // se nenhum lado tem dados, nada a fazer
   }
 
