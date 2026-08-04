@@ -260,7 +260,7 @@ const ViewInicio = (() => {
         ` : '<p class="empty">Nenhuma medição registrada ainda</p>'}
       </div>
 
-      ${typeof CHANGELOG !== 'undefined' && CHANGELOG.length > 0 ? `
+      ${typeof CHANGELOG !== 'undefined' && CHANGELOG.length > 0 && (typeof Cloud === 'undefined' || !Cloud.isEnabled() || (typeof Cloud.isAdmin === 'function' && Cloud.isAdmin())) ? `
         <div class="card dashboard-section" style="padding:10px 14px">
           <p class="meta" style="font-size:0.7rem;font-weight:600;margin-bottom:4px">🆕 Últimas atualizações</p>
           ${CHANGELOG.slice(0, 4).map(c => `

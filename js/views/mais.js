@@ -41,7 +41,7 @@ const ViewMais = (() => {
           <h2>☁️ Conta e sincronização</h2>
           <p class="meta">Conectado como <strong>${Util.escapeHtml(user.email || user.displayName || 'usuário')}</strong>${ehAdmin ? ' <span class="badge pr">nutri/admin</span>' : ''}</p>
           <p class="meta">${stTxt} — seus dados abrem em qualquer navegador com este login.</p>
-          <p class="meta">Seu ID: <code id="cloud-uid" style="font-size:0.72rem">${Util.escapeHtml(user.uid)}</code> <button class="secondary" id="cloud-copy-uid" style="padding:3px 8px;font-size:0.7rem">copiar</button></p>
+          ${ehAdmin ? `<p class="meta">Seu ID: <code id="cloud-uid" style="font-size:0.72rem">${Util.escapeHtml(user.uid)}</code> <button class="secondary" id="cloud-copy-uid" style="padding:3px 8px;font-size:0.7rem">copiar</button></p>` : ''}
           ${ehAdmin ? '<button class="primary" id="cloud-admin" style="margin-top:6px">Abrir painel do nutri</button>' : ''}
           <button class="secondary" id="cloud-logout" style="margin-top:8px">Sair</button>
         </div>
@@ -1082,6 +1082,7 @@ const ViewMais = (() => {
         <div class="card">
           <h2>${Util.escapeHtml((info && (info.displayName || info.email)) || uid)}</h2>
           <p class="meta">${Util.escapeHtml((info && info.email) || '')}</p>
+          <p class="meta">ID: <code style="font-size:0.72rem">${Util.escapeHtml(uid)}</code></p>
           <p class="meta">Treinos: ${nTreino} · Refeições lançadas: ${nRef} · Peso atual: ${peso != null ? peso + 'kg' : '—'}</p>
           <h3 style="font-size:0.92rem;margin:14px 0 6px">Enviar / atualizar dieta</h3>
           ${presc ? `<p class="meta">Dieta atual: <strong>${Util.escapeHtml(p.nome || '')}</strong> · ${p.kcal || '—'} kcal</p>` : '<p class="meta">Nenhuma dieta enviada ainda.</p>'}
