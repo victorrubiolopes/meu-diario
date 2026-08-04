@@ -192,7 +192,8 @@ const App = (() => {
   // da conta. Sobrevive ao popup do Google (mesma aba) e ao fluxo por e-mail (sem navegação).
   function capturarConviteDaURL() {
     const code = new URLSearchParams(location.search).get('convite');
-    if (code) sessionStorage.setItem('pendingInviteCode', code);
+    // localStorage sobrevive ao redirect do login Google no celular (sessionStorage às vezes não).
+    if (code) { localStorage.setItem('pendingInviteCode', code); sessionStorage.setItem('pendingInviteCode', code); }
   }
 
   function init() {
