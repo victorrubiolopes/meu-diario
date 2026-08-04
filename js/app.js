@@ -187,7 +187,17 @@ const App = (() => {
     if (c) c.addEventListener('click', () => Cloud.signupEmail(email(), senha()).catch(showErro));
   }
 
+  // Convite de nutri (?convite=CODE na URL): guarda o código antes de qualquer login
+  // rolar, pra Cloud.escreverPerfilPublico() vincular o paciente à nutri certa na criação
+  // da conta. Sobrevive ao popup do Google (mesma aba) e ao fluxo por e-mail (sem navegação).
+  function capturarConviteDaURL() {
+    const code = new URLSearchParams(location.search).get('convite');
+    if (code) sessionStorage.setItem('pendingInviteCode', code);
+  }
+
   function init() {
+    capturarConviteDaURL();
+
     // Nuvem (opcional): envolve o Storage e conecta o login antes de tudo.
     // Ao entrar/baixar dados, re-aplica seeds, re-renderiza e atualiza a tela de login.
     if (typeof Cloud !== 'undefined') {

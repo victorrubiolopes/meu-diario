@@ -1,0 +1,71 @@
+// Regras do Firestore para o projeto "diariorubiofitness".
+// Não são aplicadas automaticamente por este repositório (não há deploy via CLI aqui) —
+// cole este conteúdo em Firebase Console → Firestore Database → aba Rules → Publicar.
+//
+// Modelo: cada paciente pertence a uma nutri (profiles/{uid}.nutriId). O dono do app
+// (admins/{uid}.super == true) vê todos os pacientes de todas as nutris; uma nutri comum
+// só vê quem ela convidou (vínculo criado via link de convite, não editável pelo paciente).
+
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    function ehAdmin() {
+      return request.auth != null
+        && exists(/databases/$(database)/documents/admins/$(request.auth.uid));
+    }
+    function ehSuperAdmin() {
+      return ehAdmin() &&
+        get(/databases/$(database)/documents/admins/$(request.auth.uid)).data.get('super', false) == true;
+    }
+    function nutriDoPaciente(patientId) {
+      return ehAdmin() && !ehSuperAdmin() &&
+        get(/databases/$(database)/documents/profiles/$(patientId)).data.get('nutriId', '') == request.auth.uid;
+    }
+    function podeAcessarPaciente(patientId) {
+      return request.auth.uid == patientId || ehSuperAdmin() || nutriDoPaciente(patientId);
+    }
+
+    match /users/{userId} {
+      allow read:  if request.auth != null && podeAcessarPaciente(userId);
+      allow write: if request.auth != null && request.auth.uid == userId;
+    }
+
+    match /profiles/{userId} {
+      allow read:   if request.auth != null && podeAcessarPaciente(userId);
+      allow create: if request.auth != null && request.auth.uid == userId;
+      // nutriId é travado pro próprio paciente (não pode se reatribuir sozinho);
+      // super-admin pode corrigir só esse campo (reatribuir a outra nutri).
+      allow update: if request.auth != null && (
+        (request.auth.uid == userId
+          && request.resource.data.get('nutriId', null) == resource.data.get('nutriId', null))
+        || (ehSuperAdmin()
+          && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['nutriId', 'updatedAt']))
+      );
+    }
+
+    match /prescricoes/{userId} {
+      allow read:  if request.auth != null && podeAcessarPaciente(userId);
+      allow write: if request.auth != null && (ehSuperAdmin() || nutriDoPaciente(userId));
+    }
+
+    match /admins/{userId} {
+      allow read:  if request.auth != null;
+      allow write: if false; // só via Console/Admin SDK
+    }
+
+    match /inviteCodes/{code} {
+      allow read:   if request.auth != null;
+      allow create: if request.auth != null && ehAdmin() && request.resource.data.nutriUid == request.auth.uid;
+      allow update: if request.auth != null && ehAdmin() && resource.data.nutriUid == request.auth.uid;
+      allow delete: if false;
+    }
+
+    match /pendingVideos/{doc} {
+      allow read:   if ehAdmin();
+      allow create: if request.auth != null;
+      allow delete: if ehAdmin();
+    }
+    match /sharedFoods/{doc}     { allow read, write: if request.auth != null; }
+    match /sharedExercises/{doc} { allow read, write: if request.auth != null; }
+  }
+}

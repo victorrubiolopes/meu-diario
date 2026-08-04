@@ -17,6 +17,7 @@ const Cloud = (() => {
   let dirtyTimer = null;
   let status = 'local'; // 'local' | 'syncing' | 'synced' | 'error'
   let isAdminFlag = false;
+  let isSuperFlag = false; // dono do app: vê pacientes de todas as nutris
   const listeners = [];
 
   // Coleções compartilhadas entre TODOS os usuários (alimentos e exercícios).
@@ -133,6 +134,7 @@ const Cloud = (() => {
           compAlimentos.stop();
           compExercicios.stop();
           isAdminFlag = false;
+          isSuperFlag = false;
           status = 'local';
         }
         emit();
@@ -245,21 +247,56 @@ const Cloud = (() => {
   function logout() { return auth.signOut(); }
 
   // ---- Perfil público (para o admin listar usuários) ----
+  // Escreve email/nome em todo login. Na CRIAÇÃO do doc (primeiro login de verdade),
+  // resolve um eventual código de convite (?convite=CODE na URL, guardado pelo app.js
+  // antes do login) e grava nutriId — depois disso o campo fica imutável pro paciente
+  // (travado nas regras do Firestore).
   async function escreverPerfilPublico() {
     try {
-      await db.collection('profiles').doc(user.uid).set({
-        email: user.email || '', displayName: user.displayName || '', updatedAt: Date.now(),
-      }, { merge: true });
+      const ref = db.collection('profiles').doc(user.uid);
+      const payload = { email: user.email || '', displayName: user.displayName || '', updatedAt: Date.now() };
+      const snap = await ref.get();
+      if (!snap.exists) {
+        const code = sessionStorage.getItem('pendingInviteCode');
+        if (code) {
+          try {
+            const inv = await db.collection('inviteCodes').doc(code).get();
+            if (inv.exists && inv.data().ativo) payload.nutriId = inv.data().nutriUid;
+          } catch (e) { /* código inválido ou sem permissão — segue sem nutriId */ }
+        }
+        sessionStorage.removeItem('pendingInviteCode');
+      }
+      await ref.set(payload, { merge: true });
     } catch (e) { console.error('Perfil público falhou', e); }
   }
 
   // ---- Papel de admin (nutricionista/mestre) ----
+  // super = true é o dono do app (vê todos os pacientes de todas as nutris);
+  // nutri comum só vê quem convidou (via nutriId em profiles/{uid}).
   async function verificarAdmin() {
-    try { const s = await db.collection('admins').doc(user.uid).get(); isAdminFlag = !!(s && s.exists); }
-    catch (e) { isAdminFlag = false; }
+    try {
+      const s = await db.collection('admins').doc(user.uid).get();
+      isAdminFlag = !!(s && s.exists);
+      isSuperFlag = isAdminFlag && !!(s.data() || {}).super;
+    } catch (e) { isAdminFlag = false; isSuperFlag = false; }
   }
   function isAdmin() { return isAdminFlag; }
+  function isSuperAdmin() { return isSuperFlag; }
   function uid() { return user ? user.uid : null; }
+
+  // ---- Convite de nutri: gera (ou reaproveita) um link que vincula o paciente a ela ----
+  async function gerarConviteLink() {
+    const existente = await db.collection('inviteCodes')
+      .where('nutriUid', '==', user.uid).where('ativo', '==', true).limit(1).get();
+    let code;
+    if (!existente.empty) {
+      code = existente.docs[0].id;
+    } else {
+      code = Storage.uid();
+      await db.collection('inviteCodes').doc(code).set({ nutriUid: user.uid, criadoEm: Date.now(), ativo: true });
+    }
+    return `${location.origin}${location.pathname}?convite=${code}`;
+  }
 
   // ---- Prescrição de dieta (lado do paciente) ----
   async function aplicarPrescricao() {
@@ -298,8 +335,10 @@ const Cloud = (() => {
   }
 
   // ---- Operações do admin ----
+  // Super-admin (dono do app) vê todo mundo; nutri comum só vê quem ela convidou.
   async function listarUsuarios() {
-    const snap = await db.collection('profiles').get();
+    const query = isSuperFlag ? db.collection('profiles') : db.collection('profiles').where('nutriId', '==', user.uid);
+    const snap = await query.get();
     const arr = [];
     snap.forEach(doc => arr.push({ uid: doc.id, ...doc.data() }));
     return arr;
@@ -361,7 +400,8 @@ const Cloud = (() => {
   return {
     init, wrapStorage, isEnabled, currentUser, getStatus, onChange,
     loginGoogle, loginEmail, signupEmail, logout, push,
-    isAdmin, uid, listarUsuarios, dadosUsuario, prescricaoDe, enviarDieta, enviarPlano,
+    isAdmin, isSuperAdmin, uid, listarUsuarios, dadosUsuario, prescricaoDe, enviarDieta, enviarPlano,
+    gerarConviteLink,
     sugerirVideo, listarVideosPendentes, aprovarVideoPendente, rejeitarVideoPendente,
   };
 })();

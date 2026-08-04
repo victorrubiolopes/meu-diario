@@ -1,5 +1,6 @@
 // Lista de atualizações recentes do app, mais recente primeiro. Editável manualmente a cada mudança.
 const CHANGELOG = [
+  { date: '2026-08-04', texto: 'Painel do nutri: cada nutri só vê os próprios pacientes (convidados por link); admin original continua vendo todos' },
   { date: '2026-08-04', texto: 'App agora tem manifest e ícone próprio — "adicionar à tela inicial" abre em tela cheia, sem barra de navegador' },
   { date: '2026-08-04', texto: 'Adicionar refeição: pode juntar vários alimentos numa lista e salvar tudo de uma vez' },
   { date: '2026-08-04', texto: 'Correção: o tipo de refeição (Almoço, Jantar...) não volta mais pro padrão a cada alimento adicionado' },

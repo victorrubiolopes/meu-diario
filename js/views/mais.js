@@ -1007,14 +1007,24 @@ const ViewMais = (() => {
       $app.innerHTML = '<div class="card"><p class="empty">Acesso restrito ao nutri/admin.</p></div>';
       return;
     }
+    const souSuperAdmin = typeof Cloud.isSuperAdmin === 'function' && Cloud.isSuperAdmin();
     $app.innerHTML = `
+      <div class="card">
+        <h2>🔗 Convidar paciente</h2>
+        <p class="meta">Compartilhe este link com seus pacientes — ao criar conta por ele, ficam vinculados a você automaticamente.</p>
+        <div class="row">
+          <div style="flex:2"><input type="text" id="admin-invite-link" readonly value="Gerando…"></div>
+          <div style="flex:0 0 auto"><button class="secondary" id="admin-invite-copy">copiar</button></div>
+        </div>
+      </div>
       <div class="card">
         <h2>🎬 Vídeos para aprovar</h2>
         <div id="admin-videos"><div class="empty">Carregando…</div></div>
       </div>
       <div class="card">
-        <h2>👥 Painel do nutri</h2>
-        <p class="meta">Usuários cadastrados. Toque para ver o resumo e enviar uma dieta.</p>
+        <h2>👥 ${souSuperAdmin ? 'Todos os pacientes (todas as nutris)' : 'Seus pacientes'}</h2>
+        ${souSuperAdmin ? '<p class="meta"><span class="badge pr">super-admin</span> Você vê pacientes de todas as nutris.</p>' : ''}
+        <p class="meta">Toque para ver o resumo e enviar uma dieta.</p>
         <div id="admin-users"><div class="empty">Carregando…</div></div>
       </div>
       <div id="admin-detail"></div>
@@ -1022,6 +1032,17 @@ const ViewMais = (() => {
     const usersEl = $app.querySelector('#admin-users');
     const detailEl = $app.querySelector('#admin-detail');
     const videosEl = $app.querySelector('#admin-videos');
+
+    const inviteInput = $app.querySelector('#admin-invite-link');
+    Cloud.gerarConviteLink().then(link => { inviteInput.value = link; })
+      .catch(() => { inviteInput.value = ''; inviteInput.placeholder = 'Erro ao gerar link — tente reabrir o painel.'; });
+    $app.querySelector('#admin-invite-copy').addEventListener('click', () => {
+      const link = inviteInput.value;
+      if (!link) return;
+      const btn = $app.querySelector('#admin-invite-copy');
+      if (navigator.clipboard) navigator.clipboard.writeText(link).then(() => { btn.textContent = 'copiado!'; });
+      else window.prompt('Seu link de convite (copie):', link);
+    });
 
     function carregarVideos() {
       Cloud.listarVideosPendentes().then(vids => {
