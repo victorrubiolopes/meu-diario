@@ -174,6 +174,15 @@ const App = (() => {
     });
     if (precisaSalvarEx) Storage.saveAll('exercicios_biblioteca', bibliotecaEx);
 
+    // Migração: exercícios de planos de treino (próprios ou de pacotes pré-definidos, como
+    // fichas de personal) que nunca passaram pela biblioteca — ficavam sem grupo/ilustração
+    // mesmo depois da biblioteca ser expandida, porque simplesmente não existiam lá.
+    if (typeof garantirExercicioNaBiblioteca === 'function') {
+      Storage.getAll('treino_planos').forEach(p => {
+        (p.exercises || []).forEach(e => garantirExercicioNaBiblioteca(e.name));
+      });
+    }
+
     // Preenche automaticamente o grupo muscular de exercícios que ficaram sem (ex: vieram
     // de uma sincronização antiga, ou de outra sessão/aparelho) tentando adivinhar pelo nome.
     // Roda sempre (não só uma vez) pra pegar qualquer exercício sem grupo, de qualquer origem.

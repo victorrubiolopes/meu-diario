@@ -344,6 +344,11 @@ const Cloud = (() => {
           const j = planosLocais.findIndex(x => (x.nome || '').trim().toLowerCase() === tp.nome.trim().toLowerCase());
           if (j >= 0) { plano.id = planosLocais[j].id; plano.ordem = planosLocais[j].ordem; planosLocais[j] = plano; }
           else { plano.id = Storage.uid(); plano.ordem = maxOrdem + i + 1; planosLocais.push(plano); }
+          // Sem isso, os exercícios do plano prescrito ficam sem grupo/ilustração pro paciente,
+          // já que só existiam dentro do plano enviado, nunca na biblioteca dele.
+          if (typeof garantirExercicioNaBiblioteca === 'function') {
+            plano.exercises.forEach(e => garantirExercicioNaBiblioteca(e.name));
+          }
         });
         localStorage.setItem(Storage.KEYS.treino_planos, JSON.stringify(planosLocais));
       }

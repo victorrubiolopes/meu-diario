@@ -632,6 +632,9 @@ const ViewMais = (() => {
       const maxOrdem = planos.reduce((m, p) => Math.max(m, p.ordem), 0);
       pack.planos.forEach((p, i) => {
         Storage.add('treino_planos', { nome: p.nome, ordem: maxOrdem + i + 1, exercises: p.exercises.map(e => ({ ...e })) });
+        // Exercícios de um pacote pré-definido (ex: ficha do personal) só existiam dentro do
+        // plano, nunca na biblioteca — sem isso, ficavam sem grupo muscular/ilustração.
+        p.exercises.forEach(e => garantirExercicioNaBiblioteca(e.name));
       });
       api.render();
     });

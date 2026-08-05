@@ -157,7 +157,7 @@ const REGRAS_GRUPO_POR_NOME = [
   [/agachamento|afundo|avanço|passada|b[uú]lgaro|leg press|hack squat|extensora/i, 'Quadríceps'],
   [/flexora|stiff|hip thrust|gl[uú]teo|abdutora|adutora/i, 'Perna'],
   [/supino|crucifixo|crossover|peck deck|voador|flex[aã]o|pullover|chest/i, 'Peito'],
-  [/remada|puxada|pulldown|barra fixa|pull-?up|chin-?up|levantamento terra|^terra$/i, 'Costas'],
+  [/remada|puxada|pull[\s-]?down|barra fixa|pull-?up|chin-?up|levantamento terra|^terra$/i, 'Costas'],
   [/desenvolvimento|arnold|encolhimento|face pull/i, 'Ombro'],
   [/rosca/i, 'Bíceps'],
   [/tr[ií]ceps|mergulho|dips|franc[eê]s|testa/i, 'Tríceps'],
@@ -169,4 +169,17 @@ function inferirGrupoPorNome(nome) {
   if (!n) return null;
   const regra = REGRAS_GRUPO_POR_NOME.find(([re]) => re.test(n));
   return regra ? regra[1] : null;
+}
+
+// Garante que um nome de exercício exista em exercicios_biblioteca, inferindo o grupo pelo
+// nome quando precisa criar. Usado ao carregar um pacote pré-definido (ex: ficha do personal)
+// e numa migração pra pegar planos que já existiam antes disso — nesses casos, os exercícios
+// viviam só dentro do plano de treino (treino_planos), nunca passavam pela biblioteca, então
+// ficavam sem grupo/ilustração mesmo depois da biblioteca em si ser expandida.
+function garantirExercicioNaBiblioteca(nome) {
+  if (!nome || !nome.trim()) return;
+  const lib = Storage.getAll('exercicios_biblioteca');
+  const existe = lib.some(e => e.name.trim().toLowerCase() === nome.trim().toLowerCase());
+  if (existe) return;
+  Storage.add('exercicios_biblioteca', { name: nome.trim(), grupo: inferirGrupoPorNome(nome) || '', equipamento: '', custom: true });
 }
