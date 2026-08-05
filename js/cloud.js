@@ -332,6 +332,21 @@ const Cloud = (() => {
         });
         localStorage.setItem(Storage.KEYS.combos, JSON.stringify(combos));
       }
+
+      // Planos de treino prescritos (A/B/C) → viram planos locais do paciente, mesmo
+      // padrão de upsert-por-nome usado acima pras refeições/combos.
+      if (Array.isArray(d.planosTreino) && d.planosTreino.length) {
+        const planosLocais = Storage.getAll('treino_planos');
+        const maxOrdem = planosLocais.reduce((m, p) => Math.max(m, p.ordem || 0), 0);
+        d.planosTreino.forEach((tp, i) => {
+          if (!tp || !tp.nome) return;
+          const plano = { nome: tp.nome, exercises: (tp.exercises || []).map(e => ({ ...e })), fonte: 'nutri' };
+          const j = planosLocais.findIndex(x => (x.nome || '').trim().toLowerCase() === tp.nome.trim().toLowerCase());
+          if (j >= 0) { plano.id = planosLocais[j].id; plano.ordem = planosLocais[j].ordem; planosLocais[j] = plano; }
+          else { plano.id = Storage.uid(); plano.ordem = maxOrdem + i + 1; planosLocais.push(plano); }
+        });
+        localStorage.setItem(Storage.KEYS.treino_planos, JSON.stringify(planosLocais));
+      }
       emit();
     } catch (e) { console.error('Aplicar prescrição falhou', e); }
   }
@@ -362,6 +377,12 @@ const Cloud = (() => {
   async function enviarPlano(uidAlvo, refeicoes) {
     await db.collection('prescricoes').doc(uidAlvo).set(
       { refeicoes, updatedAt: Date.now(), byUid: user.uid }, { merge: true }
+    );
+  }
+
+  async function enviarTreino(uidAlvo, planosTreino) {
+    await db.collection('prescricoes').doc(uidAlvo).set(
+      { planosTreino, updatedAt: Date.now(), byUid: user.uid }, { merge: true }
     );
   }
 
@@ -422,7 +443,7 @@ const Cloud = (() => {
   return {
     init, wrapStorage, isEnabled, currentUser, getStatus, onChange,
     loginGoogle, loginEmail, signupEmail, logout, push,
-    isAdmin, isSuperAdmin, uid, listarUsuarios, dadosUsuario, prescricaoDe, enviarDieta, enviarPlano,
+    isAdmin, isSuperAdmin, uid, listarUsuarios, dadosUsuario, prescricaoDe, enviarDieta, enviarPlano, enviarTreino,
     gerarConviteLink, listarNutris, reatribuirPaciente,
     sugerirVideo, listarVideosPendentes, aprovarVideoPendente, rejeitarVideoPendente,
   };

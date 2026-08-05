@@ -1162,9 +1162,11 @@ const ViewMais = (() => {
           <p class="meta" id="ad-msg" style="margin-top:8px"></p>
         </div>
         <div id="admin-plano"></div>
+        <div id="admin-treino"></div>
         <div id="admin-reatribuir"></div>
       `;
       montarPlano(uid, presc);
+      montarTreino(uid, presc);
       montarReatribuir(uid, info);
       const diarioConteudo = detailEl.querySelector('#ad-diario-conteudo');
       const diarioData = detailEl.querySelector('#ad-diario-data');
@@ -1423,6 +1425,114 @@ const ViewMais = (() => {
           </div>
         `).join('');
         wrap.querySelectorAll('[data-del-item]').forEach(b => b.addEventListener('click', () => { itensNovo.splice(Number(b.dataset.delItem), 1); pintarItens(); }));
+      }
+
+      paint();
+    }
+
+    // Construtor de plano de treino (A/B/C) pra enviar a um paciente — mesmo padrão do
+    // montarPlano (alimentação), mas cada "pacote" vira uma lista de planos com exercícios.
+    function montarTreino(uid, presc) {
+      const cont = detailEl.querySelector('#admin-treino');
+      if (!cont) return;
+      const bibliotecaEx = Storage.getAll('exercicios_biblioteca');
+      let planosTreino = (presc && Array.isArray(presc.planosTreino))
+        ? presc.planosTreino.map(p => ({ ...p, exercises: (p.exercises || []).map(e => ({ ...e })) })) : [];
+      let rows = [{ name: '', sets: '', reps: '', weight: '', descanso: '', obs: '' }];
+
+      function paint() {
+        cont.innerHTML = `
+          <div class="card">
+            <h3 style="font-size:0.92rem;margin:0 0 8px">🏋️ Plano de treino (A/B/C)</h3>
+            ${planosTreino.length === 0 ? '<p class="meta">Nenhum plano de treino no pacote ainda.</p>' : planosTreino.map((p, i) => `
+              <div class="list-item">
+                <div>
+                  <strong>${Util.escapeHtml(p.nome)}</strong>
+                  <div class="meta">${(p.exercises || []).map(e => Util.escapeHtml(e.name)).filter(Boolean).join(', ') || 'sem exercícios'}</div>
+                </div>
+                <button class="link" data-del-plano-treino="${i}">✕</button>
+              </div>
+            `).join('')}
+            <hr style="border:none;border-top:1px solid var(--border);margin:12px 0">
+            <label>Nome do plano</label>
+            <input type="text" id="pt-nome" placeholder="Ex: Treino A">
+            <datalist id="datalist-exercicios-pt">${bibliotecaEx.map(e => `<option value="${Util.escapeHtml(e.name)}">`).join('')}</datalist>
+            <div id="pt-exercicios" style="margin-top:8px"></div>
+            <button class="secondary" id="pt-add-exercicio">+ Adicionar exercício</button>
+            <button class="secondary" id="pt-add-plano" style="width:100%;margin-top:10px">+ Adicionar plano ao pacote</button>
+            <button class="primary" id="pt-enviar" style="margin-top:8px">Enviar treino</button>
+            <p class="meta" id="pt-msg" style="margin-top:6px"></p>
+          </div>
+        `;
+        pintarRows();
+        cont.querySelectorAll('[data-del-plano-treino]').forEach(b => b.addEventListener('click', () => { planosTreino.splice(Number(b.dataset.delPlanoTreino), 1); paint(); }));
+
+        cont.querySelector('#pt-add-exercicio').addEventListener('click', () => {
+          syncRows();
+          rows.push({ name: '', sets: '', reps: '', weight: '', descanso: '', obs: '' });
+          pintarRows();
+        });
+
+        cont.querySelector('#pt-add-plano').addEventListener('click', () => {
+          syncRows();
+          const nome = cont.querySelector('#pt-nome').value.trim();
+          const exercises = rows.filter(r => r.name.trim());
+          if (!nome || exercises.length === 0) { cont.querySelector('#pt-msg').textContent = 'Dê um nome e adicione ao menos 1 exercício.'; return; }
+          planosTreino.push({ nome, exercises });
+          rows = [{ name: '', sets: '', reps: '', weight: '', descanso: '', obs: '' }];
+          paint();
+        });
+
+        cont.querySelector('#pt-enviar').addEventListener('click', async () => {
+          const msg = cont.querySelector('#pt-msg');
+          if (planosTreino.length === 0) { msg.textContent = 'Adicione ao menos um plano de treino.'; return; }
+          msg.textContent = 'Enviando…';
+          try { await Cloud.enviarTreino(uid, planosTreino); msg.textContent = '✅ Treino enviado! O paciente recebe como planos prontos.'; }
+          catch (e) { msg.textContent = '⚠️ Falha: ' + (e.message || ''); }
+        });
+      }
+
+      function syncRows() {
+        const wrap = cont.querySelector('#pt-exercicios');
+        if (!wrap) return;
+        const names = wrap.querySelectorAll('.ex-name');
+        const sets = wrap.querySelectorAll('.ex-sets');
+        const reps = wrap.querySelectorAll('.ex-reps');
+        const weights = wrap.querySelectorAll('.ex-weight');
+        const descansos = wrap.querySelectorAll('.ex-descanso');
+        const obses = wrap.querySelectorAll('.ex-obs');
+        rows = rows.map((r, i) => ({
+          name: names[i] ? names[i].value : r.name,
+          sets: sets[i] ? sets[i].value : r.sets,
+          reps: reps[i] ? reps[i].value : r.reps,
+          weight: weights[i] ? weights[i].value : r.weight,
+          descanso: descansos[i] ? descansos[i].value : r.descanso,
+          obs: obses[i] ? obses[i].value : r.obs,
+        }));
+      }
+
+      function pintarRows() {
+        const wrap = cont.querySelector('#pt-exercicios');
+        if (!wrap) return;
+        wrap.innerHTML = rows.map((r, i) => `
+          <div class="exercise-row" data-i="${i}">
+            <input type="text" class="ex-name" list="datalist-exercicios-pt" placeholder="Exercício" value="${Util.escapeHtml(r.name)}">
+            <input type="number" class="small ex-sets" placeholder="Séries" value="${Util.escapeHtml(r.sets)}">
+            <input type="text" class="small ex-reps" placeholder="Reps" value="${Util.escapeHtml(r.reps)}">
+            <input type="number" class="small ex-weight" placeholder="Kg" value="${Util.escapeHtml(r.weight)}">
+            <input type="text" class="ex-descanso" placeholder="Descanso (ex: 1m30s)" value="${Util.escapeHtml(r.descanso)}" style="flex-basis:100%">
+            <input type="text" class="ex-obs" placeholder="Observação" value="${Util.escapeHtml(r.obs)}" style="flex-basis:100%">
+            <button class="link" data-remove-row="${i}">✕</button>
+          </div>
+        `).join('');
+        wrap.querySelectorAll('[data-remove-row]').forEach(btn => {
+          btn.addEventListener('click', () => {
+            syncRows();
+            rows.splice(Number(btn.dataset.removeRow), 1);
+            if (rows.length === 0) rows.push({ name: '', sets: '', reps: '', weight: '', descanso: '', obs: '' });
+            pintarRows();
+          });
+        });
       }
 
       paint();
