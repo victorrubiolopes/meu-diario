@@ -187,6 +187,55 @@ const App = (() => {
     if (c) c.addEventListener('click', () => Cloud.signupEmail(email(), senha()).catch(showErro));
   }
 
+  // Tela de boas-vindas: aparece quando falta peso/altura/idade/sexo (o mínimo pra
+  // calcular a meta de calorias no "Hoje") e a pessoa ainda não pulou essa etapa.
+  // Nunca aparece junto com o auth-gate — login vem primeiro.
+  function atualizarOnboardingGate() {
+    const gate = document.getElementById('onboarding-gate');
+    if (!gate) return;
+    const cloudBloqueando = typeof Cloud !== 'undefined' && Cloud.isEnabled() && !Cloud.currentUser();
+    if (cloudBloqueando) { gate.style.display = 'none'; return; }
+    const perfil = Storage.getPerfil();
+    const incompleto = !perfil.peso || !perfil.altura || !perfil.idade || !perfil.sexo;
+    const jaDispensado = localStorage.getItem('onboarding_dispensado') === '1';
+    gate.style.display = (incompleto && !jaDispensado) ? 'flex' : 'none';
+  }
+
+  function initOnboardingGate() {
+    const atividadeSelect = document.getElementById('onboard-atividade');
+    const dietaSelect = document.getElementById('onboard-dieta');
+    if (!atividadeSelect || !dietaSelect) return;
+    if (typeof NIVEIS_ATIVIDADE !== 'undefined') {
+      atividadeSelect.innerHTML = NIVEIS_ATIVIDADE.map(n => `<option value="${n.id}">${n.label}</option>`).join('');
+    }
+    if (typeof DIETA_TEMPLATES !== 'undefined') {
+      dietaSelect.innerHTML = DIETA_TEMPLATES.map(d => `<option value="${d.id}" ${d.id === 'manutencao' ? 'selected' : ''}>${d.nome}</option>`).join('');
+    }
+    const erroEl = document.getElementById('onboard-erro');
+    document.getElementById('onboard-continuar').addEventListener('click', () => {
+      const peso = Number(document.getElementById('onboard-peso').value) || null;
+      const altura = Number(document.getElementById('onboard-altura').value) || null;
+      const idade = Number(document.getElementById('onboard-idade').value) || null;
+      if (!peso || !altura || !idade) {
+        if (erroEl) erroEl.textContent = 'Preenche peso, altura e idade pra continuar.';
+        return;
+      }
+      Storage.savePerfil({
+        ...Storage.getPerfil(),
+        peso, altura, idade,
+        sexo: document.getElementById('onboard-sexo').value,
+        nivelAtividade: atividadeSelect.value,
+        dietaTemplate: dietaSelect.value,
+      });
+      atualizarOnboardingGate();
+      render();
+    });
+    document.getElementById('onboard-pular').addEventListener('click', () => {
+      localStorage.setItem('onboarding_dispensado', '1');
+      atualizarOnboardingGate();
+    });
+  }
+
   // Convite de nutri (?convite=CODE na URL): guarda o código antes de qualquer login
   // rolar, pra Cloud.escreverPerfilPublico() vincular o paciente à nutri certa na criação
   // da conta. Sobrevive ao popup do Google (mesma aba) e ao fluxo por e-mail (sem navegação).
@@ -203,13 +252,15 @@ const App = (() => {
     // Ao entrar/baixar dados, re-aplica seeds, re-renderiza e atualiza a tela de login.
     if (typeof Cloud !== 'undefined') {
       Cloud.wrapStorage();
-      Cloud.onChange(() => { aplicarSeeds(); render(); atualizarGate(); });
+      Cloud.onChange(() => { aplicarSeeds(); render(); atualizarGate(); atualizarOnboardingGate(); });
       initGate();
       Cloud.init();
       atualizarGate();
     }
 
     aplicarSeeds();
+    initOnboardingGate();
+    atualizarOnboardingGate();
 
     $datePrev.addEventListener('click', () => {
       state.date = Util.addDaysISO(state.date, -1);
