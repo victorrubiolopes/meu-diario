@@ -254,6 +254,7 @@ const ALIMENTOS_PADRAO = [
   { name: 'Strogonoff de frango', categoria: 'outro', portionLabel: '100g', portionGrams: 100, kcal: 155, carbs: 6, sugars: 2, protein: 13, fat: 9, satFat: 3, transFat: 0, fiber: 0.5, sodium: 340 },
   { name: 'Pizza de mussarela (fatia)', categoria: 'outro', portionLabel: '1 fatia (100g)', portionGrams: 100, kcal: 266, carbs: 33, sugars: 3, protein: 11, fat: 10, satFat: 4.5, transFat: 0.2, fiber: 2, sodium: 550 },
   { name: 'Pizza de calabresa (fatia)', categoria: 'outro', portionLabel: '1 fatia (100g)', portionGrams: 100, kcal: 280, carbs: 30, sugars: 2.5, protein: 13, fat: 12, satFat: 5, transFat: 0.3, fiber: 1.8, sodium: 620 },
+  { name: 'Massa Leve Pizza de Frigideira', categoria: 'carboidrato', portionLabel: '1 unidade (25g)', portionGrams: 25, kcal: 63, carbs: 11.8, sugars: 0, protein: 1.6, fat: 1, satFat: 0.3, transFat: 0, fiber: 0.5, sodium: 77 },
   { name: 'Hambúrguer completo (fast food)', categoria: 'outro', portionLabel: '1 unidade (150g)', portionGrams: 150, kcal: 420, carbs: 35, sugars: 6, protein: 20, fat: 22, satFat: 8, transFat: 0.5, fiber: 2, sodium: 780 },
   { name: 'Cerveja pilsen', categoria: 'outro', portionLabel: '1 lata (350ml)', portionGrams: 350, kcal: 150, carbs: 12, sugars: 0, protein: 1.5, fat: 0, satFat: 0, transFat: 0, fiber: 0, sodium: 15 },
   { name: 'Vinho tinto seco', categoria: 'outro', portionLabel: '1 taça (150ml)', portionGrams: 150, kcal: 125, carbs: 4, sugars: 1, protein: 0.1, fat: 0, satFat: 0, transFat: 0, fiber: 0, sodium: 6 },
