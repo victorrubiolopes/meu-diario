@@ -1,5 +1,6 @@
 // Lista de atualizações recentes do app, mais recente primeiro. Editável manualmente a cada mudança.
 const CHANGELOG = [
+  { date: '2026-08-05', texto: 'Aba "Início" virou "Hoje" — nome deixava confuso achar que era a tela de primeiro acesso' },
   { date: '2026-08-04', texto: 'Super-admin pode reatribuir um paciente a uma nutri no painel (resolve paciente sem vínculo)' },
   { date: '2026-08-04', texto: 'Convite de nutri mais robusto: o código sobrevive ao redirect do login no celular' },
   { date: '2026-08-04', texto: 'Ficha do personal (Bronyer) some do "Treino pré-definido" pra outros usuários — fica só pro dono do app' },

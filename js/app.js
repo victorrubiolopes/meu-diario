@@ -16,7 +16,7 @@ const App = (() => {
   const $backBtn = document.getElementById('back-btn');
 
   const TITLES = {
-    inicio: 'Início',
+    inicio: 'Hoje',
     treino: 'Treino',
     alimentacao: 'Alimentação',
     medidas: 'Medidas',
