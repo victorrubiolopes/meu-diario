@@ -494,6 +494,19 @@ const ViewMais = (() => {
     }
     attachDelete();
 
+    // Permite corrigir o grupo muscular de exercícios já cadastrados (ex: os que foram
+    // digitados livremente durante um treino e nunca tiveram grupo definido) sem precisar
+    // apagar e recriar — assim que salvo, a ilustração do músculo já aparece.
+    function attachGrupoSelect() {
+      $app.querySelectorAll('[data-grupo-ex]').forEach(sel => {
+        sel.addEventListener('change', () => {
+          Storage.update('exercicios_biblioteca', sel.dataset.grupoEx, { grupo: sel.value });
+          api.render();
+        });
+      });
+    }
+    attachGrupoSelect();
+
     $app.querySelectorAll('#grupo-filter .chip').forEach(chip => {
       chip.addEventListener('click', () => {
         $app.querySelectorAll('#grupo-filter .chip').forEach(c => c.classList.remove('active'));
@@ -503,6 +516,7 @@ const ViewMais = (() => {
         document.getElementById('exercicio-lib-list').innerHTML = exercicioListHtml(filtered);
         attachDelete();
         attachEditLink();
+        attachGrupoSelect();
       });
     });
 
@@ -536,17 +550,32 @@ const ViewMais = (() => {
 
   function exercicioListHtml(list) {
     if (list.length === 0) return '<div class="empty">Nenhum exercício encontrado</div>';
-    return list.map(e => `
+    return list.map(e => {
+      const img = GRUPO_ICONE_PATH[e.grupo];
+      const thumbConteudo = img
+        ? `<img src="${img}" alt="${Util.escapeHtml(e.grupo)}" class="ex-thumb-img">`
+        : '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M6 12h12"/><rect x="2.5" y="9" width="3" height="6" rx="1"/><rect x="18.5" y="9" width="3" height="6" rx="1"/><rect x="5.5" y="7" width="2" height="10" rx="1"/><rect x="16.5" y="7" width="2" height="10" rx="1"/></svg>';
+      return `
       <div class="list-item" data-id="${e.id}">
-        <div>
-          <strong>${Util.escapeHtml(e.name)}</strong>
-          <div class="meta">${Util.escapeHtml(e.grupo)} ${e.equipamento ? '· ' + Util.escapeHtml(e.equipamento) : ''}</div>
-          <a href="${e.videoUrl || Util.youtubeSearchUrl(e.name)}" target="_blank" rel="noopener" class="meta" style="color:var(--accent)">▶ Ver vídeo${e.videoUrl ? '' : ' (busca automática)'}</a>
-          · <button class="link" data-edit-link="${e.id}" style="color:var(--text-muted)">${e.videoUrl ? 'editar link' : 'definir link'}</button>
+        <div style="display:flex;align-items:center;gap:10px">
+          <span class="ex-thumb" style="position:static">${thumbConteudo}</span>
+          <div>
+            <strong>${Util.escapeHtml(e.name)}</strong>
+            <div class="meta" style="display:flex;align-items:center;gap:4px;flex-wrap:wrap">
+              <select class="grupo-inline-select" data-grupo-ex="${e.id}" style="width:auto;padding:2px 6px;font-size:0.78rem">
+                ${!e.grupo ? '<option value="">— sem grupo —</option>' : ''}
+                ${GRUPOS_MUSCULARES.map(g => `<option value="${g}" ${g === e.grupo ? 'selected' : ''}>${g}</option>`).join('')}
+              </select>
+              ${e.equipamento ? '· ' + Util.escapeHtml(e.equipamento) : ''}
+            </div>
+            <a href="${e.videoUrl || Util.youtubeSearchUrl(e.name)}" target="_blank" rel="noopener" class="meta" style="color:var(--accent)">▶ Ver vídeo${e.videoUrl ? '' : ' (busca automática)'}</a>
+            · <button class="link" data-edit-link="${e.id}" style="color:var(--text-muted)">${e.videoUrl ? 'editar link' : 'definir link'}</button>
+          </div>
         </div>
         <button class="link" data-del-ex="${e.id}">✕</button>
       </div>
-    `).join('');
+    `;
+    }).join('');
   }
 
   // ---------------- PLANOS DE TREINO ----------------

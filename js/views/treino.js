@@ -11,20 +11,6 @@ const ViewTreino = (() => {
   const ICON_REPEAT = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 2l4 4-4 4"/><path d="M3 11V9a4 4 0 0 1 4-4h14"/><path d="M7 22l-4-4 4-4"/><path d="M21 13v2a4 4 0 0 1-4 4H3"/></svg>';
   const ICON_WEIGHT = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M7 8h10l1.2 11a1 1 0 0 1-1 1.1H6.8a1 1 0 0 1-1-1.1L7 8z"/><path d="M9 8a3 3 0 0 1 6 0"/></svg>';
 
-  // Ilustração do músculo trabalhado por grupo (substitui o ícone genérico de haltere
-  // no card do exercício). Grupos sem arte própria (ex: "Outro") caem no fallback.
-  const MUSCULO_ICONE = {
-    'Peito': 'img/musculos/peito.png',
-    'Costas': 'img/musculos/costas.png',
-    'Quadríceps': 'img/musculos/quadricipes.png',
-    'Perna': 'img/musculos/perna.png',
-    'Ombro': 'img/musculos/ombro.png',
-    'Bíceps': 'img/musculos/biceps.png',
-    'Tríceps': 'img/musculos/triceps.png',
-    'Abdômen': 'img/musculos/abdomen.png',
-    'Panturrilha': 'img/musculos/panturrilha.png',
-  };
-
   function maxWeightHistorico(name, excludeId) {
     const all = Storage.getAll('treino');
     let max = 0;
@@ -318,7 +304,7 @@ const ViewTreino = (() => {
              <button class="ex-weight-update" data-weight="${i}">+ Atualizar</button>
            </div>`;
 
-      const musculoImg = MUSCULO_ICONE[grupo];
+      const musculoImg = GRUPO_ICONE_PATH[grupo];
       const thumbConteudo = musculoImg
         ? `<img src="${musculoImg}" alt="${Util.escapeHtml(grupo)}" class="ex-thumb-img">`
         : ICON_DUMBBELL;

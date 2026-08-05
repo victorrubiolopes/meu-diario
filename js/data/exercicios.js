@@ -125,3 +125,18 @@ const EXERCICIOS_PADRAO = [
 const GRUPOS_MUSCULARES = [
   'Peito', 'Costas', 'Quadríceps', 'Perna', 'Ombro', 'Bíceps', 'Tríceps', 'Abdômen', 'Panturrilha', 'Outro',
 ];
+
+// Ilustração do músculo trabalhado por grupo, usada tanto na tela de Treino quanto na
+// Biblioteca de Exercícios. Grupos sem arte própria (ex: "Outro") ficam sem entrada aqui —
+// quem usa esse mapa cai no ícone genérico de haltere nesse caso.
+const GRUPO_ICONE_PATH = {
+  'Peito': 'img/musculos/peito.png',
+  'Costas': 'img/musculos/costas.png',
+  'Quadríceps': 'img/musculos/quadricipes.png',
+  'Perna': 'img/musculos/perna.png',
+  'Ombro': 'img/musculos/ombro.png',
+  'Bíceps': 'img/musculos/biceps.png',
+  'Tríceps': 'img/musculos/triceps.png',
+  'Abdômen': 'img/musculos/abdomen.png',
+  'Panturrilha': 'img/musculos/panturrilha.png',
+};

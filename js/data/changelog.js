@@ -1,5 +1,6 @@
 // Lista de atualizações recentes do app, mais recente primeiro. Editável manualmente a cada mudança.
 const CHANGELOG = [
+  { date: '2026-08-05', texto: 'Biblioteca de Exercícios mostra a ilustração do músculo de cada exercício, com um seletor pra corrigir o grupo muscular de exercícios já cadastrados sem precisar apagar e recriar' },
   { date: '2026-08-05', texto: 'Biblioteca de exercícios ganha +59 variações (Smith, cabo, máquina, unilateral...) — mais chance do exercício que você digita já ter a ilustração do músculo' },
   { date: '2026-08-05', texto: 'Tela de treino: cada exercício mostra uma ilustração do músculo trabalhado, com "Quadríceps" agora separado de "Perna"' },
   { date: '2026-08-05', texto: 'Biblioteca de alimentos ganha +64 itens: embutidos, peixes, mais carboidratos, frutas, verduras e pratos prontos (coxinha, pastel, lasanha, feijoada, pizza, hambúrguer...)' },
