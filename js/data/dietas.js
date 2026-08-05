@@ -9,9 +9,14 @@ const NIVEIS_ATIVIDADE = [
   { id: 'muito_intenso', label: 'Muito intenso (2x/dia ou trabalho físico)', mult: 1.9 },
 ];
 
-// Objetivo: define o ajuste calórico sobre o TDEE
+// Objetivo: define o ajuste calórico sobre o TDEE. Déficit em % do gasto (não kcal fixo) escala
+// certo pra cada pessoa — 500kcal fixos é um corte muito maior pra quem tem TDEE baixo do que
+// pra quem tem TDEE alto. Emagrecimento vem em 3 níveis de agressividade (pedido de usuária real
+// que achou o déficit único "muito alto logo de cara").
 const DIETA_TEMPLATES = [
-  { id: 'emagrecimento', nome: 'Emagrecimento', descricao: 'Déficit moderado (~500 kcal/dia), ritmo seguro de ~0,5kg/semana', ajusteKcal: -500 },
+  { id: 'emagrecimento_adaptacao', nome: 'Emagrecimento — Adaptação (recomendado)', descricao: 'Déficit leve (~10% do seu gasto), ritmo suave — bom ponto de partida pra quem tá começando', ajustePercent: -0.10 },
+  { id: 'emagrecimento_moderado', nome: 'Emagrecimento — Moderado', descricao: 'Déficit equilibrado (~20% do seu gasto)', ajustePercent: -0.20 },
+  { id: 'emagrecimento_agressivo', nome: 'Emagrecimento — Agressivo (experientes)', descricao: 'Déficit mais acentuado (~25% do seu gasto) — recomendado só pra quem já tem experiência com dieta', ajustePercent: -0.25 },
   { id: 'manutencao', nome: 'Manutenção', descricao: 'Calorias na média do seu gasto (TDEE)', ajusteKcal: 0 },
   { id: 'ganho', nome: 'Ganho de massa', descricao: 'Superávit leve (~300 kcal/dia) para minimizar ganho de gordura', ajusteKcal: 300 },
 ];
@@ -66,10 +71,11 @@ function calcularMetas(perfil) {
   if (!bmr) return null;
   const tdee = calcularTDEE(bmr, perfil.nivelAtividade);
 
-  const template = DIETA_TEMPLATES.find(t => t.id === perfil.dietaTemplate) || DIETA_TEMPLATES[1];
+  const template = DIETA_TEMPLATES.find(t => t.id === perfil.dietaTemplate) || DIETA_TEMPLATES.find(t => t.id === 'manutencao');
   const macroStyle = MACRO_STYLES.find(m => m.id === perfil.macroStyle) || MACRO_STYLES[0];
 
-  const kcal = Math.round(tdee + template.ajusteKcal);
+  const ajuste = template.ajustePercent != null ? tdee * template.ajustePercent : template.ajusteKcal;
+  const kcal = Math.round(tdee + ajuste);
   const protein = Math.round((perfil.peso || 0) * macroStyle.proteinPerKg);
   const fat = Math.round((kcal * macroStyle.fatPercent) / 9);
   const carbKcal = kcal - protein * 4 - fat * 9;

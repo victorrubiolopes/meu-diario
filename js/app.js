@@ -151,6 +151,14 @@ const App = (() => {
         .forEach(p => Storage.remove('treino_planos', p.id));
       localStorage.setItem('cleanup_plano_bronyer', '1');
     }
+
+    // Migração: "emagrecimento" virou 3 níveis (adaptação/moderado/agressivo). Quem já tinha
+    // esse objetivo selecionado vai pro nível "moderado" (mais parecido com o déficit fixo
+    // antigo de ~500kcal), em vez de cair silenciosamente em "manutenção".
+    const perfilAtual = Storage.getPerfil();
+    if (perfilAtual.dietaTemplate === 'emagrecimento') {
+      Storage.savePerfil({ ...perfilAtual, dietaTemplate: 'emagrecimento_moderado' });
+    }
   }
 
   // Tela de login: aparece quando a nuvem está ativa e ninguém está logado.
@@ -211,6 +219,13 @@ const App = (() => {
     if (typeof DIETA_TEMPLATES !== 'undefined') {
       dietaSelect.innerHTML = DIETA_TEMPLATES.map(d => `<option value="${d.id}" ${d.id === 'manutencao' ? 'selected' : ''}>${d.nome}</option>`).join('');
     }
+    const dietaDescEl = document.getElementById('onboard-dieta-desc');
+    const atualizarDietaDesc = () => {
+      const t = typeof DIETA_TEMPLATES !== 'undefined' ? DIETA_TEMPLATES.find(d => d.id === dietaSelect.value) : null;
+      if (dietaDescEl) dietaDescEl.textContent = t ? t.descricao : '';
+    };
+    dietaSelect.addEventListener('change', atualizarDietaDesc);
+    atualizarDietaDesc();
     const erroEl = document.getElementById('onboard-erro');
     document.getElementById('onboard-continuar').addEventListener('click', () => {
       const peso = Number(document.getElementById('onboard-peso').value) || null;

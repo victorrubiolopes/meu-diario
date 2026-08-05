@@ -1,5 +1,6 @@
 // Lista de atualizações recentes do app, mais recente primeiro. Editável manualmente a cada mudança.
 const CHANGELOG = [
+  { date: '2026-08-05', texto: '"Emagrecimento" virou 3 níveis (Adaptação/Moderado/Agressivo), com déficit em % do seu gasto em vez de kcal fixo — evita começar com déficit alto demais' },
   { date: '2026-08-05', texto: 'Tela de boas-vindas pra quem cria conta nova: pede peso/altura/idade/sexo/atividade/objetivo antes de mostrar o "Hoje", com opção de pular' },
   { date: '2026-08-05', texto: 'Aba "Início" virou "Hoje" — nome deixava confuso achar que era a tela de primeiro acesso' },
   { date: '2026-08-04', texto: 'Super-admin pode reatribuir um paciente a uma nutri no painel (resolve paciente sem vínculo)' },

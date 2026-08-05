@@ -159,6 +159,7 @@ const ViewMais = (() => {
           ${Storage.getAll('dietas_custom').map(d => `<option value="dc:${d.id}" ${perfil.dietaCustomId === d.id ? 'selected' : ''}>${Util.escapeHtml(d.nome)}</option>`).join('')}
           <option value="custom" ${perfil.metaCustom && !perfil.dietaCustomId ? 'selected' : ''}>Personalizado (definir eu mesmo)</option>
         </select>
+        <p class="meta" id="dieta-desc" style="color:var(--text-muted);font-size:0.78rem"></p>
         <button type="button" class="secondary" id="go-dietas-custom" style="margin:8px 0">+ Gerenciar minhas dietas</button>
         <div id="template-fields">
           <label>Estilo de macros</label>
@@ -231,6 +232,9 @@ const ViewMais = (() => {
       const isDietaCustom = dietaSelect.value.startsWith('dc:');
       customFields.style.display = isCustom ? '' : 'none';
       templateFields.style.display = (isCustom || isDietaCustom) ? 'none' : '';
+
+      const dietaTemplate = DIETA_TEMPLATES.find(d => d.id === dietaSelect.value);
+      document.getElementById('dieta-desc').textContent = dietaTemplate ? dietaTemplate.descricao : '';
 
       const macroStyle = MACRO_STYLES.find(m => m.id === document.getElementById('p-macro-style').value);
       document.getElementById('macro-style-desc').textContent = macroStyle ? macroStyle.descricao : '';
