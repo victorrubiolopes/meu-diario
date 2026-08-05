@@ -534,19 +534,38 @@ const ViewMais = (() => {
     attachEditLink();
   }
 
+  // Ícone + cor por grupo muscular, só decorativo (identificação visual rápida na lista).
+  const GRUPO_ICONE = {
+    'Peito': { emoji: '🫁', cor: '#b5734a' },
+    'Costas': { emoji: '🫁', cor: '#6a8caf' },
+    'Abdômen': { emoji: '🫁', cor: '#8a7ab5' },
+    'Bíceps': { emoji: '💪', cor: '#c0654f' },
+    'Tríceps': { emoji: '💪', cor: '#c98a3f' },
+    'Ombro': { emoji: '💪', cor: '#4f9d8a' },
+    'Perna': { emoji: '🦵', cor: '#5f8f5a' },
+    'Panturrilha': { emoji: '🦵', cor: '#7a9f4a' },
+    'Outro': { emoji: '🏋️', cor: '#888888' },
+  };
+
   function exercicioListHtml(list) {
     if (list.length === 0) return '<div class="empty">Nenhum exercício encontrado</div>';
-    return list.map(e => `
+    return list.map(e => {
+      const icone = GRUPO_ICONE[e.grupo] || GRUPO_ICONE['Outro'];
+      return `
       <div class="list-item" data-id="${e.id}">
-        <div>
-          <strong>${Util.escapeHtml(e.name)}</strong>
-          <div class="meta">${Util.escapeHtml(e.grupo)} ${e.equipamento ? '· ' + Util.escapeHtml(e.equipamento) : ''}</div>
-          <a href="${e.videoUrl || Util.youtubeSearchUrl(e.name)}" target="_blank" rel="noopener" class="meta" style="color:var(--accent)">▶ Ver vídeo${e.videoUrl ? '' : ' (busca automática)'}</a>
-          · <button class="link" data-edit-link="${e.id}" style="color:var(--text-muted)">${e.videoUrl ? 'editar link' : 'definir link'}</button>
+        <div style="display:flex;align-items:center;gap:10px">
+          <div class="exercise-icon" style="background:${icone.cor}22;border-color:${icone.cor}">${icone.emoji}</div>
+          <div>
+            <strong>${Util.escapeHtml(e.name)}</strong>
+            <div class="meta">${Util.escapeHtml(e.grupo)} ${e.equipamento ? '· ' + Util.escapeHtml(e.equipamento) : ''}</div>
+            <a href="${e.videoUrl || Util.youtubeSearchUrl(e.name)}" target="_blank" rel="noopener" class="meta" style="color:var(--accent)">▶ Ver vídeo${e.videoUrl ? '' : ' (busca automática)'}</a>
+            · <button class="link" data-edit-link="${e.id}" style="color:var(--text-muted)">${e.videoUrl ? 'editar link' : 'definir link'}</button>
+          </div>
         </div>
         <button class="link" data-del-ex="${e.id}">✕</button>
       </div>
-    `).join('');
+    `;
+    }).join('');
   }
 
   // ---------------- PLANOS DE TREINO ----------------
@@ -1440,10 +1459,27 @@ const ViewMais = (() => {
         ? presc.planosTreino.map(p => ({ ...p, exercises: (p.exercises || []).map(e => ({ ...e })) })) : [];
       let rows = [{ name: '', sets: '', reps: '', weight: '', descanso: '', obs: '' }];
 
+      // Mesma regra de visibilidade do pacote pessoal (Bronyer) usada em Planos de Treino:
+      // só o dono do app vê a própria ficha do personal no seletor.
+      const souDono = typeof Cloud === 'undefined' || !Cloud.isEnabled()
+        || (typeof Cloud.isSuperAdmin === 'function' && Cloud.isSuperAdmin());
+      const fontePessoal = typeof PLANO_VICTOR !== 'undefined' ? PLANO_VICTOR.fonte : null;
+      const pacotesVisiveis = Object.keys(TREINOS_PREDEFINIDOS).filter(id => souDono || id !== fontePessoal);
+
       function paint() {
         cont.innerHTML = `
           <div class="card">
             <h3 style="font-size:0.92rem;margin:0 0 8px">🏋️ Plano de treino (A/B/C)</h3>
+            <label>Carregar pacote pré-definido (ponto de partida, editável)</label>
+            <select id="pt-pack-select">
+              ${pacotesVisiveis.map(id => {
+                const dieta = DIETA_TEMPLATES.find(d => d.id === id);
+                const rotulo = dieta ? `${dieta.nome} — ${TREINOS_PREDEFINIDOS[id].label}` : TREINOS_PREDEFINIDOS[id].label;
+                return `<option value="${id}">${Util.escapeHtml(rotulo)}</option>`;
+              }).join('')}
+            </select>
+            <p class="meta" id="pt-pack-desc" style="color:var(--text-muted);font-size:0.78rem"></p>
+            <button class="secondary" id="pt-load-pack" style="width:100%;margin-bottom:12px">Carregar pacote como sugestão</button>
             ${planosTreino.length === 0 ? '<p class="meta">Nenhum plano de treino no pacote ainda.</p>' : planosTreino.map((p, i) => `
               <div class="list-item">
                 <div>
@@ -1466,6 +1502,16 @@ const ViewMais = (() => {
         `;
         pintarRows();
         cont.querySelectorAll('[data-del-plano-treino]').forEach(b => b.addEventListener('click', () => { planosTreino.splice(Number(b.dataset.delPlanoTreino), 1); paint(); }));
+
+        const packSelect = cont.querySelector('#pt-pack-select');
+        const updatePackDesc = () => { cont.querySelector('#pt-pack-desc').textContent = TREINOS_PREDEFINIDOS[packSelect.value].descricao; };
+        packSelect.addEventListener('change', updatePackDesc);
+        updatePackDesc();
+        cont.querySelector('#pt-load-pack').addEventListener('click', () => {
+          const pack = TREINOS_PREDEFINIDOS[packSelect.value];
+          pack.planos.forEach(p => { planosTreino.push({ nome: p.nome, exercises: p.exercises.map(e => ({ ...e })) }); });
+          paint();
+        });
 
         cont.querySelector('#pt-add-exercicio').addEventListener('click', () => {
           syncRows();
