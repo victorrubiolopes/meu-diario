@@ -17,8 +17,8 @@ const ViewTreino = (() => {
     all.forEach(entry => {
       (entry.exercises || []).forEach(ex => {
         if (entry.id === excludeId) return;
-        if (ex.name && ex.name.trim().toLowerCase() === name.trim().toLowerCase() && ex.weight) {
-          max = Math.max(max, Number(ex.weight));
+        if (ex.name && ex.name.trim().toLowerCase() === name.trim().toLowerCase()) {
+          max = Math.max(max, Util.maxPesoExercicio(ex));
         }
       });
     });
@@ -167,7 +167,7 @@ const ViewTreino = (() => {
     // apontar pro registro assim que o primeiro persist() o cria.
     let entryId = existing ? existing.id : null;
     // Estado transitório de edição por card (não é persistido)
-    const ui = { scheme: {}, weight: {} };
+    const ui = { scheme: {} };
     const expandedVideos = new Set();
 
     content.innerHTML = `
@@ -223,11 +223,25 @@ const ViewTreino = (() => {
       if (r.done.length > n) r.done = r.done.slice(0, n);
       return r.done;
     }
+    // Peso por série. Na primeira vez que um exercício com peso único antigo (r.weight) é
+    // aberto, semeia todas as séries com esse valor em vez de deixar em branco — senão parece
+    // que o dado sumiu ao editar um treino já salvo antes dessa funcionalidade existir.
+    function ensureWeights(r) {
+      const n = setsCount(r);
+      if (!Array.isArray(r.weights) || r.weights.length === 0) {
+        const seed = r.weight != null && r.weight !== '' ? String(r.weight) : '';
+        r.weights = Array.from({ length: n }, () => seed);
+      } else {
+        while (r.weights.length < n) r.weights.push('');
+        if (r.weights.length > n) r.weights = r.weights.slice(0, n);
+      }
+      return r.weights;
+    }
 
     function persist() {
       const cleaned = rows
         .filter(r => r.name && r.name.trim() !== '')
-        .map(r => ({ name: r.name.trim(), sets: r.sets, reps: r.reps, weight: r.weight, descanso: r.descanso || '', obs: r.obs || '', done: Array.isArray(r.done) ? r.done : [] }));
+        .map(r => ({ name: r.name.trim(), sets: r.sets, reps: r.reps, weight: r.weight, weights: Array.isArray(r.weights) ? r.weights : [], descanso: r.descanso || '', obs: r.obs || '', done: Array.isArray(r.done) ? r.done : [] }));
       const notesEl = document.getElementById('treino-notes');
       const notes = notesEl ? notesEl.value.trim() : (existing ? existing.notes : '');
       const durEl = document.getElementById('treino-duracao');
@@ -247,9 +261,9 @@ const ViewTreino = (() => {
       const all = Storage.getAll('treino').filter(e => e.date <= state.date).sort((a, b) => b.date.localeCompare(a.date));
       let since = state.date;
       for (const e of all) {
-        const ex = (e.exercises || []).find(x => x.name && x.name.trim().toLowerCase() === name.trim().toLowerCase() && x.weight);
+        const ex = (e.exercises || []).find(x => x.name && x.name.trim().toLowerCase() === name.trim().toLowerCase() && Util.maxPesoExercicio(x) > 0);
         if (!ex) continue;
-        if (Number(ex.weight) === Number(w)) since = e.date;
+        if (Util.maxPesoExercicio(ex) === Number(w)) since = e.date;
         else break;
       }
       return since;
@@ -259,12 +273,14 @@ const ViewTreino = (() => {
 
     function cardHtml(r, i) {
       ensureDone(r);
+      ensureWeights(r);
       const grupo = grupoDe(r.name);
       const n = setsCount(r);
       const nameFilled = r.name && r.name.trim() !== '';
       const maxHist = nameFilled ? maxWeightHistorico(r.name, entryId) : 0;
-      const isPR = r.weight && nameFilled && Number(r.weight) > maxHist && maxHist > 0;
-      const since = weightSince(r.name, r.weight);
+      const bestWeight = Util.maxPesoExercicio(r);
+      const isPR = bestWeight > 0 && nameFilled && bestWeight > maxHist && maxHist > 0;
+      const since = weightSince(r.name, bestWeight);
 
       const schemeBlock = ui.scheme[i]
         ? `<div class="ex-scheme-edit">
@@ -283,26 +299,25 @@ const ViewTreino = (() => {
              ${r.descanso ? `<span class="ex-rest">⏱ ${Util.escapeHtml(r.descanso)}</span>` : ''}
            </button>`;
 
-      const seriesBlock = n > 0
+      const setsBlock = n > 0
         ? `<div class="ex-series">
-             ${Array.from({ length: n }).map((_, j) =>
-               `<button class="ex-serie ${r.done[j] ? 'done' : ''}" data-serie="${i}-${j}">${r.done[j] ? '✓ ' : ''}Série ${j + 1}</button>`
-             ).join('')}
+             ${Array.from({ length: n }).map((_, j) => `
+               <div class="ex-serie-row">
+                 <button class="ex-serie ${r.done[j] ? 'done' : ''}" data-serie="${i}-${j}">${r.done[j] ? '✓ ' : ''}Série ${j + 1}</button>
+                 <input type="number" step="0.5" class="ex-serie-weight" placeholder="kg" data-serie-weight="${i}-${j}" value="${Util.escapeHtml(r.weights[j] || '')}">
+               </div>
+             `).join('')}
            </div>`
         : '';
 
-      const weightBlock = ui.weight[i]
-        ? `<div class="ex-weight-row">
-             <input type="number" step="0.5" class="ex-weight-input" placeholder="Peso (kg)" value="${Util.escapeHtml(r.weight)}">
-             <button class="ex-weight-ok" data-weight-ok="${i}">OK</button>
-           </div>`
-        : `<div class="ex-weight-row">
-             <div class="ex-weight-box">
-               <div class="ex-weight-val">${ICON_WEIGHT}<span>${r.weight ? `${Util.escapeHtml(r.weight)} kg` : '— kg'}</span>${isPR ? '<span class="badge pr">🏆 PR</span>' : ''}</div>
-               ${since && r.weight ? `<div class="ex-weight-since">Desde ${Util.fmtDate(since)}</div>` : ''}
-             </div>
-             <button class="ex-weight-update" data-weight="${i}">+ Atualizar</button>
-           </div>`;
+      const weightSummaryBlock = `
+        <div class="ex-weight-row">
+          <div class="ex-weight-box">
+            <div class="ex-weight-val">${ICON_WEIGHT}<span>${bestWeight > 0 ? `${bestWeight} kg` : '— kg'} · melhor série</span>${isPR ? '<span class="badge pr">🏆 PR</span>' : ''}</div>
+            ${since && bestWeight > 0 ? `<div class="ex-weight-since">Desde ${Util.fmtDate(since)}</div>` : ''}
+          </div>
+        </div>
+      `;
 
       const musculoImg = GRUPO_ICONE_PATH[grupo];
       const thumbConteudo = musculoImg
@@ -320,8 +335,8 @@ const ViewTreino = (() => {
             <button class="ex-remove" data-remove="${i}" aria-label="Remover">✕</button>
           </div>
           ${schemeBlock}
-          ${seriesBlock}
-          ${weightBlock}
+          ${setsBlock}
+          ${weightSummaryBlock}
           ${r.obs ? `<div class="ex-obs">📝 ${Util.escapeHtml(r.obs)}</div>` : ''}
           ${nameFilled ? videoBlock(r, i) : ''}
         </div>
@@ -390,6 +405,7 @@ const ViewTreino = (() => {
           rows[i].descanso = card.querySelector('.ex-descanso-input').value;
           rows[i].obs = card.querySelector('.ex-obs-input').value;
           ensureDone(rows[i]);
+          ensureWeights(rows[i]);
           ui.scheme[i] = false;
           persist();
           renderCards();
@@ -405,23 +421,13 @@ const ViewTreino = (() => {
           renderCards();
         });
       });
-      cardsEl.querySelectorAll('[data-weight]').forEach(btn => {
-        btn.addEventListener('click', () => {
+      cardsEl.querySelectorAll('[data-serie-weight]').forEach(inp => {
+        inp.addEventListener('change', () => {
           syncNames();
-          ui.weight[Number(btn.dataset.weight)] = true;
-          renderCards();
-          const card = cardsEl.querySelector(`.ex-card[data-i="${btn.dataset.weight}"]`);
-          const f = card && card.querySelector('.ex-weight-input');
-          if (f) { f.focus(); f.select(); }
-        });
-      });
-      cardsEl.querySelectorAll('[data-weight-ok]').forEach(btn => {
-        btn.addEventListener('click', () => {
-          syncNames();
-          const i = Number(btn.dataset.weightOk);
-          const card = cardsEl.querySelector(`.ex-card[data-i="${i}"]`);
-          rows[i].weight = card.querySelector('.ex-weight-input').value;
-          ui.weight[i] = false;
+          const [i, j] = inp.dataset.serieWeight.split('-').map(Number);
+          ensureWeights(rows[i]);
+          rows[i].weights[j] = inp.value;
+          rows[i].weight = String(Util.maxPesoExercicio(rows[i]) || '');
           persist();
           renderCards();
         });

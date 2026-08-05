@@ -977,15 +977,25 @@ canvas {
 
 .ex-series {
   display: flex;
-  flex-wrap: wrap;
+  flex-direction: column;
   gap: 8px;
-  justify-content: center;
   margin-bottom: 14px;
 }
 
+.ex-serie-row {
+  display: flex;
+  gap: 8px;
+  align-items: stretch;
+}
+
+.ex-serie-row .ex-serie { flex: 1 1 auto; }
+
+.ex-serie-weight {
+  width: 72px;
+  flex: 0 0 72px;
+}
+
 .ex-serie {
-  flex: 1 1 28%;
-  min-width: 88px;
   padding: 14px 8px;
   border-radius: 12px;
   border: 1px solid var(--border);
@@ -1030,20 +1040,6 @@ canvas {
 .ex-weight-val svg { width: 20px; height: 20px; color: var(--text-muted); flex-shrink: 0; }
 
 .ex-weight-since { font-size: 0.72rem; color: var(--text-muted); }
-
-.ex-weight-update {
-  border: none;
-  border-radius: 12px;
-  background: var(--accent);
-  color: #fff;
-  font-weight: 700;
-  font-family: inherit;
-  padding: 0 20px;
-  font-size: 0.95rem;
-  flex-shrink: 0;
-}
-
-.ex-weight-input { flex: 1; min-width: 0; }
 
 .ex-video-link {
   display: inline-block;

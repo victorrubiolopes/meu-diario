@@ -69,7 +69,7 @@ const ViewHistorico = (() => {
     // Agrupa por nome normalizado (trim + minúsculas) pra não separar "Supino" de "supino " em exercícios distintos.
     const exerciseByKey = new Map();
     all.forEach(t => (t.exercises || []).forEach(e => {
-      if (!e.name || !e.weight) return;
+      if (!e.name || Util.maxPesoExercicio(e) <= 0) return;
       const key = e.name.trim().toLowerCase();
       if (!exerciseByKey.has(key)) exerciseByKey.set(key, e.name.trim());
     }));
@@ -92,7 +92,7 @@ const ViewHistorico = (() => {
           <div class="list-item">
             <div>
               <strong>${Util.fmtDate(t.date)}</strong> ${plano ? `<span class="task-tag">${Util.escapeHtml(plano.nome)}</span>` : ''}
-              <div class="meta">${(t.exercises || []).filter(e => e.name).map(e => e.weight ? `${Util.escapeHtml(e.name)} (${e.weight}kg)` : Util.escapeHtml(e.name)).join(', ') || 'sem exercícios'}</div>
+              <div class="meta">${(t.exercises || []).filter(e => e.name).map(e => { const w = Util.maxPesoExercicio(e); return w > 0 ? `${Util.escapeHtml(e.name)} (${w}kg)` : Util.escapeHtml(e.name); }).join(', ') || 'sem exercícios'}</div>
             </div>
           </div>
         `;
@@ -107,9 +107,9 @@ const ViewHistorico = (() => {
         const byDate = {};
         all.forEach(t => {
           (t.exercises || []).forEach(e => {
-            if (e.name && e.name.trim().toLowerCase() === key && e.weight) {
-              const w = Number(e.weight);
-              if (!byDate[t.date] || w > byDate[t.date]) byDate[t.date] = w;
+            if (e.name && e.name.trim().toLowerCase() === key) {
+              const w = Util.maxPesoExercicio(e);
+              if (w > 0 && (!byDate[t.date] || w > byDate[t.date])) byDate[t.date] = w;
             }
           });
         });

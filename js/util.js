@@ -227,6 +227,22 @@ const Util = (() => {
     });
   }
 
+  // Lista de pesos registrados pra um exercício já salvo — tolerante ao formato antigo
+  // (peso único em `weight`) e ao novo (`weights`, um valor por série).
+  function pesosExercicio(ex) {
+    if (!ex) return [];
+    if (Array.isArray(ex.weights) && ex.weights.length) {
+      return ex.weights.map(Number).filter(w => !isNaN(w) && w > 0);
+    }
+    const w = Number(ex.weight);
+    return !isNaN(w) && w > 0 ? [w] : [];
+  }
+  function maxPesoExercicio(ex) {
+    const pesos = pesosExercicio(ex);
+    return pesos.length ? Math.max(...pesos) : 0;
+  }
+
   return { todayISO, fmtDate, escapeHtml, daysAgo, daysFromNow, movingAverage, getPesoAtual, planoSugerido, ultimoTreinoFeito, weekdayOf, daysBetween, addDaysISO, fmtDatePill, historicoTreinos,
-    faixaPesoSaudavel, faixaGorduraSaudavel, faixaMassaMagraSaudavel, faixaAguaSaudavel, faixaImcSaudavel, metricasComposicao, inputGroup, youtubeSearchUrl, youtubeEmbedId, fileToDataURL, compressImageToDataURL };
+    faixaPesoSaudavel, faixaGorduraSaudavel, faixaMassaMagraSaudavel, faixaAguaSaudavel, faixaImcSaudavel, metricasComposicao, inputGroup, youtubeSearchUrl, youtubeEmbedId, fileToDataURL, compressImageToDataURL,
+    pesosExercicio, maxPesoExercicio };
 })();
