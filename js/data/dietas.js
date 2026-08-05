@@ -189,6 +189,43 @@ function inferMealTypeFromHorario(horario) {
   return 'Jantar';
 }
 
+// "Método do prato": quando não há dieta customizada (perfil.dietaCustomId), sugere um
+// alimento de cada categoria por refeição, puxando da biblioteca do próprio usuário.
+const ESTRUTURA_REFEICAO_PADRAO = {
+  'Café da manhã': ['proteina', 'carboidrato', 'fruta'],
+  'Almoço': ['proteina', 'carboidrato', 'legume'],
+  'Lanche': ['proteina', 'carboidrato'],
+  'Jantar': ['proteina', 'carboidrato', 'legume'],
+};
+
+function _hashSeed(str) {
+  let h = 0;
+  for (let i = 0; i < str.length; i++) h = (h * 31 + str.charCodeAt(i)) >>> 0;
+  return h;
+}
+
+// Escolha determinística (não Math.random): mesma data+seed sempre resulta na mesma
+// sugestão, então ela não muda sozinha a cada re-render — só quando o usuário pede
+// "Ver outras opções" (que incrementa o shuffleSeed).
+function sugerirRefeicoesDoDia(date, shuffleSeed = 0) {
+  const lib = Storage.getAll('alimentos_biblioteca');
+  const porCategoria = {};
+  Object.values(ESTRUTURA_REFEICAO_PADRAO).flat().forEach(cat => {
+    if (!porCategoria[cat]) porCategoria[cat] = lib.filter(f => getCategoriaAlimento(f.name) === cat);
+  });
+
+  const resultado = {};
+  Object.entries(ESTRUTURA_REFEICAO_PADRAO).forEach(([mealType, categorias]) => {
+    resultado[mealType] = categorias.map(cat => {
+      const candidatos = porCategoria[cat];
+      if (!candidatos || candidatos.length === 0) return null;
+      const idx = _hashSeed(`${date}|${shuffleSeed}|${mealType}|${cat}`) % candidatos.length;
+      return { categoria: cat, food: candidatos[idx] };
+    }).filter(Boolean);
+  });
+  return resultado;
+}
+
 // Estimativa de calorias gastas em atividades do dia (corrida + musculação),
 // usada para preencher automaticamente o campo de gasto extra em Início.
 function calcularGastoEstimado(date) {

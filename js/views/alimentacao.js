@@ -9,6 +9,9 @@ const ViewAlimentacao = (() => {
   let ultimoMealType = null;
   // Itens escolhidos mas ainda não salvos — permite adicionar vários alimentos e salvar tudo de uma vez.
   let carrinho = [];
+  // Incrementado só pelo botão "Ver outras opções" da sugestão de refeições.
+  let sugestaoSeed = 0;
+  const CATEGORIA_LABELS = { proteina: 'proteína', carboidrato: 'carboidrato', fruta: 'fruta', legume: 'legume/verdura' };
 
   function sumNutrients(entries) {
     const totals = { kcal: 0, carbs: 0, protein: 0, fat: 0, fiber: 0, sodium: 0 };
@@ -237,6 +240,7 @@ const ViewAlimentacao = (() => {
           </div>
         ` : ''}
       </div>
+      ${(!perfil.dietaCustomId && meta) ? renderSugestaoRefeicoes(state.date) : ''}
       ${combos.length > 0 ? `
         <div class="card">
           <h2>Usar combo salvo</h2>
@@ -294,6 +298,21 @@ const ViewAlimentacao = (() => {
       </div>
       <input type="file" id="meal-photo-input" accept="image/*" capture="environment" style="display:none">
     `;
+
+    const shuffleSugestaoBtn = document.getElementById('shuffle-sugestao');
+    if (shuffleSugestaoBtn) {
+      shuffleSugestaoBtn.addEventListener('click', () => { sugestaoSeed++; api.render(); });
+    }
+    $app.querySelectorAll('[data-add-sugestao-food]').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const mealType = btn.dataset.addSugestaoMeal;
+        const food = Storage.getAll('alimentos_biblioteca').find(f => f.id === btn.dataset.addSugestaoFood);
+        if (!food) return;
+        ultimoMealType = mealType;
+        Storage.add('alimentacao', { date: state.date, mealType, foodName: food.name, qty: 1, order: Date.now(), ...Object.fromEntries(NUTRI_FIELDS.map(f => [f, food[f] || 0])) });
+        api.render();
+      });
+    });
 
     if (combos.length > 0) {
       document.getElementById('add-combo').addEventListener('click', () => {
@@ -560,6 +579,38 @@ const ViewAlimentacao = (() => {
 
   function fotoRefeicaoDe(date, mealType) {
     return Storage.getAll('refeicao_fotos').find(f => f.date === date && f.mealType === mealType) || null;
+  }
+
+  function renderSugestaoRefeicoes(date) {
+    const sugestao = sugerirRefeicoesDoDia(date, sugestaoSeed);
+    return `
+      <div class="card">
+        <div class="row" style="align-items:center;justify-content:space-between">
+          <h2>Sugestão de refeições</h2>
+          <button class="link" id="shuffle-sugestao">🔄 Ver outras opções</button>
+        </div>
+        <p class="meta" style="color:var(--text-muted);font-size:0.78rem">Sem dieta específica cadastrada — sugestão baseada no método do prato, com alimentos da sua biblioteca.</p>
+        ${Object.entries(sugestao).map(([mealType, itens]) => `
+          <div style="margin-top:12px">
+            <div class="row" style="justify-content:space-between;align-items:baseline">
+              <strong>${mealType}</strong>
+              <span class="meta">${itens.reduce((s, i) => s + i.food.kcal, 0).toFixed(0)} kcal (aprox.)</span>
+            </div>
+            ${itens.length === 0
+              ? '<p class="empty" style="font-size:0.78rem">Sem alimentos categorizados suficientes na sua biblioteca.</p>'
+              : itens.map(it => `
+                <div class="list-item">
+                  <div>
+                    <div>${Util.escapeHtml(it.food.name)} <span class="meta">(${CATEGORIA_LABELS[it.categoria]})</span></div>
+                    <div class="meta">${it.food.portionLabel} · ${it.food.kcal} kcal</div>
+                  </div>
+                  <button class="link" data-add-sugestao-meal="${Util.escapeHtml(mealType)}" data-add-sugestao-food="${it.food.id}" aria-label="Adicionar">+</button>
+                </div>
+              `).join('')}
+          </div>
+        `).join('')}
+      </div>
+    `;
   }
 
   function renderMealList(entries, date) {
