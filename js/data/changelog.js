@@ -1,6 +1,5 @@
 // Lista de atualizações recentes do app, mais recente primeiro. Editável manualmente a cada mudança.
 const CHANGELOG = [
-  { date: '2026-08-05', texto: 'Biblioteca de exercícios: cada exercício ganha um ícone colorido por grupo muscular na listagem' },
   { date: '2026-08-05', texto: 'Painel do nutri: ao montar o plano de treino, dá pra carregar um pacote pré-definido (Full Body, Upper/Lower...) como ponto de partida e editar antes de enviar' },
   { date: '2026-08-05', texto: 'Painel do nutri: agora dá pra montar e enviar plano de treino (A/B/C) pro paciente também, não só a dieta — vira plano pronto no aparelho dele' },
   { date: '2026-08-05', texto: 'Painel do nutri: montar o plano alimentar agora tem busca com autocomplete e prévia de kcal/macros (mesma busca que o paciente usa pra registrar refeição), em vez de digitar o nome certinho' },

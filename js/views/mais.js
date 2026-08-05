@@ -534,38 +534,19 @@ const ViewMais = (() => {
     attachEditLink();
   }
 
-  // Ícone + cor por grupo muscular, só decorativo (identificação visual rápida na lista).
-  const GRUPO_ICONE = {
-    'Peito': { emoji: '🫁', cor: '#b5734a' },
-    'Costas': { emoji: '🫁', cor: '#6a8caf' },
-    'Abdômen': { emoji: '🫁', cor: '#8a7ab5' },
-    'Bíceps': { emoji: '💪', cor: '#c0654f' },
-    'Tríceps': { emoji: '💪', cor: '#c98a3f' },
-    'Ombro': { emoji: '💪', cor: '#4f9d8a' },
-    'Perna': { emoji: '🦵', cor: '#5f8f5a' },
-    'Panturrilha': { emoji: '🦵', cor: '#7a9f4a' },
-    'Outro': { emoji: '🏋️', cor: '#888888' },
-  };
-
   function exercicioListHtml(list) {
     if (list.length === 0) return '<div class="empty">Nenhum exercício encontrado</div>';
-    return list.map(e => {
-      const icone = GRUPO_ICONE[e.grupo] || GRUPO_ICONE['Outro'];
-      return `
+    return list.map(e => `
       <div class="list-item" data-id="${e.id}">
-        <div style="display:flex;align-items:center;gap:10px">
-          <div class="exercise-icon" style="background:${icone.cor}22;border-color:${icone.cor}">${icone.emoji}</div>
-          <div>
-            <strong>${Util.escapeHtml(e.name)}</strong>
-            <div class="meta">${Util.escapeHtml(e.grupo)} ${e.equipamento ? '· ' + Util.escapeHtml(e.equipamento) : ''}</div>
-            <a href="${e.videoUrl || Util.youtubeSearchUrl(e.name)}" target="_blank" rel="noopener" class="meta" style="color:var(--accent)">▶ Ver vídeo${e.videoUrl ? '' : ' (busca automática)'}</a>
-            · <button class="link" data-edit-link="${e.id}" style="color:var(--text-muted)">${e.videoUrl ? 'editar link' : 'definir link'}</button>
-          </div>
+        <div>
+          <strong>${Util.escapeHtml(e.name)}</strong>
+          <div class="meta">${Util.escapeHtml(e.grupo)} ${e.equipamento ? '· ' + Util.escapeHtml(e.equipamento) : ''}</div>
+          <a href="${e.videoUrl || Util.youtubeSearchUrl(e.name)}" target="_blank" rel="noopener" class="meta" style="color:var(--accent)">▶ Ver vídeo${e.videoUrl ? '' : ' (busca automática)'}</a>
+          · <button class="link" data-edit-link="${e.id}" style="color:var(--text-muted)">${e.videoUrl ? 'editar link' : 'definir link'}</button>
         </div>
         <button class="link" data-del-ex="${e.id}">✕</button>
       </div>
-    `;
-    }).join('');
+    `).join('');
   }
 
   // ---------------- PLANOS DE TREINO ----------------
