@@ -1,5 +1,6 @@
 // Lista de atualizações recentes do app, mais recente primeiro. Editável manualmente a cada mudança.
 const CHANGELOG = [
+  { date: '2026-08-05', texto: 'Painel do nutri: montar o plano alimentar agora tem busca com autocomplete e prévia de kcal/macros (mesma busca que o paciente usa pra registrar refeição), em vez de digitar o nome certinho' },
   { date: '2026-08-05', texto: 'Sem dieta específica cadastrada, "Comida" agora sugere um alimento de cada grupo (proteína, carboidrato, fruta/legumes) por refeição, com opção de trocar a sugestão e adicionar direto no dia' },
   { date: '2026-08-05', texto: 'Treino: botão "Só marcar que treinei hoje" registra o dia sem precisar lançar exercício por exercício' },
   { date: '2026-08-05', texto: 'Objetivo "Emagrecimento" agora abre um campo "Nível" (Adaptação/Moderado/Agressivo) em vez de listar os 3 juntos — Perfil e tela de boas-vindas' },

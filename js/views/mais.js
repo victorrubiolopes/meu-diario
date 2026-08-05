@@ -1282,6 +1282,7 @@ const ViewMais = (() => {
       let refeicoes = (presc && Array.isArray(presc.refeicoes))
         ? presc.refeicoes.map(r => ({ ...r, itens: (r.itens || []).map(i => ({ ...i })) })) : [];
       let itensNovo = [];
+      let plSelectedFood = null;
 
       function paint() {
         cont.innerHTML = `
@@ -1302,12 +1303,12 @@ const ViewMais = (() => {
             <label>Horário</label>
             <input type="time" id="pl-hora">
             <label>Adicionar alimento</label>
-            <input type="text" id="pl-food" list="datalist-alim-adm" placeholder="Buscar alimento da biblioteca">
-            <datalist id="datalist-alim-adm">${biblioteca.map(f => `<option value="${Util.escapeHtml(f.name)}">`).join('')}</datalist>
-            <div class="row" style="margin-top:6px">
-              <input type="number" id="pl-qty" value="1" min="0.01" step="0.1" placeholder="Porções">
-              <button class="secondary" id="pl-add-item" style="flex:0 0 auto">+ item</button>
+            <div class="autocomplete-wrap">
+              <input type="text" id="pl-food-search" placeholder="Buscar na biblioteca..." autocomplete="off">
+              <div class="autocomplete-list" id="pl-food-results" style="display:none"></div>
             </div>
+            <div id="pl-selected-food-box"></div>
+            <button class="secondary" id="pl-add-item" style="width:100%;margin-top:8px" disabled>+ Adicionar item à refeição</button>
             <div id="pl-itens" style="margin-top:8px"></div>
             <button class="secondary" id="pl-add-ref" style="width:100%;margin-top:10px">+ Adicionar refeição ao plano</button>
             <button class="primary" id="pl-enviar" style="margin-top:8px">Enviar plano alimentar</button>
@@ -1316,18 +1317,7 @@ const ViewMais = (() => {
         `;
         pintarItens();
         cont.querySelectorAll('[data-del-ref]').forEach(b => b.addEventListener('click', () => { refeicoes.splice(Number(b.dataset.delRef), 1); paint(); }));
-        cont.querySelector('#pl-add-item').addEventListener('click', () => {
-          const nomeFood = cont.querySelector('#pl-food').value.trim();
-          const qty = Number(cont.querySelector('#pl-qty').value) || 1;
-          if (!nomeFood) return;
-          const food = biblioteca.find(f => f.name.trim().toLowerCase() === nomeFood.toLowerCase());
-          const item = { foodName: food ? food.name : nomeFood, qty };
-          NUTRI.forEach(f => { item[f] = food ? Math.round((food[f] || 0) * qty * 10) / 10 : 0; });
-          itensNovo.push(item);
-          cont.querySelector('#pl-food').value = '';
-          cont.querySelector('#pl-qty').value = '1';
-          pintarItens();
-        });
+        wireFoodSearch();
         cont.querySelector('#pl-add-ref').addEventListener('click', () => {
           const nome = cont.querySelector('#pl-nome').value.trim();
           const horario = cont.querySelector('#pl-hora').value || null;
@@ -1342,6 +1332,84 @@ const ViewMais = (() => {
           msg.textContent = 'Enviando…';
           try { await Cloud.enviarPlano(uid, refeicoes); msg.textContent = '✅ Plano alimentar enviado! O paciente recebe como refeições prontas.'; }
           catch (e) { msg.textContent = '⚠️ Falha: ' + (e.message || ''); }
+        });
+      }
+
+      // Busca com autocomplete + preview de porções/gramas, mesmo padrão usado pelo
+      // paciente ao registrar refeição (js/views/alimentacao.js) — só que aqui monta o
+      // plano do zero em vez de lançar no diário do dia.
+      function wireFoodSearch() {
+        const searchInput = cont.querySelector('#pl-food-search');
+        const resultsBox = cont.querySelector('#pl-food-results');
+        const addItemBtn = cont.querySelector('#pl-add-item');
+        plSelectedFood = null;
+
+        searchInput.addEventListener('input', () => {
+          const q = searchInput.value.trim().toLowerCase();
+          plSelectedFood = null;
+          addItemBtn.disabled = true;
+          cont.querySelector('#pl-selected-food-box').innerHTML = '';
+          if (!q) { resultsBox.style.display = 'none'; return; }
+          const matches = biblioteca.filter(f => f.name.toLowerCase().includes(q)).slice(0, 8);
+          if (matches.length === 0) {
+            resultsBox.innerHTML = '<div class="autocomplete-item">Nenhum resultado.</div>';
+            resultsBox.style.display = '';
+            return;
+          }
+          resultsBox.innerHTML = matches.map(f => `
+            <div class="autocomplete-item" data-id="${f.id}">
+              ${Util.escapeHtml(f.name)}
+              <div class="meta">${f.kcal} kcal / ${f.portionLabel}</div>
+            </div>
+          `).join('');
+          resultsBox.style.display = '';
+          resultsBox.querySelectorAll('[data-id]').forEach(el => {
+            el.addEventListener('click', () => selectPlFood(biblioteca.find(f => f.id === el.dataset.id)));
+          });
+        });
+
+        function selectPlFood(food) {
+          plSelectedFood = food;
+          searchInput.value = food.name;
+          resultsBox.style.display = 'none';
+          addItemBtn.disabled = false;
+          cont.querySelector('#pl-selected-food-box').innerHTML = `
+            <div class="row">
+              <div><label>Porções (de ${Util.escapeHtml(food.portionLabel)})</label><input type="number" id="pl-qty-input" value="1" min="0.01" step="0.1"></div>
+              <div><label>ou gramas direto</label><input type="number" id="pl-qty-grams-input" value="${food.portionGrams}" min="1" step="1"></div>
+            </div>
+            <div class="meta" id="pl-qty-preview" style="margin-top:6px;color:var(--text-muted);font-size:0.8rem"></div>
+          `;
+          const qtyInput = cont.querySelector('#pl-qty-input');
+          const gramsInput = cont.querySelector('#pl-qty-grams-input');
+          const updatePreview = () => {
+            const qty = Number(qtyInput.value) || 0;
+            cont.querySelector('#pl-qty-preview').textContent =
+              `${(food.kcal * qty).toFixed(0)} kcal · P ${(food.protein * qty).toFixed(1)}g · C ${(food.carbs * qty).toFixed(1)}g · G ${(food.fat * qty).toFixed(1)}g`;
+          };
+          qtyInput.addEventListener('input', () => {
+            gramsInput.value = Math.round((Number(qtyInput.value) || 0) * food.portionGrams * 10) / 10;
+            updatePreview();
+          });
+          gramsInput.addEventListener('input', () => {
+            qtyInput.value = Math.round(((Number(gramsInput.value) || 0) / food.portionGrams) * 1000) / 1000;
+            updatePreview();
+          });
+          updatePreview();
+        }
+
+        addItemBtn.addEventListener('click', () => {
+          if (!plSelectedFood) return;
+          const qtyInput = cont.querySelector('#pl-qty-input');
+          const qty = Number(qtyInput.value) || 1;
+          const item = { foodName: plSelectedFood.name, qty };
+          NUTRI.forEach(f => { item[f] = Math.round((plSelectedFood[f] || 0) * qty * 10) / 10; });
+          itensNovo.push(item);
+          plSelectedFood = null;
+          searchInput.value = '';
+          addItemBtn.disabled = true;
+          cont.querySelector('#pl-selected-food-box').innerHTML = '';
+          pintarItens();
         });
       }
 
