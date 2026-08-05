@@ -74,11 +74,12 @@ const ViewAlimentacao = (() => {
     };
 
     const fiberPct = meta.fiber ? Math.min(100, Math.round((totals.fiber / meta.fiber) * 100)) : null;
+    const pctDaMeta = (val, alvo) => alvo ? Math.min(100, Math.round((val / alvo) * 100)) : null;
 
     const boxes = [
-      { label: 'Carboidr.', val: totals.carbs, color: 'var(--macro-carb)' },
-      { label: 'Gord.', val: totals.fat, color: 'var(--macro-fat)' },
-      { label: 'Proteína', val: totals.protein, color: 'var(--macro-protein)' },
+      { label: 'Carboidr.', val: totals.carbs, color: 'var(--macro-carb)', pct: pctDaMeta(totals.carbs, meta.carb) },
+      { label: 'Gord.', val: totals.fat, color: 'var(--macro-fat)', pct: pctDaMeta(totals.fat, meta.fat) },
+      { label: 'Proteína', val: totals.protein, color: 'var(--macro-protein)', pct: pctDaMeta(totals.protein, meta.protein) },
     ];
 
     const infoAberto = expandedMacro === 'info';
@@ -95,6 +96,7 @@ const ViewAlimentacao = (() => {
           <div class="macro-box" style="--mc:${b.color}">
             <div class="macro-box-lbl">${b.label}</div>
             <div class="macro-box-val">${b.val.toFixed(1)}<span>g</span></div>
+            ${b.pct != null ? `<div class="macro-box-pct">${b.pct}% da meta</div>` : ''}
           </div>
         `).join('')}
         ${meta.fiber ? `
