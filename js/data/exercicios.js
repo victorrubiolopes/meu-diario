@@ -15,15 +15,16 @@ const EXERCICIOS_PADRAO = [
   { name: 'Remada cavalinho', grupo: 'Costas', equipamento: 'Barra' },
   { name: 'Levantamento terra', grupo: 'Costas', equipamento: 'Barra' },
   { name: 'Remada baixa no cabo', grupo: 'Costas', equipamento: 'Cabo' },
-  // Perna
-  { name: 'Agachamento livre', grupo: 'Perna', equipamento: 'Barra' },
-  { name: 'Leg press', grupo: 'Perna', equipamento: 'Máquina' },
-  { name: 'Cadeira extensora', grupo: 'Perna', equipamento: 'Máquina' },
+  // Quadríceps
+  { name: 'Agachamento livre', grupo: 'Quadríceps', equipamento: 'Barra' },
+  { name: 'Leg press', grupo: 'Quadríceps', equipamento: 'Máquina' },
+  { name: 'Cadeira extensora', grupo: 'Quadríceps', equipamento: 'Máquina' },
+  { name: 'Afundo (passada)', grupo: 'Quadríceps', equipamento: 'Halteres' },
+  { name: 'Agachamento búlgaro', grupo: 'Quadríceps', equipamento: 'Halteres' },
+  { name: 'Hack squat', grupo: 'Quadríceps', equipamento: 'Máquina' },
+  // Perna (posterior de coxa)
   { name: 'Mesa flexora', grupo: 'Perna', equipamento: 'Máquina' },
-  { name: 'Afundo (passada)', grupo: 'Perna', equipamento: 'Halteres' },
   { name: 'Stiff', grupo: 'Perna', equipamento: 'Barra' },
-  { name: 'Agachamento búlgaro', grupo: 'Perna', equipamento: 'Halteres' },
-  { name: 'Hack squat', grupo: 'Perna', equipamento: 'Máquina' },
   // Ombro
   { name: 'Desenvolvimento com halteres', grupo: 'Ombro', equipamento: 'Halteres' },
   { name: 'Desenvolvimento militar com barra', grupo: 'Ombro', equipamento: 'Barra' },
@@ -55,5 +56,5 @@ const EXERCICIOS_PADRAO = [
 ];
 
 const GRUPOS_MUSCULARES = [
-  'Peito', 'Costas', 'Perna', 'Ombro', 'Bíceps', 'Tríceps', 'Abdômen', 'Panturrilha', 'Outro',
+  'Peito', 'Costas', 'Quadríceps', 'Perna', 'Ombro', 'Bíceps', 'Tríceps', 'Abdômen', 'Panturrilha', 'Outro',
 ];

@@ -159,6 +159,20 @@ const App = (() => {
     if (perfilAtual.dietaTemplate === 'emagrecimento') {
       Storage.savePerfil({ ...perfilAtual, dietaTemplate: 'emagrecimento_moderado' });
     }
+
+    // Migração: "Quadríceps" virou categoria própria, separada de "Perna" (que agora é só
+    // posterior de coxa). Sem isso, quem já tinha esses exercícios sincronizados ficaria com
+    // o grupo antigo pra sempre (mergeSeeds nunca atualiza itens já existentes).
+    const EXERCICIOS_VIRAM_QUADRICEPS = ['Agachamento livre', 'Leg press', 'Cadeira extensora', 'Afundo (passada)', 'Agachamento búlgaro', 'Hack squat'];
+    const bibliotecaEx = Storage.getAll('exercicios_biblioteca');
+    let precisaSalvarEx = false;
+    bibliotecaEx.forEach(e => {
+      if (e.grupo === 'Perna' && EXERCICIOS_VIRAM_QUADRICEPS.some(n => n.toLowerCase() === e.name.trim().toLowerCase())) {
+        e.grupo = 'Quadríceps';
+        precisaSalvarEx = true;
+      }
+    });
+    if (precisaSalvarEx) Storage.saveAll('exercicios_biblioteca', bibliotecaEx);
   }
 
   // Tela de login: aparece quando a nuvem está ativa e ninguém está logado.
