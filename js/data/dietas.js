@@ -21,6 +21,11 @@ const DIETA_TEMPLATES = [
   { id: 'ganho', nome: 'Ganho de massa', descricao: 'Superávit leve (~300 kcal/dia) para minimizar ganho de gordura', ajusteKcal: 300 },
 ];
 
+// Os 3 níveis de emagrecimento, derivados de DIETA_TEMPLATES — usado pra montar o select
+// secundário "Nível" que só aparece quando o Objetivo escolhido é "Emagrecimento".
+const EMAGRECIMENTO_NIVEIS = DIETA_TEMPLATES.filter(d => d.id.startsWith('emagrecimento_'));
+const EMAGRECIMENTO_PADRAO = 'emagrecimento_adaptacao';
+
 // Estilo de macros: independente do objetivo, define como as calorias se dividem
 const MACRO_STYLES = [
   { id: 'balanceada', nome: 'Balanceada', descricao: 'Distribuição clássica, boa para a maioria das pessoas', proteinPerKg: 1.8, fatPercent: 0.30 },

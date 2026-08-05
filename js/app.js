@@ -212,19 +212,34 @@ const App = (() => {
   function initOnboardingGate() {
     const atividadeSelect = document.getElementById('onboard-atividade');
     const dietaSelect = document.getElementById('onboard-dieta');
+    const nivelSelect = document.getElementById('onboard-emagrecimento-nivel');
+    const nivelFields = document.getElementById('onboard-nivel-fields');
     if (!atividadeSelect || !dietaSelect) return;
     if (typeof NIVEIS_ATIVIDADE !== 'undefined') {
       atividadeSelect.innerHTML = NIVEIS_ATIVIDADE.map(n => `<option value="${n.id}">${n.label}</option>`).join('');
     }
     if (typeof DIETA_TEMPLATES !== 'undefined') {
-      dietaSelect.innerHTML = DIETA_TEMPLATES.map(d => `<option value="${d.id}" ${d.id === 'manutencao' ? 'selected' : ''}>${d.nome}</option>`).join('');
+      dietaSelect.innerHTML = `<option value="emagrecimento">Emagrecimento</option>`
+        + DIETA_TEMPLATES.filter(d => !d.id.startsWith('emagrecimento_'))
+          .map(d => `<option value="${d.id}" ${d.id === 'manutencao' ? 'selected' : ''}>${d.nome}</option>`).join('');
+    }
+    if (typeof EMAGRECIMENTO_NIVEIS !== 'undefined' && nivelSelect) {
+      nivelSelect.innerHTML = EMAGRECIMENTO_NIVEIS
+        .map(n => `<option value="${n.id}" ${n.id === EMAGRECIMENTO_PADRAO ? 'selected' : ''}>${n.nome.replace('Emagrecimento — ', '')}</option>`).join('');
+    }
+    // "Emagrecimento" no select principal é só uma categoria — o valor de verdade vem do
+    // select secundário "Nível", que só aparece quando essa categoria é selecionada.
+    function dietaValResolvido() {
+      return dietaSelect.value === 'emagrecimento' ? nivelSelect.value : dietaSelect.value;
     }
     const dietaDescEl = document.getElementById('onboard-dieta-desc');
     const atualizarDietaDesc = () => {
-      const t = typeof DIETA_TEMPLATES !== 'undefined' ? DIETA_TEMPLATES.find(d => d.id === dietaSelect.value) : null;
+      if (nivelFields) nivelFields.style.display = dietaSelect.value === 'emagrecimento' ? '' : 'none';
+      const t = typeof DIETA_TEMPLATES !== 'undefined' ? DIETA_TEMPLATES.find(d => d.id === dietaValResolvido()) : null;
       if (dietaDescEl) dietaDescEl.textContent = t ? t.descricao : '';
     };
     dietaSelect.addEventListener('change', atualizarDietaDesc);
+    if (nivelSelect) nivelSelect.addEventListener('change', atualizarDietaDesc);
     atualizarDietaDesc();
     const erroEl = document.getElementById('onboard-erro');
     document.getElementById('onboard-continuar').addEventListener('click', () => {
@@ -240,7 +255,7 @@ const App = (() => {
         peso, altura, idade,
         sexo: document.getElementById('onboard-sexo').value,
         nivelAtividade: atividadeSelect.value,
-        dietaTemplate: dietaSelect.value,
+        dietaTemplate: dietaValResolvido(),
       });
       atualizarOnboardingGate();
       render();

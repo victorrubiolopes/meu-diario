@@ -131,6 +131,8 @@ const ViewMais = (() => {
   function renderPerfil($app, state, api) {
     const perfil = Storage.getPerfil();
     const pesoAtual = Util.getPesoAtual();
+    const isEmagrecimentoAtual = (perfil.dietaTemplate || '').startsWith('emagrecimento_');
+    const nivelAtual = isEmagrecimentoAtual ? perfil.dietaTemplate : EMAGRECIMENTO_PADRAO;
 
     $app.innerHTML = `
       <div class="card">
@@ -155,10 +157,17 @@ const ViewMais = (() => {
         </select>
         <label>Objetivo</label>
         <select id="p-dieta">
-          ${DIETA_TEMPLATES.map(d => `<option value="${d.id}" ${perfil.dietaTemplate === d.id ? 'selected' : ''}>${d.nome}</option>`).join('')}
+          <option value="emagrecimento" ${isEmagrecimentoAtual ? 'selected' : ''}>Emagrecimento</option>
+          ${DIETA_TEMPLATES.filter(d => !d.id.startsWith('emagrecimento_')).map(d => `<option value="${d.id}" ${perfil.dietaTemplate === d.id ? 'selected' : ''}>${d.nome}</option>`).join('')}
           ${Storage.getAll('dietas_custom').map(d => `<option value="dc:${d.id}" ${perfil.dietaCustomId === d.id ? 'selected' : ''}>${Util.escapeHtml(d.nome)}</option>`).join('')}
           <option value="custom" ${perfil.metaCustom && !perfil.dietaCustomId ? 'selected' : ''}>Personalizado (definir eu mesmo)</option>
         </select>
+        <div id="emagrecimento-nivel-fields" style="display:${isEmagrecimentoAtual ? '' : 'none'}">
+          <label>Nível</label>
+          <select id="p-emagrecimento-nivel">
+            ${EMAGRECIMENTO_NIVEIS.map(n => `<option value="${n.id}" ${nivelAtual === n.id ? 'selected' : ''}>${n.nome.replace('Emagrecimento — ', '')}</option>`).join('')}
+          </select>
+        </div>
         <p class="meta" id="dieta-desc" style="color:var(--text-muted);font-size:0.78rem"></p>
         <button type="button" class="secondary" id="go-dietas-custom" style="margin:8px 0">+ Gerenciar minhas dietas</button>
         <div id="template-fields">
@@ -195,11 +204,19 @@ const ViewMais = (() => {
     `;
 
     const dietaSelect = document.getElementById('p-dieta');
+    const nivelSelect = document.getElementById('p-emagrecimento-nivel');
+    const nivelFields = document.getElementById('emagrecimento-nivel-fields');
     const customFields = document.getElementById('custom-fields');
     const templateFields = document.getElementById('template-fields');
 
+    // "Emagrecimento" no select principal é só uma categoria — o valor de verdade (o nível
+    // escolhido) vem do select secundário que só aparece quando essa categoria é selecionada.
+    function dietaValResolvido() {
+      return dietaSelect.value === 'emagrecimento' ? nivelSelect.value : dietaSelect.value;
+    }
+
     function currentFormPerfil() {
-      const dietaVal = dietaSelect.value;
+      const dietaVal = dietaValResolvido();
       const isDietaCustom = dietaVal.startsWith('dc:');
       const p = {
         peso: Number(document.getElementById('p-peso').value) || null,
@@ -232,8 +249,9 @@ const ViewMais = (() => {
       const isDietaCustom = dietaSelect.value.startsWith('dc:');
       customFields.style.display = isCustom ? '' : 'none';
       templateFields.style.display = (isCustom || isDietaCustom) ? 'none' : '';
+      nivelFields.style.display = dietaSelect.value === 'emagrecimento' ? '' : 'none';
 
-      const dietaTemplate = DIETA_TEMPLATES.find(d => d.id === dietaSelect.value);
+      const dietaTemplate = DIETA_TEMPLATES.find(d => d.id === dietaValResolvido());
       document.getElementById('dieta-desc').textContent = dietaTemplate ? dietaTemplate.descricao : '';
 
       const macroStyle = MACRO_STYLES.find(m => m.id === document.getElementById('p-macro-style').value);
@@ -267,7 +285,7 @@ const ViewMais = (() => {
       `;
     }
 
-    $app.querySelectorAll('#p-peso, #p-altura, #p-idade, #p-sexo, #p-atividade, #p-dieta, #p-macro-style, #p-meal-strategy, #p-num-refeicoes, #p-agua-meta, #p-kcal, #p-protein, #p-carb, #p-fat, #p-fiber').forEach(el => {
+    $app.querySelectorAll('#p-peso, #p-altura, #p-idade, #p-sexo, #p-atividade, #p-dieta, #p-emagrecimento-nivel, #p-macro-style, #p-meal-strategy, #p-num-refeicoes, #p-agua-meta, #p-kcal, #p-protein, #p-carb, #p-fat, #p-fiber').forEach(el => {
       el.addEventListener('input', updatePreview);
       el.addEventListener('change', updatePreview);
     });
