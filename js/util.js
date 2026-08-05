@@ -114,10 +114,13 @@ const Util = (() => {
   // Histórico combinado de treinos (musculação + corrida), mais recente primeiro.
   function historicoTreinos(limit) {
     const lista = [
-      ...Storage.getAll('treino').map(t => ({
-        tipo: 'treino', id: t.id, date: t.date,
-        resumo: `Musculação — ${(t.exercises || []).length} exercício${(t.exercises || []).length === 1 ? '' : 's'}`,
-      })),
+      ...Storage.getAll('treino').map(t => {
+        const n = (t.exercises || []).length;
+        return {
+          tipo: 'treino', id: t.id, date: t.date,
+          resumo: n === 0 ? 'Musculação — treino rápido' : `Musculação — ${n} exercício${n === 1 ? '' : 's'}`,
+        };
+      }),
       ...Storage.getAll('corridas').map(c => ({
         tipo: 'corridas', id: c.id, date: c.date,
         resumo: `Corrida — ${c.distanceKm}km em ${c.timeMin}min`,

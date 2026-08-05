@@ -270,7 +270,7 @@ const ViewInicio = (() => {
       <div class="card dashboard-section">
         <h2>Treino de hoje</h2>
         ${planosExistem && !treinoHoje ? `<p class="meta">Sugestão: <strong>${sugerido ? Util.escapeHtml(sugerido.nome) : '—'}</strong></p>` : ''}
-        <p>${treinoHoje ? `✅ Musculação registrada (${(treinoHoje.exercises || []).length} exercícios)` : '⬜ Nenhuma musculação registrada hoje'}</p>
+        <p>${treinoHoje ? (treinoHoje.exercises && treinoHoje.exercises.length ? `✅ Musculação registrada (${treinoHoje.exercises.length} exercícios)` : '✅ Musculação registrada (treino rápido)') : '⬜ Nenhuma musculação registrada hoje'}</p>
         <p>${corridasHoje.length > 0 ? `✅ ${corridasHoje.length} corrida(s) registrada(s)` : '⬜ Nenhuma corrida registrada hoje'}</p>
       </div>
 

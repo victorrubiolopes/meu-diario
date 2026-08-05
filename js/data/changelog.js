@@ -1,5 +1,6 @@
 // Lista de atualizações recentes do app, mais recente primeiro. Editável manualmente a cada mudança.
 const CHANGELOG = [
+  { date: '2026-08-05', texto: 'Treino: botão "Só marcar que treinei hoje" registra o dia sem precisar lançar exercício por exercício' },
   { date: '2026-08-05', texto: 'Objetivo "Emagrecimento" agora abre um campo "Nível" (Adaptação/Moderado/Agressivo) em vez de listar os 3 juntos — Perfil e tela de boas-vindas' },
   { date: '2026-08-05', texto: '"Emagrecimento" virou 3 níveis (Adaptação/Moderado/Agressivo), com déficit em % do seu gasto em vez de kcal fixo — evita começar com déficit alto demais' },
   { date: '2026-08-05', texto: 'Tela de boas-vindas pra quem cria conta nova: pede peso/altura/idade/sexo/atividade/objetivo antes de mostrar o "Hoje", com opção de pular' },

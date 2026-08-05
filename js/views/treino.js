@@ -108,15 +108,18 @@ const ViewTreino = (() => {
             ${sugerido ? `<p class="meta" style="margin-top:4px">Sugestão baseada no último treino registrado — troque acima se não for o certo.</p>` : ''}
           ` : '<p><strong>Treino livre</strong></p>'}
           <button class="primary" id="iniciar-treino" style="width:100%;margin-top:10px">▶ Iniciar treino</button>
+          <button class="secondary" id="marcar-rapido" style="width:100%;margin-top:8px">✓ Só marcar que treinei hoje</button>
         </div>
       `;
       content.innerHTML = `
         ${todosHoje.map(t => {
           const planoNome = t.planoId ? (planos.find(p => p.id === t.planoId) || {}).nome : null;
+          const nExercicios = (t.exercises || []).length;
+          const resumoExercicios = nExercicios === 0 ? 'treino rápido' : `${nExercicios} exercício${nExercicios === 1 ? '' : 's'}`;
           return `
             <div class="card">
               <h2>✅ Treino concluído</h2>
-              <p><strong>${planoNome ? Util.escapeHtml(planoNome) : 'Treino livre'}</strong> — ${(t.exercises || []).length} exercício${(t.exercises || []).length === 1 ? '' : 's'}${t.duracaoMin ? ` · ${t.duracaoMin} min` : ''}</p>
+              <p><strong>${planoNome ? Util.escapeHtml(planoNome) : 'Treino livre'}</strong> — ${resumoExercicios}${t.duracaoMin ? ` · ${t.duracaoMin} min` : ''}</p>
               <button class="secondary" data-editar-treino="${t.id}">Editar treino</button>
               <button class="danger-btn" data-delete-treino="${t.id}">Excluir este treino</button>
             </div>
@@ -142,6 +145,14 @@ const ViewTreino = (() => {
         const sel = document.getElementById('prompt-plano-select');
         const escolhido = sel ? (planos.find(p => p.id === sel.value) || null) : null;
         treinoSessaoPorData.set(state.date, { editId: null, plano: escolhido });
+        api.render();
+      });
+      // Registro rápido: pra quem só quer sinalizar "treinei hoje" sem detalhar exercício
+      // por exercício (ex: já acompanha o treino em outro app). Sem plano, sem exercícios —
+      // conta pra "dias em foco" e histórico igual, só aparece como "treino rápido".
+      document.getElementById('marcar-rapido').addEventListener('click', () => {
+        Storage.add('treino', { date: state.date, exercises: [] });
+        if (typeof atualizarGastoAuto === 'function') atualizarGastoAuto(state.date);
         api.render();
       });
       return;
