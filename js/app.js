@@ -173,6 +173,21 @@ const App = (() => {
       }
     });
     if (precisaSalvarEx) Storage.saveAll('exercicios_biblioteca', bibliotecaEx);
+
+    // Preenche automaticamente o grupo muscular de exercícios que ficaram sem (ex: vieram
+    // de uma sincronização antiga, ou de outra sessão/aparelho) tentando adivinhar pelo nome.
+    // Roda sempre (não só uma vez) pra pegar qualquer exercício sem grupo, de qualquer origem.
+    if (typeof inferirGrupoPorNome === 'function') {
+      const bibliotecaSemGrupo = Storage.getAll('exercicios_biblioteca');
+      let precisaSalvarGrupo = false;
+      bibliotecaSemGrupo.forEach(e => {
+        if (!e.grupo) {
+          const inferido = inferirGrupoPorNome(e.name);
+          if (inferido) { e.grupo = inferido; precisaSalvarGrupo = true; }
+        }
+      });
+      if (precisaSalvarGrupo) Storage.saveAll('exercicios_biblioteca', bibliotecaSemGrupo);
+    }
   }
 
   // Tela de login: aparece quando a nuvem está ativa e ninguém está logado.

@@ -140,3 +140,33 @@ const GRUPO_ICONE_PATH = {
   'Abdômen': 'img/musculos/abdomen.png',
   'Panturrilha': 'img/musculos/panturrilha.png',
 };
+
+// Tenta adivinhar o grupo muscular pelo nome do exercício (pra preencher automaticamente
+// exercícios que já existem na biblioteca sem grupo definido — ex: digitados livremente
+// numa versão antiga do app, ou sincronizados de outro aparelho/sessão). Regras mais
+// específicas vêm antes das genéricas pra evitar colisão (ex: "remada alta" é Ombro,
+// não Costas; "supino fechado" é Tríceps, não Peito).
+const REGRAS_GRUPO_POR_NOME = [
+  [/elevaç[aã]o de perna/i, 'Abdômen'],
+  [/elevaç[aã]o p[eé]lvica/i, 'Perna'],
+  [/elevaç[aã]o lateral/i, 'Ombro'],
+  [/elevaç[aã]o frontal/i, 'Ombro'],
+  [/remada alta/i, 'Ombro'],
+  [/supino fechado/i, 'Tríceps'],
+  [/panturrilha|g[eê]meos|calf/i, 'Panturrilha'],
+  [/agachamento|afundo|avanço|passada|b[uú]lgaro|leg press|hack squat|extensora/i, 'Quadríceps'],
+  [/flexora|stiff|hip thrust|gl[uú]teo|abdutora|adutora/i, 'Perna'],
+  [/supino|crucifixo|crossover|peck deck|voador|flex[aã]o|pullover|chest/i, 'Peito'],
+  [/remada|puxada|pulldown|barra fixa|pull-?up|chin-?up|levantamento terra|^terra$/i, 'Costas'],
+  [/desenvolvimento|arnold|encolhimento|face pull/i, 'Ombro'],
+  [/rosca/i, 'Bíceps'],
+  [/tr[ií]ceps|mergulho|dips|franc[eê]s|testa/i, 'Tríceps'],
+  [/abdominal|prancha|russian twist|wood chop/i, 'Abdômen'],
+];
+
+function inferirGrupoPorNome(nome) {
+  const n = (nome || '').trim();
+  if (!n) return null;
+  const regra = REGRAS_GRUPO_POR_NOME.find(([re]) => re.test(n));
+  return regra ? regra[1] : null;
+}
