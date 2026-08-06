@@ -90,6 +90,12 @@ const ALIMENTOS_PADRAO = [
   { name: 'Bacon frito', categoria: 'outro', portionLabel: '100g', portionGrams: 100, kcal: 541, carbs: 1.4, sugars: 0, protein: 37, fat: 42, satFat: 14, transFat: 0, fiber: 0, sodium: 1500 },
 
   // Peixes e frutos do mar
+  { name: 'Cação frito', categoria: 'proteina', portionLabel: '100g', portionGrams: 100, kcal: 140, carbs: 0, sugars: 0, protein: 24, fat: 3.6, satFat: 1.1, transFat: 0, fiber: 0, sodium: 1256 },
+  { name: 'Cação cozido', categoria: 'proteina', portionLabel: '100g', portionGrams: 100, kcal: 208, carbs: 0, sugars: 0, protein: 25, fat: 10, satFat: 3, transFat: 0, fiber: 0, sodium: 160 },
+  { name: 'Cação cru', categoria: 'proteina', portionLabel: '100g', portionGrams: 100, kcal: 116, carbs: 0, sugars: 0, protein: 25.6, fat: 0.7, satFat: 0.2, transFat: 0, fiber: 0, sodium: 115 },
+  { name: 'Merluza assada', categoria: 'proteina', portionLabel: '100g', portionGrams: 100, kcal: 344, carbs: 0, sugars: 0, protein: 30.1, fat: 24.5, satFat: 7.4, transFat: 0, fiber: 0, sodium: 41 },
+  { name: 'Merluza frita', categoria: 'proteina', portionLabel: '100g', portionGrams: 100, kcal: 122, carbs: 0, sugars: 0, protein: 16.6, fat: 2, satFat: 0.6, transFat: 0, fiber: 0, sodium: 80 },
+  { name: 'Pescada filé crua', categoria: 'proteina', portionLabel: '100g', portionGrams: 100, kcal: 223, carbs: 0, sugars: 0, protein: 21.4, fat: 19.1, satFat: 5.7, transFat: 0, fiber: 0, sodium: 91 },
   { name: 'Atum em lata (óleo, escorrido)', categoria: 'proteina', portionLabel: '100g', portionGrams: 100, kcal: 189, carbs: 0, sugars: 0, protein: 25, fat: 9, satFat: 1.6, transFat: 0, fiber: 0, sodium: 377 },
   { name: 'Camarão cozido', categoria: 'proteina', portionLabel: '100g', portionGrams: 100, kcal: 99, carbs: 0.2, sugars: 0, protein: 20.9, fat: 1.5, satFat: 0.3, transFat: 0, fiber: 0, sodium: 220 },
   { name: 'Camarão cru', categoria: 'proteina', portionLabel: '100g', portionGrams: 100, kcal: 83, carbs: 0, sugars: 0, protein: 19, fat: 1, satFat: 0.3, transFat: 0, fiber: 0.5, sodium: 367 },
