@@ -6,11 +6,11 @@ const ALIMENTOS_PADRAO = [
   { name: 'Arroz branco cozido', categoria: 'carboidrato', portionLabel: '100g', portionGrams: 100, kcal: 128, carbs: 28, sugars: 0, protein: 2.5, fat: 0.2, satFat: 0, transFat: 0, fiber: 0.4, sodium: 1 },
   { name: 'Feijão carioca cozido', categoria: 'carboidrato', portionLabel: '100g', portionGrams: 100, kcal: 76, carbs: 13.6, sugars: 0.3, protein: 4.8, fat: 0.5, satFat: 0.1, transFat: 0, fiber: 8.5, sodium: 2 },
   { name: 'Peito de frango grelhado', categoria: 'proteina', portionLabel: '100g', portionGrams: 100, kcal: 119, carbs: 0, sugars: 0, protein: 21.5, fat: 3, satFat: 0.9, transFat: 0, fiber: 0, sodium: 56 },
-  { name: 'Ovo cozido', categoria: 'proteina', portionLabel: '1 unidade (50g)', portionGrams: 50, kcal: 78, carbs: 0.6, sugars: 0.6, protein: 6.3, fat: 5.3, satFat: 1.6, transFat: 0, fiber: 0, sodium: 62 },
+  { name: 'Ovo cozido', categoria: 'proteina', portionLabel: '1 unidade (50g)', portionGrams: 50, kcal: 73, carbs: 0.3, sugars: 0.3, protein: 6.7, fat: 4.8, satFat: 1.4, transFat: 0, fiber: 0, sodium: 73 },
   { name: 'Pão francês', categoria: 'carboidrato', portionLabel: '1 unidade (50g)', portionGrams: 50, kcal: 150, carbs: 28, sugars: 1, protein: 4, fat: 1.5, satFat: 0.3, transFat: 0, fiber: 1.3, sodium: 290 },
   { name: 'Banana prata', categoria: 'fruta', portionLabel: '1 unidade (90g)', portionGrams: 90, kcal: 80, carbs: 20, sugars: 12, protein: 1, fat: 0.2, satFat: 0, transFat: 0, fiber: 2, sodium: 1 },
   { name: 'Banana nanica', categoria: 'fruta', portionLabel: '1 unidade (120g)', portionGrams: 120, kcal: 110, carbs: 28.6, sugars: 20, protein: 1.7, fat: 0.1, satFat: 0, transFat: 0, fiber: 2.3, sodium: 1 },
-  { name: 'Batata doce cozida', categoria: 'carboidrato', portionLabel: '100g', portionGrams: 100, kcal: 86, carbs: 20, sugars: 4, protein: 1.6, fat: 0.1, satFat: 0, transFat: 0, fiber: 3, sodium: 55 },
+  { name: 'Batata doce cozida', categoria: 'carboidrato', portionLabel: '100g', portionGrams: 100, kcal: 77, carbs: 18.4, sugars: 3.5, protein: 0.6, fat: 0.1, satFat: 0, transFat: 0, fiber: 2.2, sodium: 3 },
   { name: 'Leite integral', categoria: 'outro', portionLabel: '1 copo (200ml)', portionGrams: 200, kcal: 122, carbs: 9.6, sugars: 9.6, protein: 6.4, fat: 6.6, satFat: 4, transFat: 0.2, fiber: 0, sodium: 76 },
   { name: 'Iogurte natural integral', categoria: 'outro', portionLabel: '1 pote (170g)', portionGrams: 170, kcal: 105, carbs: 7.7, sugars: 7.7, protein: 6, fat: 5.9, satFat: 3.8, transFat: 0, fiber: 0, sodium: 76 },
   { name: 'Aveia em flocos', categoria: 'carboidrato', portionLabel: '1 colher sopa (30g)', portionGrams: 30, kcal: 117, carbs: 20, sugars: 0.5, protein: 4.2, fat: 2.3, satFat: 0.4, transFat: 0, fiber: 3, sodium: 2 },
@@ -45,6 +45,7 @@ const ALIMENTOS_PADRAO = [
   { name: 'Ovo cru', categoria: 'proteina', portionLabel: '1 unidade (50g)', portionGrams: 50, kcal: 72, carbs: 0.8, sugars: 0.8, protein: 6.5, fat: 4.5, satFat: 1.4, transFat: 0, fiber: 0, sodium: 84 },
   { name: 'Clara de ovo', categoria: 'proteina', portionLabel: '1 unidade (33g)', portionGrams: 33, kcal: 17, carbs: 0.3, sugars: 0.3, protein: 3.6, fat: 0.1, satFat: 0, transFat: 0, fiber: 0, sodium: 55 },
   { name: 'Gema de ovo', categoria: 'proteina', portionLabel: '1 unidade (17g)', portionGrams: 17, kcal: 55, carbs: 0.3, sugars: 0.3, protein: 2.7, fat: 4.5, satFat: 1.6, transFat: 0, fiber: 0, sodium: 8 },
+  { name: 'Ovo frito', categoria: 'proteina', portionLabel: '1 unidade (50g)', portionGrams: 50, kcal: 120, carbs: 0.6, sugars: 0.6, protein: 7.8, fat: 9.3, satFat: 2.8, transFat: 0, fiber: 0, sodium: 83 },
 
   // Carnes
   // Frango (fonte: TACO 4ª ed., NEPA/UNICAMP — valores por 100g de parte comestível, sem pele)
@@ -54,7 +55,14 @@ const ALIMENTOS_PADRAO = [
   { name: 'Coxa de frango cozida', categoria: 'proteina', portionLabel: '100g', portionGrams: 100, kcal: 161, carbs: 0, sugars: 0, protein: 17.1, fat: 9.8, satFat: 2.9, transFat: 0, fiber: 0, sodium: 95 },
   { name: 'Sobrecoxa de frango crua', categoria: 'proteina', portionLabel: '100g', portionGrams: 100, kcal: 233, carbs: 0, sugars: 0, protein: 29.2, fat: 12, satFat: 3.6, transFat: 0, fiber: 0, sodium: 70 },
   { name: 'Sobrecoxa de frango assada', categoria: 'proteina', portionLabel: '100g', portionGrams: 100, kcal: 255, carbs: 0, sugars: 0, protein: 15.5, fat: 20.9, satFat: 6.3, transFat: 0, fiber: 0, sodium: 70 },
-  { name: 'Carne bovina crua (patinho)', categoria: 'proteina', portionLabel: '100g', portionGrams: 100, kcal: 137, carbs: 0, sugars: 0, protein: 21.9, fat: 4.9, satFat: 1.9, transFat: 0, fiber: 0, sodium: 54 },
+  { name: 'Carne bovina crua (patinho)', categoria: 'proteina', portionLabel: '100g', portionGrams: 100, kcal: 141, carbs: 0, sugars: 0, protein: 21, fat: 5.7, satFat: 1.7, transFat: 0, fiber: 0, sodium: 66 },
+  { name: 'Patinho grelhado', categoria: 'proteina', portionLabel: '100g', portionGrams: 100, kcal: 133, carbs: 0, sugars: 0, protein: 21.7, fat: 4.5, satFat: 1.4, transFat: 0, fiber: 0, sodium: 49 },
+  { name: 'Coxão mole cru', categoria: 'proteina', portionLabel: '100g', portionGrams: 100, kcal: 219, carbs: 0, sugars: 0, protein: 32.4, fat: 8.9, satFat: 2.7, transFat: 0, fiber: 0, sodium: 44 },
+  { name: 'Coxão mole cozido', categoria: 'proteina', portionLabel: '100g', portionGrams: 100, kcal: 148, carbs: 0, sugars: 0, protein: 21.5, fat: 6.2, satFat: 1.9, transFat: 0, fiber: 0, sodium: 49 },
+  { name: 'Fraldinha crua', categoria: 'proteina', portionLabel: '100g', portionGrams: 100, kcal: 338, carbs: 0, sugars: 0, protein: 24.2, fat: 26, satFat: 7.8, transFat: 0, fiber: 0, sodium: 39 },
+  { name: 'Fraldinha cozida', categoria: 'proteina', portionLabel: '100g', portionGrams: 100, kcal: 141, carbs: 0, sugars: 0, protein: 20, fat: 6.2, satFat: 1.9, transFat: 0, fiber: 0, sodium: 54 },
+  { name: 'Acém sem gordura cozido', categoria: 'proteina', portionLabel: '100g', portionGrams: 100, kcal: 212, carbs: 0, sugars: 0, protein: 26.7, fat: 10.9, satFat: 3.3, transFat: 0, fiber: 0, sodium: 56 },
+  { name: 'Charque cozido', categoria: 'proteina', portionLabel: '100g', portionGrams: 100, kcal: 272, carbs: 0, sugars: 0, protein: 18.2, fat: 15.8, satFat: 4.7, transFat: 0, fiber: 0, sodium: 1443 },
   { name: 'Picanha grelhada', categoria: 'proteina', portionLabel: '100g', portionGrams: 100, kcal: 289, carbs: 0, sugars: 0, protein: 25, fat: 21, satFat: 8.5, transFat: 0, fiber: 0, sodium: 60 },
   { name: 'Lombo suíno grelhado', categoria: 'proteina', portionLabel: '100g', portionGrams: 100, kcal: 210, carbs: 0, sugars: 0, protein: 27, fat: 11, satFat: 4, transFat: 0, fiber: 0, sodium: 55 },
   { name: 'Bacon frito', categoria: 'outro', portionLabel: '100g', portionGrams: 100, kcal: 541, carbs: 1.4, sugars: 0, protein: 37, fat: 42, satFat: 14, transFat: 0, fiber: 0, sodium: 1500 },
@@ -62,6 +70,7 @@ const ALIMENTOS_PADRAO = [
   // Peixes e frutos do mar
   { name: 'Atum em lata (óleo, escorrido)', categoria: 'proteina', portionLabel: '100g', portionGrams: 100, kcal: 189, carbs: 0, sugars: 0, protein: 25, fat: 9, satFat: 1.6, transFat: 0, fiber: 0, sodium: 377 },
   { name: 'Camarão cozido', categoria: 'proteina', portionLabel: '100g', portionGrams: 100, kcal: 99, carbs: 0.2, sugars: 0, protein: 20.9, fat: 1.5, satFat: 0.3, transFat: 0, fiber: 0, sodium: 220 },
+  { name: 'Camarão cru', categoria: 'proteina', portionLabel: '100g', portionGrams: 100, kcal: 83, carbs: 0, sugars: 0, protein: 19, fat: 1, satFat: 0.3, transFat: 0, fiber: 0.5, sodium: 367 },
   { name: 'Bacalhau dessalgado cozido', categoria: 'proteina', portionLabel: '100g', portionGrams: 100, kcal: 105, carbs: 0, sugars: 0, protein: 23, fat: 0.9, satFat: 0.2, transFat: 0, fiber: 0, sodium: 200 },
 
   // Grãos e cereais
@@ -73,7 +82,7 @@ const ALIMENTOS_PADRAO = [
   { name: 'Tapioca (goma hidratada)', categoria: 'carboidrato', portionLabel: '1 porção (50g)', portionGrams: 50, kcal: 89, carbs: 22, sugars: 0.2, protein: 0.1, fat: 0, satFat: 0, transFat: 0, fiber: 0.3, sodium: 1 },
 
   // Tubérculos
-  { name: 'Batata inglesa cozida', categoria: 'carboidrato', portionLabel: '100g', portionGrams: 100, kcal: 52, carbs: 11.9, sugars: 0.8, protein: 1.2, fat: 0.1, satFat: 0, transFat: 0, fiber: 1.3, sodium: 3 },
+  { name: 'Batata inglesa cozida', categoria: 'carboidrato', portionLabel: '100g', portionGrams: 100, kcal: 52, carbs: 11.9, sugars: 0.8, protein: 1.2, fat: 0, satFat: 0, transFat: 0, fiber: 1.3, sodium: 2 },
   { name: 'Batata inglesa assada', categoria: 'carboidrato', portionLabel: '100g', portionGrams: 100, kcal: 93, carbs: 21, sugars: 1.2, protein: 2.5, fat: 0.1, satFat: 0, transFat: 0, fiber: 2.2, sodium: 5 },
   { name: 'Batata frita', categoria: 'outro', portionLabel: '100g', portionGrams: 100, kcal: 267, carbs: 35, sugars: 0.3, protein: 3.4, fat: 13, satFat: 2, transFat: 0.5, fiber: 2.9, sodium: 210 },
   { name: 'Inhame cozido', categoria: 'carboidrato', portionLabel: '100g', portionGrams: 100, kcal: 116, carbs: 27.6, sugars: 0.5, protein: 2.1, fat: 0.2, satFat: 0, transFat: 0, fiber: 2.5, sodium: 9 },
@@ -186,8 +195,10 @@ const ALIMENTOS_PADRAO = [
   { name: 'Ovo frito (chapa untada, sem óleo)', categoria: 'proteina', portionLabel: '1 unidade (50g)', portionGrams: 50, kcal: 82, carbs: 0.6, sugars: 0.6, protein: 6.5, fat: 5.8, satFat: 1.8, transFat: 0, fiber: 0, sodium: 70 },
   { name: 'Suco Zero (em pó, sem açúcar)', categoria: 'outro', portionLabel: '1 copo (200ml)', portionGrams: 200, kcal: 5, carbs: 1, sugars: 0, protein: 0, fat: 0, satFat: 0, transFat: 0, fiber: 0, sodium: 10 },
   { name: 'Refrigerante zero', categoria: 'outro', portionLabel: '1 lata (350ml)', portionGrams: 350, kcal: 1, carbs: 0.3, sugars: 0, protein: 0, fat: 0, satFat: 0, transFat: 0, fiber: 0, sodium: 30 },
-  { name: 'Batata inglesa crua', categoria: 'carboidrato', portionLabel: '100g', portionGrams: 100, kcal: 77, carbs: 17.5, sugars: 0.8, protein: 2, fat: 0.1, satFat: 0, transFat: 0, fiber: 1.3, sodium: 6 },
-  { name: 'Batata doce crua', categoria: 'carboidrato', portionLabel: '100g', portionGrams: 100, kcal: 86, carbs: 20.1, sugars: 4.2, protein: 1.6, fat: 0.1, satFat: 0, transFat: 0, fiber: 3, sodium: 55 },
+  { name: 'Batata inglesa crua', categoria: 'carboidrato', portionLabel: '100g', portionGrams: 100, kcal: 64, carbs: 14.7, sugars: 0.9, protein: 1.8, fat: 0, satFat: 0, transFat: 0, fiber: 1.2, sodium: 1 },
+  { name: 'Batata doce crua', categoria: 'carboidrato', portionLabel: '100g', portionGrams: 100, kcal: 118, carbs: 28.2, sugars: 5, protein: 1.3, fat: 0.1, satFat: 0, transFat: 0, fiber: 2.6, sodium: 9 },
+  { name: 'Batata baroa cozida', categoria: 'carboidrato', portionLabel: '100g', portionGrams: 100, kcal: 80, carbs: 18.9, sugars: 2, protein: 0.9, fat: 0.2, satFat: 0, transFat: 0, fiber: 1.8, sodium: 2 },
+  { name: 'Batata baroa crua', categoria: 'carboidrato', portionLabel: '100g', portionGrams: 100, kcal: 101, carbs: 24, sugars: 2.5, protein: 1, fat: 0.2, satFat: 0, transFat: 0, fiber: 2.1, sodium: 0 },
   { name: 'Requeijão light', categoria: 'outro', portionLabel: '1 colher sopa (25g)', portionGrams: 25, kcal: 32, carbs: 1.9, sugars: 1.9, protein: 3.1, fat: 2, satFat: 1.2, transFat: 0, fiber: 0, sodium: 110 },
   { name: 'Salada crua (mix de folhas e legumes)', categoria: 'legume', portionLabel: '100g', portionGrams: 100, kcal: 20, carbs: 3.5, sugars: 1.5, protein: 1.5, fat: 0.2, satFat: 0, transFat: 0, fiber: 2, sodium: 15 },
 
@@ -201,7 +212,7 @@ const ALIMENTOS_PADRAO = [
   { name: 'Merluza cozida', categoria: 'proteina', portionLabel: '100g', portionGrams: 100, kcal: 86, carbs: 0, sugars: 0, protein: 18.5, fat: 1, satFat: 0.2, transFat: 0, fiber: 0, sodium: 70 },
   { name: 'Carne de sol grelhada', categoria: 'proteina', portionLabel: '100g', portionGrams: 100, kcal: 210, carbs: 0, sugars: 0, protein: 30, fat: 9.5, satFat: 3.5, transFat: 0, fiber: 0, sodium: 850 },
   { name: 'Costela bovina assada', categoria: 'proteina', portionLabel: '100g', portionGrams: 100, kcal: 320, carbs: 0, sugars: 0, protein: 24, fat: 25, satFat: 10, transFat: 0.4, fiber: 0, sodium: 65 },
-  { name: 'Fígado bovino grelhado', categoria: 'proteina', portionLabel: '100g', portionGrams: 100, kcal: 145, carbs: 3.9, sugars: 0, protein: 21, fat: 4, satFat: 1.5, transFat: 0, fiber: 0, sodium: 70 },
+  { name: 'Fígado bovino grelhado', categoria: 'proteina', portionLabel: '100g', portionGrams: 100, kcal: 141, carbs: 0, sugars: 0, protein: 20.7, fat: 5.4, satFat: 1.6, transFat: 0, fiber: 0, sodium: 76 },
   { name: 'Coelho assado', categoria: 'proteina', portionLabel: '100g', portionGrams: 100, kcal: 173, carbs: 0, sugars: 0, protein: 29, fat: 6, satFat: 2, transFat: 0, fiber: 0, sodium: 45 },
   { name: 'Omelete simples (2 ovos)', categoria: 'proteina', portionLabel: '1 porção (110g)', portionGrams: 110, kcal: 154, carbs: 1.2, sugars: 1.2, protein: 12.6, fat: 10.6, satFat: 3.2, transFat: 0, fiber: 0, sodium: 140 },
   { name: 'Frango desfiado cozido (peito)', categoria: 'proteina', portionLabel: '100g', portionGrams: 100, kcal: 165, carbs: 0, sugars: 0, protein: 30, fat: 4, satFat: 1.1, transFat: 0, fiber: 0, sodium: 65 },

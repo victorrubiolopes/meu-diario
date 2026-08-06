@@ -1,5 +1,6 @@
 // Lista de atualizações recentes do app, mais recente primeiro. Editável manualmente a cada mudança.
 const CHANGELOG = [
+  { date: '2026-08-06', texto: 'Biblioteca de alimentos: mais 11 itens com dados reais da TACO — batata baroa (novo), patinho, coxão mole, fraldinha, acém, charque, camarão cru, ovo frito, e correção da batata doce/inglesa/ovo cozido/fígado que estavam com valores estimados' },
   { date: '2026-08-06', texto: 'Frango: valores corrigidos com dados reais da TACO (peito cru estava bem abaixo do real) e novas variações — peito cozido, coxa crua/cozida, sobrecoxa crua/assada' },
   { date: '2026-08-05', texto: 'Novo alimento: Massa Leve Pizza de Frigideira' },
   { date: '2026-08-05', texto: 'Treino: agora dá pra registrar o peso de cada série separadamente (não só um peso final do exercício) — mostra o melhor peso e o PR com base na série mais pesada' },
