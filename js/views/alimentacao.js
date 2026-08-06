@@ -602,15 +602,18 @@ const ViewAlimentacao = (() => {
             </div>
             ${itens.length === 0
               ? '<p class="empty" style="font-size:0.78rem">Sem alimentos categorizados suficientes na sua biblioteca.</p>'
-              : itens.map(it => `
+              : itens.map(it => {
+                  const gramas = it.food.portionGrams ? Math.round(it.food.portionGrams * it.qty) : null;
+                  return `
                 <div class="list-item">
                   <div>
-                    <div>${it.qty !== 1 ? `${it.qty}x ` : ''}${Util.escapeHtml(it.food.name)} <span class="meta">(${CATEGORIA_LABELS[it.categoria]})</span></div>
-                    <div class="meta">${it.food.portionLabel}${it.qty !== 1 ? ` × ${it.qty}` : ''} · ${(it.food.kcal * it.qty).toFixed(0)} kcal</div>
+                    <div>${Util.escapeHtml(it.food.name)} <span class="meta">(${CATEGORIA_LABELS[it.categoria]})</span></div>
+                    <div class="meta">${gramas != null ? `${gramas}g` : `${it.food.portionLabel} × ${it.qty}`} · ${(it.food.kcal * it.qty).toFixed(0)} kcal</div>
                   </div>
                   <button class="link" data-add-sugestao-meal="${Util.escapeHtml(mealType)}" data-add-sugestao-food="${it.food.id}" data-add-sugestao-qty="${it.qty}" aria-label="Adicionar">+</button>
                 </div>
-              `).join('')}
+              `;
+                }).join('')}
           </div>
         `).join('')}
       </div>
