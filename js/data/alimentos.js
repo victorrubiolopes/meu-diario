@@ -226,6 +226,57 @@ const ALIMENTOS_PADRAO = [
   { name: 'Omelete simples (2 ovos)', categoria: 'proteina', portionLabel: '1 porção (110g)', portionGrams: 110, kcal: 154, carbs: 1.2, sugars: 1.2, protein: 12.6, fat: 10.6, satFat: 3.2, transFat: 0, fiber: 0, sodium: 140 },
   { name: 'Frango desfiado cozido (peito)', categoria: 'proteina', portionLabel: '100g', portionGrams: 100, kcal: 165, carbs: 0, sugars: 0, protein: 30, fat: 4, satFat: 1.1, transFat: 0, fiber: 0, sodium: 65 },
 
+  // Mais cortes de boi (fonte: TACO 4ª ed. — cru + cozido/grelhado/assado)
+  { name: 'Contra-filé de costela cru', categoria: 'proteina', portionLabel: '100g', portionGrams: 100, kcal: 202, carbs: 0, sugars: 0, protein: 19.8, fat: 13.1, satFat: 3.9, transFat: 0, fiber: 0, sodium: 39 },
+  { name: 'Contra-filé de costela grelhado', categoria: 'proteina', portionLabel: '100g', portionGrams: 100, kcal: 275, carbs: 0, sugars: 0, protein: 29.9, fat: 16.3, satFat: 4.9, transFat: 0, fiber: 0, sodium: 51 },
+  { name: 'Cupim assado', categoria: 'proteina', portionLabel: '100g', portionGrams: 100, kcal: 330, carbs: 0, sugars: 0, protein: 28.6, fat: 23, satFat: 6.9, transFat: 0, fiber: 0, sodium: 72 },
+  { name: 'Cupim cru', categoria: 'proteina', portionLabel: '100g', portionGrams: 100, kcal: 221, carbs: 0, sugars: 0, protein: 19.5, fat: 15.3, satFat: 4.6, transFat: 0, fiber: 0, sodium: 47 },
+  { name: 'Flanco bovino cozido', categoria: 'proteina', portionLabel: '100g', portionGrams: 100, kcal: 196, carbs: 0, sugars: 0, protein: 29.4, fat: 7.8, satFat: 2.3, transFat: 0, fiber: 0, sodium: 42 },
+  { name: 'Flanco bovino cru', categoria: 'proteina', portionLabel: '100g', portionGrams: 100, kcal: 141, carbs: 0, sugars: 0, protein: 20, fat: 6.2, satFat: 1.9, transFat: 0, fiber: 0, sodium: 54 },
+  { name: 'Lagarto cozido', categoria: 'proteina', portionLabel: '100g', portionGrams: 100, kcal: 222, carbs: 0, sugars: 0, protein: 32.9, fat: 9.1, satFat: 2.7, transFat: 0, fiber: 0, sodium: 48 },
+  { name: 'Lagarto cru', categoria: 'proteina', portionLabel: '100g', portionGrams: 100, kcal: 135, carbs: 0, sugars: 0, protein: 20.5, fat: 5.2, satFat: 1.6, transFat: 0, fiber: 0, sodium: 54 },
+  { name: 'Língua bovina cozida', categoria: 'proteina', portionLabel: '100g', portionGrams: 100, kcal: 315, carbs: 0, sugars: 0, protein: 21.4, fat: 24.8, satFat: 7.4, transFat: 0, fiber: 0, sodium: 59 },
+  { name: 'Língua bovina crua', categoria: 'proteina', portionLabel: '100g', portionGrams: 100, kcal: 215, carbs: 0, sugars: 0, protein: 17.1, fat: 15.8, satFat: 4.7, transFat: 0, fiber: 0, sodium: 73 },
+  { name: 'Maminha crua', categoria: 'proteina', portionLabel: '100g', portionGrams: 100, kcal: 153, carbs: 0, sugars: 0, protein: 20.9, fat: 7, satFat: 2.1, transFat: 0, fiber: 0, sodium: 37 },
+  { name: 'Maminha grelhada', categoria: 'proteina', portionLabel: '100g', portionGrams: 100, kcal: 153, carbs: 0, sugars: 0, protein: 30.7, fat: 2.4, satFat: 0.7, transFat: 0, fiber: 0, sodium: 58 },
+  { name: 'Miolo de alcatra cru', categoria: 'proteina', portionLabel: '100g', portionGrams: 100, kcal: 163, carbs: 0, sugars: 0, protein: 21.6, fat: 7.8, satFat: 2.3, transFat: 0, fiber: 0, sodium: 43 },
+  { name: 'Miolo de alcatra grelhado', categoria: 'proteina', portionLabel: '100g', portionGrams: 100, kcal: 241, carbs: 0, sugars: 0, protein: 31.9, fat: 11.6, satFat: 3.5, transFat: 0, fiber: 0, sodium: 52 },
+  { name: 'Músculo bovino cozido', categoria: 'proteina', portionLabel: '100g', portionGrams: 100, kcal: 194, carbs: 0, sugars: 0, protein: 31.2, fat: 6.7, satFat: 2, transFat: 0, fiber: 0, sodium: 62 },
+  { name: 'Músculo bovino cru', categoria: 'proteina', portionLabel: '100g', portionGrams: 100, kcal: 142, carbs: 0, sugars: 0, protein: 21.6, fat: 5.5, satFat: 1.7, transFat: 0, fiber: 0, sodium: 66 },
+
+  // Porco (fonte: TACO 4ª ed.)
+  { name: 'Bisteca suína crua', categoria: 'proteina', portionLabel: '100g', portionGrams: 100, kcal: 164, carbs: 0, sugars: 0, protein: 21.5, fat: 8, satFat: 2.4, transFat: 0, fiber: 0, sodium: 54 },
+  { name: 'Bisteca suína frita', categoria: 'proteina', portionLabel: '100g', portionGrams: 100, kcal: 311, carbs: 0, sugars: 0, protein: 33.7, fat: 18.5, satFat: 5.6, transFat: 0, fiber: 0, sodium: 63 },
+  { name: 'Bisteca suína grelhada', categoria: 'proteina', portionLabel: '100g', portionGrams: 100, kcal: 280, carbs: 0, sugars: 0, protein: 28.9, fat: 17.4, satFat: 5.2, transFat: 0, fiber: 0, sodium: 51 },
+  { name: 'Costela suína assada', categoria: 'proteina', portionLabel: '100g', portionGrams: 100, kcal: 402, carbs: 0, sugars: 0, protein: 30.2, fat: 30.3, satFat: 9.1, transFat: 0, fiber: 0, sodium: 63 },
+  { name: 'Costela suína crua', categoria: 'proteina', portionLabel: '100g', portionGrams: 100, kcal: 256, carbs: 0, sugars: 0, protein: 18, fat: 19.8, satFat: 5.9, transFat: 0, fiber: 0, sodium: 88 },
+  { name: 'Lombo suíno assado', categoria: 'proteina', portionLabel: '100g', portionGrams: 100, kcal: 210, carbs: 0, sugars: 0, protein: 35.7, fat: 6.4, satFat: 1.9, transFat: 0, fiber: 0, sodium: 39 },
+  { name: 'Lombo suíno cru', categoria: 'proteina', portionLabel: '100g', portionGrams: 100, kcal: 176, carbs: 0, sugars: 0, protein: 22.6, fat: 8.8, satFat: 2.6, transFat: 0, fiber: 0, sodium: 53 },
+  { name: 'Pernil suíno assado', categoria: 'proteina', portionLabel: '100g', portionGrams: 100, kcal: 262, carbs: 0, sugars: 0, protein: 32.1, fat: 13.9, satFat: 4.2, transFat: 0, fiber: 0, sodium: 62 },
+  { name: 'Pernil suíno cru', categoria: 'proteina', portionLabel: '100g', portionGrams: 100, kcal: 186, carbs: 0, sugars: 0, protein: 20.1, fat: 11.1, satFat: 3.3, transFat: 0, fiber: 0, sodium: 102 },
+
+  // Frango extra (fonte: TACO 4ª ed.)
+  { name: 'Peito de frango com pele assado', categoria: 'proteina', portionLabel: '100g', portionGrams: 100, kcal: 212, carbs: 0, sugars: 0, protein: 33.4, fat: 7.6, satFat: 2.3, transFat: 0, fiber: 0, sodium: 56 },
+  { name: 'Peito de frango com pele cru', categoria: 'proteina', portionLabel: '100g', portionGrams: 100, kcal: 149, carbs: 0, sugars: 0, protein: 20.8, fat: 6.7, satFat: 2, transFat: 0, fiber: 0, sodium: 62 },
+  { name: 'Frango asa crua', categoria: 'proteina', portionLabel: '100g', portionGrams: 100, kcal: 213, carbs: 0, sugars: 0, protein: 18.1, fat: 15.1, satFat: 4.5, transFat: 0, fiber: 0, sodium: 96 },
+  { name: 'Frango caipira inteiro com pele cozido', categoria: 'proteina', portionLabel: '100g', portionGrams: 100, kcal: 243, carbs: 0, sugars: 0, protein: 23.9, fat: 15.6, satFat: 4.7, transFat: 0, fiber: 0, sodium: 56 },
+  { name: 'Frango caipira inteiro sem pele cozido', categoria: 'proteina', portionLabel: '100g', portionGrams: 100, kcal: 196, carbs: 0, sugars: 0, protein: 29.6, fat: 7.7, satFat: 2.3, transFat: 0, fiber: 0, sodium: 53 },
+  { name: 'Coração de frango cru', categoria: 'proteina', portionLabel: '100g', portionGrams: 100, kcal: 222, carbs: 0, sugars: 0, protein: 12.6, fat: 18.6, satFat: 5.6, transFat: 0, fiber: 0, sodium: 95 },
+  { name: 'Coração de frango grelhado', categoria: 'proteina', portionLabel: '100g', portionGrams: 100, kcal: 207, carbs: 0, sugars: 0, protein: 22.4, fat: 12.1, satFat: 3.6, transFat: 0, fiber: 0, sodium: 128 },
+  { name: 'Fígado de frango cru', categoria: 'proteina', portionLabel: '100g', portionGrams: 100, kcal: 106, carbs: 0, sugars: 0, protein: 17.6, fat: 3.5, satFat: 1.1, transFat: 0, fiber: 0, sodium: 82 },
+  { name: 'Frango filé à milanesa', categoria: 'proteina', portionLabel: '100g', portionGrams: 100, kcal: 221, carbs: 7.5, sugars: 0.5, protein: 28.5, fat: 7.8, satFat: 2.3, transFat: 0, fiber: 0.3, sodium: 122 },
+  { name: 'Frango inteiro com pele cru', categoria: 'proteina', portionLabel: '100g', portionGrams: 100, kcal: 226, carbs: 0, sugars: 0, protein: 16.4, fat: 17.3, satFat: 5.2, transFat: 0, fiber: 0, sodium: 63 },
+
+  // Embutidos e processados (fonte: TACO 4ª ed.)
+  { name: 'Hambúrguer bovino cru', categoria: 'proteina', portionLabel: '100g', portionGrams: 100, kcal: 215, carbs: 0, sugars: 0, protein: 13.2, fat: 16.2, satFat: 4.9, transFat: 0, fiber: 0, sodium: 869 },
+  { name: 'Hambúrguer bovino frito', categoria: 'proteina', portionLabel: '100g', portionGrams: 100, kcal: 258, carbs: 0, sugars: 0, protein: 20, fat: 17, satFat: 5.1, transFat: 0, fiber: 0, sodium: 1252 },
+  { name: 'Linguiça de frango crua', categoria: 'proteina', portionLabel: '100g', portionGrams: 100, kcal: 218, carbs: 0, sugars: 0, protein: 14.2, fat: 17.4, satFat: 5.2, transFat: 0, fiber: 0, sodium: 1126 },
+  { name: 'Linguiça de frango frita', categoria: 'proteina', portionLabel: '100g', portionGrams: 100, kcal: 245, carbs: 0, sugars: 0, protein: 18.3, fat: 18.5, satFat: 5.6, transFat: 0, fiber: 0, sodium: 1374 },
+  { name: 'Linguiça de porco crua', categoria: 'proteina', portionLabel: '100g', portionGrams: 100, kcal: 227, carbs: 0, sugars: 0, protein: 16.1, fat: 17.6, satFat: 5.3, transFat: 0, fiber: 0, sodium: 1176 },
+  { name: 'Linguiça de porco frita', categoria: 'proteina', portionLabel: '100g', portionGrams: 100, kcal: 280, carbs: 0, sugars: 0, protein: 20.5, fat: 21.3, satFat: 6.4, transFat: 0, fiber: 0, sodium: 1432 },
+  { name: 'Peru assado', categoria: 'proteina', portionLabel: '100g', portionGrams: 100, kcal: 163, carbs: 0, sugars: 0, protein: 26.2, fat: 5.7, satFat: 1.7, transFat: 0, fiber: 0, sodium: 628 },
+  { name: 'Peru cru', categoria: 'proteina', portionLabel: '100g', portionGrams: 100, kcal: 94, carbs: 0, sugars: 0, protein: 18.1, fat: 1.8, satFat: 0.5, transFat: 0, fiber: 0, sodium: 711 },
+
   // Mais carboidratos
   { name: 'Cuscuz paulista (com legumes)', categoria: 'carboidrato', portionLabel: '100g', portionGrams: 100, kcal: 140, carbs: 22, sugars: 2, protein: 4, fat: 4, satFat: 0.8, transFat: 0, fiber: 2, sodium: 250 },
   { name: 'Polenta cozida', categoria: 'carboidrato', portionLabel: '100g', portionGrams: 100, kcal: 85, carbs: 18, sugars: 0.2, protein: 1.8, fat: 0.5, satFat: 0.1, transFat: 0, fiber: 1, sodium: 200 },

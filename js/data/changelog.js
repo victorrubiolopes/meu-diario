@@ -1,5 +1,6 @@
 // Lista de atualizações recentes do app, mais recente primeiro. Editável manualmente a cada mudança.
 const CHANGELOG = [
+  { date: '2026-08-06', texto: 'Biblioteca de alimentos ganha +43 itens com dados reais da TACO: mais cortes de boi (língua, maminha, músculo, lagarto, cupim, miolo de alcatra, flanco, contra-filé de costela), porco (lombo, pernil, bisteca, costela), frango (asa, coração, fígado, caipira, à milanesa, peito com pele) e embutidos (linguiça de frango/porco, hambúrguer, peru)' },
   { date: '2026-08-06', texto: 'Correção importante: frango e carne bovina desta semana tinham cru/cozido trocados entre si (peito de frango cru estava com valor de cozido e vice-versa) — bug na extração do PDF da TACO, não da fonte. Corrigido com um método de leitura mais confiável, e aproveitei pra adicionar costela, contra-filé, coxão duro, filé mignon e picanha crua com dados reais' },
   { date: '2026-08-06', texto: 'Biblioteca de alimentos: mais 11 itens com dados reais da TACO — batata baroa (novo), patinho, coxão mole, fraldinha, acém, charque, camarão cru, ovo frito, e correção da batata doce/inglesa/ovo cozido/fígado que estavam com valores estimados' },
   { date: '2026-08-06', texto: 'Frango: valores corrigidos com dados reais da TACO (peito cru estava bem abaixo do real) e novas variações — peito cozido, coxa crua/cozida, sobrecoxa crua/assada' },
