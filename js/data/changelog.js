@@ -1,5 +1,7 @@
 // Lista de atualizações recentes do app, mais recente primeiro. Editável manualmente a cada mudança.
 const CHANGELOG = [
+  { date: '2026-08-06', texto: 'Sugestão de refeições: café da manhã ganha opções com gordura (ovo mexido, omelete), e a quantidade de cada item agora se ajusta pra bater perto da sua meta de calorias/dia. Também parou de sugerir carne ou vegetal crus como prato pronto (frango cru, beterraba crua etc — só entram itens que fazem sentido servir assim, tipo salada)' },
+  { date: '2026-08-06', texto: 'Cards do Início (Calorias hoje, Composição corporal, Tendência do plano) ganham um botão discreto que já leva direto pro campo que falta preencher (perfil ou registrar peso), em vez de só avisar que falta preencher' },
   { date: '2026-08-06', texto: 'Caixas de macro (carboidrato, gordura, proteína, fibra) agora mostram o valor da meta junto com a porcentagem, ex: "45% de 100g"' },
   { date: '2026-08-06', texto: 'Fraldinha grelhada/assada (churrasco) e maminha assada corrigida — achei fonte real (TBCA) que trata grelhado e assado como a mesma medição pra cortes de churrasco' },
   { date: '2026-08-06', texto: 'Estimativa (não TACO/NuTrilho) pra maminha, lagarto e coxão mole assados — cortes que nenhuma fonte confiável media assados' },

@@ -195,7 +195,9 @@ function inferMealTypeFromHorario(horario) {
 // café da manhã não sorteia feijão, almoço não sorteia tapioca. Categorias 'proteina'
 // e 'legume' seguem livres (qualquer item da biblioteca serve nessas refeições).
 const POOL_CAFE_CARB = ['Pão francês', 'Pão de forma integral', 'Pão de forma branco', 'Tapioca (goma hidratada)', 'Cuscuz de milho cozido', 'Aveia em flocos'];
-const POOL_CAFE_PROTEINA = ['Ovo cozido', 'Queijo minas frescal', 'Requeijão', 'Iogurte natural integral'];
+// Ovo cozido sozinho é pobre em gordura — intercala com preparo que leva óleo/manteiga
+// (mexido, omelete) e queijo, senão o café da manhã fica sem fonte de gordura nenhuma.
+const POOL_CAFE_PROTEINA = ['Ovo cozido', 'Ovo mexido (2 ovos)', 'Omelete simples (2 ovos)', 'Queijo minas frescal', 'Requeijão', 'Iogurte natural integral'];
 // Arroz e batata revezam como o carboidrato do prato, mas o feijão entra sempre junto
 // — é a dupla mais consumida do país, não faz sentido sortear só um dos dois.
 const POOL_ALMOCO_CARB = ['Arroz branco cozido', 'Arroz integral cozido', 'Batata inglesa cozida', 'Batata inglesa assada'];
@@ -237,19 +239,52 @@ function _pickCategoria(porCategoria, categoria, seedStr) {
   return food ? { categoria, food } : null;
 }
 
+// Salada é pra ser crua mesmo — só esses ficam de fora do filtro "sem cru" abaixo.
+const LEGUMES_CRUS_OK = ['Alface', 'Tomate', 'Pepino', 'Cenoura crua', 'Salada crua (mix de folhas e legumes)', 'Rúcula', 'Agrião'];
+
+// Exclui "cru/crua" da lista antes de sortear — ninguém serve frango cru, beterraba
+// crua ou alho cru como prato pronto; essas entradas só existem na biblioteca como
+// referência nutricional pra quem pesa o alimento antes de cozinhar. Salada (que é
+// mesmo pra comer crua) fica de fora dessa exclusão via LEGUMES_CRUS_OK.
+function _semCru(lista) {
+  const semCru = lista.filter(f => LEGUMES_CRUS_OK.includes(f.name) || !/\bcrus?\b|\bcrua?s?\b/i.test(f.name));
+  return semCru.length > 0 ? semCru : lista;
+}
+
 function _sugerirPratoFeito(lib, porCategoria, seedPrefix) {
+  const proteinaCozida = _semCru(porCategoria.proteina || []);
+  const legumeCozido = _semCru((porCategoria.legume || []).filter(f => f.name !== 'Alho cru'));
   return [
     _pickPoolOuCategoria(lib, POOL_ALMOCO_CARB, 'carboidrato', porCategoria, `${seedPrefix}|carb`),
     _pickPoolOuCategoria(lib, POOL_FEIJAO, 'carboidrato', porCategoria, `${seedPrefix}|feijao`),
-    _pickCategoria(porCategoria, 'proteina', `${seedPrefix}|prot`),
-    _pickCategoria(porCategoria, 'legume', `${seedPrefix}|legume`),
+    _pickDet(proteinaCozida, `${seedPrefix}|prot`) ? { categoria: 'proteina', food: _pickDet(proteinaCozida, `${seedPrefix}|prot`) } : null,
+    _pickDet(legumeCozido, `${seedPrefix}|legume`) ? { categoria: 'legume', food: _pickDet(legumeCozido, `${seedPrefix}|legume`) } : null,
   ].filter(Boolean);
+}
+
+// Ajusta a quantidade de cada item pra o dia inteiro bater perto da meta de calorias —
+// sem isso a sugestão dava sempre 1 porção fixa de cada alimento, então quem tem meta de
+// 1600kcal e quem tem meta de 3000kcal recebiam exatamente a mesma comida. Escala uniforme
+// (mesmo fator em tudo) preserva a proporção de macros que a escolha de alimentos já tinha,
+// só ajusta o tamanho do dia inteiro. Limitada a 0.6x–1.8x pra não sugerir porção absurda —
+// fora dessa faixa, o problema não é quantidade, é a mistura de alimentos escolhida.
+function _escalarParaMeta(resultado, meta) {
+  if (!meta || !meta.kcal) {
+    Object.values(resultado).forEach(itens => itens.forEach(it => { it.qty = 1; }));
+    return resultado;
+  }
+  const kcalBase = Object.values(resultado).flat().reduce((s, it) => s + it.food.kcal, 0);
+  if (kcalBase <= 0) return resultado;
+  const scaleBruto = meta.kcal / kcalBase;
+  const scale = Math.min(1.8, Math.max(0.6, Math.round(scaleBruto * 4) / 4));
+  Object.values(resultado).forEach(itens => itens.forEach(it => { it.qty = scale; }));
+  return resultado;
 }
 
 // Escolha determinística (não Math.random): mesma data+seed sempre resulta na mesma
 // sugestão, então ela não muda sozinha a cada re-render — só quando o usuário pede
 // "Ver outras opções" (que incrementa o shuffleSeed).
-function sugerirRefeicoesDoDia(date, shuffleSeed = 0) {
+function sugerirRefeicoesDoDia(date, shuffleSeed = 0, meta = null) {
   const lib = Storage.getAll('alimentos_biblioteca');
   const porCategoria = {};
   ['proteina', 'carboidrato', 'fruta', 'legume', 'outro'].forEach(cat => {
@@ -282,7 +317,7 @@ function sugerirRefeicoesDoDia(date, shuffleSeed = 0) {
     ? hamburguerMontado
     : _sugerirPratoFeito(lib, porCategoria, `${date}|${shuffleSeed}|jantar`);
 
-  return resultado;
+  return _escalarParaMeta(resultado, meta);
 }
 
 // Estimativa de calorias gastas em atividades do dia (corrida + musculação),

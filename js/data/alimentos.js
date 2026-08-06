@@ -289,6 +289,7 @@ const ALIMENTOS_PADRAO = [
   { name: 'Fígado bovino grelhado', categoria: 'proteina', portionLabel: '100g', portionGrams: 100, kcal: 225, carbs: 4.2, sugars: 0, protein: 29.9, fat: 9, satFat: 2.7, transFat: 0, fiber: 0, sodium: 82 },
   { name: 'Coelho assado', categoria: 'proteina', portionLabel: '100g', portionGrams: 100, kcal: 173, carbs: 0, sugars: 0, protein: 29, fat: 6, satFat: 2, transFat: 0, fiber: 0, sodium: 45 },
   { name: 'Omelete simples (2 ovos)', categoria: 'proteina', portionLabel: '1 porção (110g)', portionGrams: 110, kcal: 154, carbs: 1.2, sugars: 1.2, protein: 12.6, fat: 10.6, satFat: 3.2, transFat: 0, fiber: 0, sodium: 140 },
+  { name: 'Ovo mexido (2 ovos)', categoria: 'proteina', portionLabel: '1 porção (100g)', portionGrams: 100, kcal: 192, carbs: 1.2, sugars: 1.2, protein: 13, fat: 14.8, satFat: 4.4, transFat: 0, fiber: 0, sodium: 150 },
   { name: 'Frango desfiado cozido (peito)', categoria: 'proteina', portionLabel: '100g', portionGrams: 100, kcal: 165, carbs: 0, sugars: 0, protein: 30, fat: 4, satFat: 1.1, transFat: 0, fiber: 0, sodium: 65 },
 
   // Mais cortes de boi (fonte: TACO 4ª ed. — cru + cozido/grelhado/assado)

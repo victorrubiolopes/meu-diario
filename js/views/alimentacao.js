@@ -242,7 +242,7 @@ const ViewAlimentacao = (() => {
           </div>
         ` : ''}
       </div>
-      ${(!perfil.dietaCustomId && meta) ? renderSugestaoRefeicoes(state.date) : ''}
+      ${(!perfil.dietaCustomId && meta) ? renderSugestaoRefeicoes(state.date, meta) : ''}
       ${combos.length > 0 ? `
         <div class="card">
           <h2>Usar combo salvo</h2>
@@ -308,10 +308,11 @@ const ViewAlimentacao = (() => {
     $app.querySelectorAll('[data-add-sugestao-food]').forEach(btn => {
       btn.addEventListener('click', () => {
         const mealType = btn.dataset.addSugestaoMeal;
+        const qty = Number(btn.dataset.addSugestaoQty) || 1;
         const food = Storage.getAll('alimentos_biblioteca').find(f => f.id === btn.dataset.addSugestaoFood);
         if (!food) return;
         ultimoMealType = mealType;
-        Storage.add('alimentacao', { date: state.date, mealType, foodName: food.name, qty: 1, order: Date.now(), ...Object.fromEntries(NUTRI_FIELDS.map(f => [f, food[f] || 0])) });
+        Storage.add('alimentacao', { date: state.date, mealType, foodName: food.name, qty, order: Date.now(), ...Object.fromEntries(NUTRI_FIELDS.map(f => [f, Math.round((food[f] || 0) * qty * 10) / 10])) });
         api.render();
       });
     });
@@ -583,30 +584,31 @@ const ViewAlimentacao = (() => {
     return Storage.getAll('refeicao_fotos').find(f => f.date === date && f.mealType === mealType) || null;
   }
 
-  function renderSugestaoRefeicoes(date) {
-    const sugestao = sugerirRefeicoesDoDia(date, sugestaoSeed);
+  function renderSugestaoRefeicoes(date, meta) {
+    const sugestao = sugerirRefeicoesDoDia(date, sugestaoSeed, meta);
+    const totalDia = Object.values(sugestao).flat().reduce((s, i) => s + i.food.kcal * i.qty, 0);
     return `
       <div class="card">
         <div class="row" style="align-items:center;justify-content:space-between">
           <h2>Sugestão de refeições</h2>
           <button class="link" id="shuffle-sugestao">🔄 Ver outras opções</button>
         </div>
-        <p class="meta" style="color:var(--text-muted);font-size:0.78rem">Sem dieta específica cadastrada — sugestão baseada no método do prato, com alimentos da sua biblioteca.</p>
+        <p class="meta" style="color:var(--text-muted);font-size:0.78rem">Sem dieta específica cadastrada — sugestão baseada no método do prato, com alimentos da sua biblioteca${meta && meta.kcal ? `, ajustada pra ficar perto da sua meta de ${meta.kcal} kcal/dia (hoje: ~${totalDia.toFixed(0)} kcal)` : ''}.</p>
         ${Object.entries(sugestao).map(([mealType, itens]) => `
           <div style="margin-top:12px">
             <div class="row" style="justify-content:space-between;align-items:baseline">
               <strong>${mealType}</strong>
-              <span class="meta">${itens.reduce((s, i) => s + i.food.kcal, 0).toFixed(0)} kcal (aprox.)</span>
+              <span class="meta">${itens.reduce((s, i) => s + i.food.kcal * i.qty, 0).toFixed(0)} kcal (aprox.)</span>
             </div>
             ${itens.length === 0
               ? '<p class="empty" style="font-size:0.78rem">Sem alimentos categorizados suficientes na sua biblioteca.</p>'
               : itens.map(it => `
                 <div class="list-item">
                   <div>
-                    <div>${Util.escapeHtml(it.food.name)} <span class="meta">(${CATEGORIA_LABELS[it.categoria]})</span></div>
-                    <div class="meta">${it.food.portionLabel} · ${it.food.kcal} kcal</div>
+                    <div>${it.qty !== 1 ? `${it.qty}x ` : ''}${Util.escapeHtml(it.food.name)} <span class="meta">(${CATEGORIA_LABELS[it.categoria]})</span></div>
+                    <div class="meta">${it.food.portionLabel}${it.qty !== 1 ? ` × ${it.qty}` : ''} · ${(it.food.kcal * it.qty).toFixed(0)} kcal</div>
                   </div>
-                  <button class="link" data-add-sugestao-meal="${Util.escapeHtml(mealType)}" data-add-sugestao-food="${it.food.id}" aria-label="Adicionar">+</button>
+                  <button class="link" data-add-sugestao-meal="${Util.escapeHtml(mealType)}" data-add-sugestao-food="${it.food.id}" data-add-sugestao-qty="${it.qty}" aria-label="Adicionar">+</button>
                 </div>
               `).join('')}
           </div>
