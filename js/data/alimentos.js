@@ -16,7 +16,7 @@ const ALIMENTOS_PADRAO = [
   { name: 'Aveia em flocos', categoria: 'carboidrato', portionLabel: '1 colher sopa (30g)', portionGrams: 30, kcal: 117, carbs: 20, sugars: 0.5, protein: 4.2, fat: 2.3, satFat: 0.4, transFat: 0, fiber: 3, sodium: 2 },
   { name: 'Whey protein (pó)', categoria: 'proteina', portionLabel: '1 scoop (30g)', portionGrams: 30, kcal: 120, carbs: 3, sugars: 2, protein: 24, fat: 1.5, satFat: 0.5, transFat: 0, fiber: 0, sodium: 50 },
   { name: 'Whey Protein Growth Chocolate', categoria: 'proteina', portionLabel: '30g (2 dosadores)', portionGrams: 30, kcal: 122, carbs: 2.7, sugars: 1.7, protein: 23, fat: 2.1, satFat: 0.9, transFat: 0, fiber: 0, sodium: 45 },
-  { name: 'Pão de forma integral', categoria: 'carboidrato', portionLabel: '1 fatia (25g)', portionGrams: 25, kcal: 60, carbs: 11, sugars: 1.5, protein: 3, fat: 0.8, satFat: 0.2, transFat: 0, fiber: 1.8, sodium: 110 },
+  { name: 'Pão de forma integral', categoria: 'carboidrato', portionLabel: '1 fatia (25g)', portionGrams: 25, kcal: 63, carbs: 12.5, sugars: 1.5, protein: 2.4, fat: 0.9, satFat: 0.2, transFat: 0, fiber: 1.7, sodium: 127 },
   { name: 'Carne bovina moída magra cozida', categoria: 'proteina', portionLabel: '100g', portionGrams: 100, kcal: 172, carbs: 0, sugars: 0, protein: 26, fat: 7, satFat: 2.8, transFat: 0.3, fiber: 0, sodium: 65 },
   { name: 'Tilápia grelhada', categoria: 'proteina', portionLabel: '100g', portionGrams: 100, kcal: 128, carbs: 0, sugars: 0, protein: 26, fat: 2.7, satFat: 0.9, transFat: 0, fiber: 0, sodium: 56 },
   { name: 'Salmão grelhado', categoria: 'proteina', portionLabel: '100g', portionGrams: 100, kcal: 208, carbs: 0, sugars: 0, protein: 22, fat: 13, satFat: 3.1, transFat: 0, fiber: 0, sodium: 59 },
@@ -40,6 +40,18 @@ const ALIMENTOS_PADRAO = [
   { name: 'Barra de cereal', categoria: 'outro', portionLabel: '1 unidade (25g)', portionGrams: 25, kcal: 95, carbs: 18, sugars: 8, protein: 1.5, fat: 2, satFat: 1, transFat: 0, fiber: 1, sodium: 40 },
   { name: 'Sardinha em lata', categoria: 'proteina', portionLabel: '100g', portionGrams: 100, kcal: 208, carbs: 0, sugars: 0, protein: 24.6, fat: 11.5, satFat: 1.5, transFat: 0, fiber: 0, sodium: 400 },
   { name: 'Grão de bico cozido', categoria: 'carboidrato', portionLabel: '100g', portionGrams: 100, kcal: 164, carbs: 27, sugars: 4.8, protein: 8.9, fat: 2.6, satFat: 0.3, transFat: 0, fiber: 7.6, sodium: 7 },
+
+  // Leguminosas (fonte: TACO 4ª ed.)
+  { name: 'Feijão preto cozido', categoria: 'carboidrato', portionLabel: '100g', portionGrams: 100, kcal: 77, carbs: 14, sugars: 0, protein: 4.5, fat: 0.5, satFat: 0.1, transFat: 0, fiber: 8.4, sodium: 2 },
+  { name: 'Feijão fradinho cozido', categoria: 'carboidrato', portionLabel: '100g', portionGrams: 100, kcal: 78, carbs: 13.5, sugars: 0, protein: 5.1, fat: 0.6, satFat: 0.1, transFat: 0, fiber: 7.5, sodium: 1 },
+  { name: 'Feijão jalo cozido', categoria: 'carboidrato', portionLabel: '100g', portionGrams: 100, kcal: 93, carbs: 16.5, sugars: 0, protein: 6.1, fat: 0.5, satFat: 0.1, transFat: 0, fiber: 13.9, sodium: 1 },
+  { name: 'Feijão rajado cozido', categoria: 'carboidrato', portionLabel: '100g', portionGrams: 100, kcal: 85, carbs: 15.3, sugars: 0, protein: 5.5, fat: 0.4, satFat: 0.1, transFat: 0, fiber: 9.3, sodium: 1 },
+  { name: 'Feijão rosinha cozido', categoria: 'carboidrato', portionLabel: '100g', portionGrams: 100, kcal: 68, carbs: 11.8, sugars: 0, protein: 4.5, fat: 0.5, satFat: 0.1, transFat: 0, fiber: 4.8, sodium: 2 },
+  { name: 'Feijão roxo cozido', categoria: 'carboidrato', portionLabel: '100g', portionGrams: 100, kcal: 77, carbs: 12.9, sugars: 0, protein: 5.7, fat: 0.5, satFat: 0.1, transFat: 0, fiber: 11.5, sodium: 1 },
+  { name: 'Ervilha fresca (em vagem)', categoria: 'legume', portionLabel: '100g', portionGrams: 100, kcal: 88, carbs: 14.2, sugars: 4, protein: 7.5, fat: 0.5, satFat: 0.1, transFat: 0, fiber: 9.7, sodium: 1 },
+  { name: 'Ervilha enlatada drenada', categoria: 'legume', portionLabel: '100g', portionGrams: 100, kcal: 74, carbs: 13.4, sugars: 3.5, protein: 4.6, fat: 0.4, satFat: 0.1, transFat: 0, fiber: 5.1, sodium: 372 },
+  { name: 'Amendoim cru', categoria: 'outro', portionLabel: '1 punhado (30g)', portionGrams: 30, kcal: 163, carbs: 6.1, sugars: 1, protein: 8.2, fat: 13.2, satFat: 1.8, transFat: 0, fiber: 2.4, sodium: 0 },
+  { name: 'Grão-de-bico cru', categoria: 'carboidrato', portionLabel: '100g', portionGrams: 100, kcal: 355, carbs: 57.9, sugars: 0, protein: 21.2, fat: 5.4, satFat: 0.8, transFat: 0, fiber: 12.4, sodium: 5 },
 
   // Ovos
   { name: 'Ovo cru', categoria: 'proteina', portionLabel: '1 unidade (50g)', portionGrams: 50, kcal: 72, carbs: 0.8, sugars: 0.8, protein: 6.5, fat: 4.5, satFat: 1.4, transFat: 0, fiber: 0, sodium: 84 },
@@ -80,6 +92,14 @@ const ALIMENTOS_PADRAO = [
   { name: 'Granola', categoria: 'outro', portionLabel: '1 porção (30g)', portionGrams: 30, kcal: 130, carbs: 19, sugars: 7, protein: 3, fat: 4.5, satFat: 1, transFat: 0, fiber: 2.5, sodium: 15 },
   { name: 'Macarrão integral cozido', categoria: 'carboidrato', portionLabel: '100g', portionGrams: 100, kcal: 124, carbs: 25, sugars: 0.6, protein: 5.3, fat: 0.6, satFat: 0.1, transFat: 0, fiber: 3.9, sodium: 4 },
   { name: 'Tapioca (goma hidratada)', categoria: 'carboidrato', portionLabel: '1 porção (50g)', portionGrams: 50, kcal: 89, carbs: 22, sugars: 0.2, protein: 0.1, fat: 0, satFat: 0, transFat: 0, fiber: 0.3, sodium: 1 },
+  { name: 'Farinha de trigo', categoria: 'carboidrato', portionLabel: '1 xícara (120g)', portionGrams: 120, kcal: 432, carbs: 90.1, sugars: 0, protein: 11.8, fat: 1.7, satFat: 0.3, transFat: 0, fiber: 2.8, sodium: 1 },
+  { name: 'Farinha de milho (fubá)', categoria: 'carboidrato', portionLabel: '1 xícara (150g)', portionGrams: 150, kcal: 527, carbs: 118.7, sugars: 0, protein: 10.8, fat: 2.3, satFat: 0.4, transFat: 0, fiber: 8.3, sodium: 68 },
+  { name: 'Farinha de rosca', categoria: 'carboidrato', portionLabel: '1 colher sopa (15g)', portionGrams: 15, kcal: 56, carbs: 11.4, sugars: 0.5, protein: 1.7, fat: 0.2, satFat: 0, transFat: 0, fiber: 0.7, sodium: 50 },
+  { name: 'Macarrão cru (massa seca)', categoria: 'carboidrato', portionLabel: '100g', portionGrams: 100, kcal: 371, carbs: 77.9, sugars: 0, protein: 10, fat: 1.3, satFat: 0.2, transFat: 0, fiber: 2.9, sodium: 7 },
+  { name: 'Pão caseiro sovado', categoria: 'carboidrato', portionLabel: '100g', portionGrams: 100, kcal: 311, carbs: 61.5, sugars: 2, protein: 8.4, fat: 2.8, satFat: 0.6, transFat: 0, fiber: 2.4, sodium: 431 },
+  { name: 'Torrada (pão francês)', categoria: 'carboidrato', portionLabel: '1 unidade (10g)', portionGrams: 10, kcal: 38, carbs: 7.5, sugars: 0.2, protein: 1.1, fat: 0.3, satFat: 0.1, transFat: 0, fiber: 0.3, sodium: 83 },
+  { name: 'Pipoca (com óleo, sem sal)', categoria: 'outro', portionLabel: '1 xícara (15g)', portionGrams: 15, kcal: 67, carbs: 10.5, sugars: 0.2, protein: 1.5, fat: 2.4, satFat: 0.4, transFat: 0, fiber: 2.1, sodium: 1 },
+  { name: 'Pastel de queijo frito', categoria: 'outro', portionLabel: '1 unidade (60g)', portionGrams: 60, kcal: 253, carbs: 28.9, sugars: 0.5, protein: 5.2, fat: 13.6, satFat: 4.1, transFat: 0, fiber: 0.6, sodium: 493 },
 
   // Tubérculos
   { name: 'Batata inglesa cozida', categoria: 'carboidrato', portionLabel: '100g', portionGrams: 100, kcal: 52, carbs: 11.9, sugars: 0.8, protein: 1.2, fat: 0, satFat: 0, transFat: 0, fiber: 1.3, sodium: 2 },
