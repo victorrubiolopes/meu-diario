@@ -1,5 +1,7 @@
 // Lista de atualizações recentes do app, mais recente primeiro. Editável manualmente a cada mudança.
 const CHANGELOG = [
+  { date: '2026-08-06', texto: 'Correção importante: correções em alimentos que já existiam na sua biblioteca (não itens novos) não estavam chegando em contas mais antigas — o app só adicionava itens novos, nunca atualizava um que já existia. Agora, ao abrir o app, itens não-personalizados são resincronizados com os valores mais recentes automaticamente' },
+  { date: '2026-08-06', texto: 'Página evita ficar em cache no celular (principalmente em modo "adicionado à tela inicial") — deve ajudar atualizações a chegarem mais rápido' },
   { date: '2026-08-06', texto: 'Sugestão de refeições mostra a quantidade em gramas (ex: "90g") em vez do multiplicador de porção (ex: "1.8x")' },
   { date: '2026-08-06', texto: 'Sincronização com a nuvem mais rápida: parou de reenviar a biblioteca de alimentos/exercícios inteira a cada alteração (ela já sincroniza item por item por outro caminho) — isso vinha deixando o envio lento, principalmente depois que a biblioteca de alimentos cresceu essa semana' },
   { date: '2026-08-06', texto: 'Botões de atalho do Início (Completar perfil, Registrar peso) agora usam o mesmo estilo dos outros botões secundários do app' },

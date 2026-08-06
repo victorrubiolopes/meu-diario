@@ -174,6 +174,27 @@ const App = (() => {
     });
     if (precisaSalvarEx) Storage.saveAll('exercicios_biblioteca', bibliotecaEx);
 
+    // Migração: mergeSeeds nunca atualiza um alimento que já existe (só adiciona por nome).
+    // Isso significa que correções de valores nutricionais num item padrão (ex: peito de
+    // frango cru que estava com kcal errado) nunca chegavam em contas que já tinham
+    // sincronizado aquele item antes da correção — só quem nunca teve o item recebia o
+    // valor certo. Aqui, itens não-custom (custom !== true, ou seja, vieram do catálogo
+    // padrão e não foram criados manualmente pelo usuário) são resincronizados com os
+    // valores atuais de ALIMENTOS_PADRAO sempre que algum campo estiver diferente.
+    const bibliotecaAlim = Storage.getAll('alimentos_biblioteca');
+    const alimentosPorNome = new Map(ALIMENTOS_PADRAO.map(f => [f.name.trim().toLowerCase(), f]));
+    const CAMPOS_ALIMENTO = ['categoria', 'portionLabel', 'portionGrams', 'kcal', 'carbs', 'sugars', 'protein', 'fat', 'satFat', 'transFat', 'fiber', 'sodium'];
+    let precisaSalvarAlim = false;
+    bibliotecaAlim.forEach(f => {
+      if (f.custom === true) return;
+      const padrao = alimentosPorNome.get((f.name || '').trim().toLowerCase());
+      if (!padrao) return;
+      CAMPOS_ALIMENTO.forEach(campo => {
+        if (f[campo] !== padrao[campo]) { f[campo] = padrao[campo]; precisaSalvarAlim = true; }
+      });
+    });
+    if (precisaSalvarAlim) Storage.saveAll('alimentos_biblioteca', bibliotecaAlim);
+
     // Migração: exercícios de planos de treino (próprios ou de pacotes pré-definidos, como
     // fichas de personal) que nunca passaram pela biblioteca — ficavam sem grupo/ilustração
     // mesmo depois da biblioteca ser expandida, porque simplesmente não existiam lá.
