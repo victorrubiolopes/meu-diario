@@ -34,7 +34,7 @@ const ALIMENTOS_PADRAO = [
   { name: 'Espinafre Nova Zelândia refogado', categoria: 'legume', portionLabel: '100g', portionGrams: 100, kcal: 67, carbs: 4.2, sugars: 0, protein: 2.7, fat: 5.4, satFat: 0.8, transFat: 0, fiber: 2.5, sodium: 17 },
   { name: 'Farinha de mandioca crua', categoria: 'carboidrato', portionLabel: '1 colher sopa (15g)', portionGrams: 15, kcal: 54, carbs: 13.2, sugars: 0, protein: 0.2, fat: 0, satFat: 0, transFat: 0, fiber: 1, sodium: 7 },
   { name: 'Farinha de mandioca torrada', categoria: 'carboidrato', portionLabel: '1 colher sopa (15g)', portionGrams: 15, kcal: 55, carbs: 13.4, sugars: 0, protein: 0.2, fat: 0, satFat: 0, transFat: 0, fiber: 1, sodium: 0 },
-  { name: 'Abacate', categoria: 'outro', portionLabel: '100g', portionGrams: 100, kcal: 160, carbs: 8.5, sugars: 0.7, protein: 2, fat: 14.7, satFat: 2.1, transFat: 0, fiber: 6.7, sodium: 7 },
+  { name: 'Abacate', categoria: 'outro', portionLabel: '100g', portionGrams: 100, kcal: 96, carbs: 6, sugars: 0.7, protein: 1.2, fat: 8.4, satFat: 1.6, transFat: 0, fiber: 6.3, sodium: 8 },
   { name: 'Azeite de oliva', categoria: 'outro', portionLabel: '1 colher sopa (13g)', portionGrams: 13, kcal: 119, carbs: 0, sugars: 0, protein: 0, fat: 13.5, satFat: 1.9, transFat: 0, fiber: 0, sodium: 0 },
   { name: 'Amendoim torrado', categoria: 'outro', portionLabel: '1 punhado (30g)', portionGrams: 30, kcal: 170, carbs: 6, sugars: 1.3, protein: 7.7, fat: 14.5, satFat: 2, transFat: 0, fiber: 2.4, sodium: 5 },
   { name: 'Queijo minas frescal', categoria: 'outro', portionLabel: '1 fatia (30g)', portionGrams: 30, kcal: 87, carbs: 1, sugars: 1, protein: 5.4, fat: 6.6, satFat: 4.2, transFat: 0, fiber: 0, sodium: 130 },
@@ -141,6 +141,8 @@ const ALIMENTOS_PADRAO = [
   { name: 'Pera', categoria: 'fruta', portionLabel: '100g', portionGrams: 100, kcal: 53, carbs: 13.8, sugars: 9.8, protein: 0.3, fat: 0.1, satFat: 0, transFat: 0, fiber: 2.8, sodium: 1 },
   { name: 'Kiwi', categoria: 'fruta', portionLabel: '100g', portionGrams: 100, kcal: 51, carbs: 11.7, sugars: 8.9, protein: 1.1, fat: 0.4, satFat: 0, transFat: 0, fiber: 2.1, sodium: 3 },
   { name: 'Melão', categoria: 'fruta', portionLabel: '100g', portionGrams: 100, kcal: 29, carbs: 7.5, sugars: 6.7, protein: 0.7, fat: 0.1, satFat: 0, transFat: 0, fiber: 0.5, sodium: 12 },
+  { name: 'Pêssego', categoria: 'fruta', portionLabel: '1 unidade (100g)', portionGrams: 100, kcal: 36, carbs: 9.3, sugars: 8.4, protein: 0.8, fat: 0.1, satFat: 0, transFat: 0, fiber: 1.4, sodium: 1 },
+  { name: 'Limão', categoria: 'fruta', portionLabel: '1 unidade (70g)', portionGrams: 70, kcal: 22, carbs: 7.8, sugars: 2.5, protein: 0.6, fat: 0.1, satFat: 0, transFat: 0, fiber: 0.8, sodium: 1 },
 
   // Vegetais
   { name: 'Pepino', categoria: 'legume', portionLabel: '100g', portionGrams: 100, kcal: 10, carbs: 2.1, sugars: 1.2, protein: 0.7, fat: 0.1, satFat: 0, transFat: 0, fiber: 0.8, sodium: 2 },
