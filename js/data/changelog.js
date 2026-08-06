@@ -1,5 +1,6 @@
 // Lista de atualizações recentes do app, mais recente primeiro. Editável manualmente a cada mudança.
 const CHANGELOG = [
+  { date: '2026-08-06', texto: 'Sugestão de refeições (sem dieta específica) agora segue o hábito real do brasileiro: café da manhã com pão/tapioca/cuscuz + ovo/queijo, almoço e janta sempre com arroz OU batata + feijão junto, e janta às vezes vira hambúrguer caseiro pra variar' },
   { date: '2026-08-06', texto: 'Adiciona pratos prontos com dados reais da TACO: vaca atolada, vatapá, virado à paulista e yakisoba' },
   { date: '2026-08-06', texto: 'Biblioteca de alimentos ganha +16 itens de nicho com dados reais da TACO: bucho, almôndegas, carne seca, coxinha, croquete, empada, mel, chocolate meio amargo, shoyu, doce de leite, azeitona e maionese' },
   { date: '2026-08-06', texto: 'Peixes: adiciona cação (cru/cozido/frito), merluza (assada/frita) e pescada filé crua com dados reais da TACO — algumas variações (merluza crua, pescada branca) ficaram de fora por inconsistência nos dados de origem' },

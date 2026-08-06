@@ -189,19 +189,61 @@ function inferMealTypeFromHorario(horario) {
   return 'Jantar';
 }
 
-// "Método do prato": quando não há dieta customizada (perfil.dietaCustomId), sugere um
-// alimento de cada categoria por refeição, puxando da biblioteca do próprio usuário.
-const ESTRUTURA_REFEICAO_PADRAO = {
-  'Café da manhã': ['proteina', 'carboidrato', 'fruta'],
-  'Almoço': ['proteina', 'carboidrato', 'legume'],
-  'Lanche': ['proteina', 'carboidrato'],
-  'Jantar': ['proteina', 'carboidrato', 'legume'],
-};
+// "Método do prato": quando não há dieta customizada (perfil.dietaCustomId), sugere
+// alimentos por refeição puxando da biblioteca do próprio usuário. Os pools abaixo
+// curam a sugestão pelo hábito real do brasileiro (pesquisa IBGE/POF + Kantar 2023) —
+// café da manhã não sorteia feijão, almoço não sorteia tapioca. Categorias 'proteina'
+// e 'legume' seguem livres (qualquer item da biblioteca serve nessas refeições).
+const POOL_CAFE_CARB = ['Pão francês', 'Pão de forma integral', 'Pão de forma branco', 'Tapioca (goma hidratada)', 'Cuscuz de milho cozido', 'Aveia em flocos'];
+const POOL_CAFE_PROTEINA = ['Ovo cozido', 'Queijo minas frescal', 'Requeijão', 'Iogurte natural integral'];
+// Arroz e batata revezam como o carboidrato do prato, mas o feijão entra sempre junto
+// — é a dupla mais consumida do país, não faz sentido sortear só um dos dois.
+const POOL_ALMOCO_CARB = ['Arroz branco cozido', 'Arroz integral cozido', 'Batata inglesa cozida', 'Batata inglesa assada'];
+const POOL_FEIJAO = ['Feijão carioca cozido', 'Feijão preto cozido'];
+const POOL_LANCHE_CARB = ['Pão francês', 'Pão de forma integral'];
+const POOL_LANCHE_PROTEINA = ['Queijo minas frescal', 'Requeijão', 'Iogurte natural integral', 'Whey protein (pó)'];
+// Jantar revezado: metade das vezes repete o padrão do almoço (arroz+feijão), a outra
+// metade vira hambúrguer caseiro — variação pedida sem virar uma lista enorme de opções.
+const COMBO_HAMBURGUER_CASEIRO = [
+  { name: 'Pão de hambúrguer', categoria: 'carboidrato' },
+  { name: 'Hambúrguer bovino frito', categoria: 'proteina' },
+  { name: 'Queijo mussarela', categoria: 'outro' },
+  { name: 'Alface', categoria: 'legume' },
+  { name: 'Tomate', categoria: 'legume' },
+];
 
 function _hashSeed(str) {
   let h = 0;
   for (let i = 0; i < str.length; i++) h = (h * 31 + str.charCodeAt(i)) >>> 0;
   return h;
+}
+
+function _pickDet(list, seedStr) {
+  if (!list || list.length === 0) return null;
+  return list[_hashSeed(seedStr) % list.length];
+}
+
+// Prioriza um item da biblioteca cujo nome esteja no pool curado (hábito real); se o
+// usuário não tiver nenhum desses itens específicos, cai pro sorteio livre da categoria
+// inteira — a sugestão nunca fica vazia só porque um nome exato não bate.
+function _pickPoolOuCategoria(lib, pool, categoria, porCategoria, seedStr) {
+  const doPool = lib.filter(f => pool.includes(f.name));
+  const food = doPool.length > 0 ? _pickDet(doPool, seedStr) : _pickDet(porCategoria[categoria], seedStr);
+  return food ? { categoria, food } : null;
+}
+
+function _pickCategoria(porCategoria, categoria, seedStr) {
+  const food = _pickDet(porCategoria[categoria], seedStr);
+  return food ? { categoria, food } : null;
+}
+
+function _sugerirPratoFeito(lib, porCategoria, seedPrefix) {
+  return [
+    _pickPoolOuCategoria(lib, POOL_ALMOCO_CARB, 'carboidrato', porCategoria, `${seedPrefix}|carb`),
+    _pickPoolOuCategoria(lib, POOL_FEIJAO, 'carboidrato', porCategoria, `${seedPrefix}|feijao`),
+    _pickCategoria(porCategoria, 'proteina', `${seedPrefix}|prot`),
+    _pickCategoria(porCategoria, 'legume', `${seedPrefix}|legume`),
+  ].filter(Boolean);
 }
 
 // Escolha determinística (não Math.random): mesma data+seed sempre resulta na mesma
@@ -210,19 +252,36 @@ function _hashSeed(str) {
 function sugerirRefeicoesDoDia(date, shuffleSeed = 0) {
   const lib = Storage.getAll('alimentos_biblioteca');
   const porCategoria = {};
-  Object.values(ESTRUTURA_REFEICAO_PADRAO).flat().forEach(cat => {
-    if (!porCategoria[cat]) porCategoria[cat] = lib.filter(f => getCategoriaAlimento(f.name) === cat);
+  ['proteina', 'carboidrato', 'fruta', 'legume', 'outro'].forEach(cat => {
+    porCategoria[cat] = lib.filter(f => getCategoriaAlimento(f.name) === cat);
   });
 
   const resultado = {};
-  Object.entries(ESTRUTURA_REFEICAO_PADRAO).forEach(([mealType, categorias]) => {
-    resultado[mealType] = categorias.map(cat => {
-      const candidatos = porCategoria[cat];
-      if (!candidatos || candidatos.length === 0) return null;
-      const idx = _hashSeed(`${date}|${shuffleSeed}|${mealType}|${cat}`) % candidatos.length;
-      return { categoria: cat, food: candidatos[idx] };
-    }).filter(Boolean);
-  });
+
+  resultado['Café da manhã'] = [
+    _pickPoolOuCategoria(lib, POOL_CAFE_CARB, 'carboidrato', porCategoria, `${date}|${shuffleSeed}|cafe|carb`),
+    _pickPoolOuCategoria(lib, POOL_CAFE_PROTEINA, 'proteina', porCategoria, `${date}|${shuffleSeed}|cafe|prot`),
+    _pickCategoria(porCategoria, 'fruta', `${date}|${shuffleSeed}|cafe|fruta`),
+  ].filter(Boolean);
+
+  resultado['Almoço'] = _sugerirPratoFeito(lib, porCategoria, `${date}|${shuffleSeed}|almoco`);
+
+  resultado['Lanche'] = [
+    _pickPoolOuCategoria(lib, POOL_LANCHE_CARB, 'carboidrato', porCategoria, `${date}|${shuffleSeed}|lanche|carb`),
+    _pickPoolOuCategoria(lib, POOL_LANCHE_PROTEINA, 'proteina', porCategoria, `${date}|${shuffleSeed}|lanche|prot`),
+  ].filter(Boolean);
+
+  const jantarHamburguer = _hashSeed(`${date}|${shuffleSeed}|jantar-estilo`) % 2 === 1;
+  const hamburguerMontado = jantarHamburguer
+    ? COMBO_HAMBURGUER_CASEIRO.map(item => {
+        const food = lib.find(f => f.name === item.name);
+        return food ? { categoria: item.categoria, food } : null;
+      }).filter(Boolean)
+    : [];
+  resultado['Jantar'] = hamburguerMontado.length === COMBO_HAMBURGUER_CASEIRO.length
+    ? hamburguerMontado
+    : _sugerirPratoFeito(lib, porCategoria, `${date}|${shuffleSeed}|jantar`);
+
   return resultado;
 }
 

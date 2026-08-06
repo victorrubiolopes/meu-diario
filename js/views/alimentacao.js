@@ -11,7 +11,7 @@ const ViewAlimentacao = (() => {
   let carrinho = [];
   // Incrementado só pelo botão "Ver outras opções" da sugestão de refeições.
   let sugestaoSeed = 0;
-  const CATEGORIA_LABELS = { proteina: 'proteína', carboidrato: 'carboidrato', fruta: 'fruta', legume: 'legume/verdura' };
+  const CATEGORIA_LABELS = { proteina: 'proteína', carboidrato: 'carboidrato', fruta: 'fruta', legume: 'legume/verdura', outro: 'extra' };
 
   function sumNutrients(entries) {
     const totals = { kcal: 0, carbs: 0, protein: 0, fat: 0, fiber: 0, sodium: 0 };
