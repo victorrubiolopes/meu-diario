@@ -1,5 +1,6 @@
 // Lista de atualizações recentes do app, mais recente primeiro. Editável manualmente a cada mudança.
 const CHANGELOG = [
+  { date: '2026-08-06', texto: 'Biblioteca de alimentos ganha +16 itens de nicho com dados reais da TACO: bucho, almôndegas, carne seca, coxinha, croquete, empada, mel, chocolate meio amargo, shoyu, doce de leite, azeitona e maionese' },
   { date: '2026-08-06', texto: 'Peixes: adiciona cação (cru/cozido/frito), merluza (assada/frita) e pescada filé crua com dados reais da TACO — algumas variações (merluza crua, pescada branca) ficaram de fora por inconsistência nos dados de origem' },
   { date: '2026-08-06', texto: 'Laticínios: leite condensado e creme de leite ajustados com dados reais da TACO, e novos itens — leite fermentado e iogurte sabor morango' },
   { date: '2026-08-06', texto: 'Frutas: abacate corrigido (estava 66% acima do real) e novos itens — pêssego e limão, com dados reais da TACO' },
