@@ -5,7 +5,7 @@
 const ALIMENTOS_PADRAO = [
   { name: 'Arroz branco cozido', categoria: 'carboidrato', portionLabel: '100g', portionGrams: 100, kcal: 128, carbs: 28, sugars: 0, protein: 2.5, fat: 0.2, satFat: 0, transFat: 0, fiber: 0.4, sodium: 1 },
   { name: 'Feijão carioca cozido', categoria: 'carboidrato', portionLabel: '100g', portionGrams: 100, kcal: 76, carbs: 13.6, sugars: 0.3, protein: 4.8, fat: 0.5, satFat: 0.1, transFat: 0, fiber: 8.5, sodium: 2 },
-  { name: 'Peito de frango grelhado', categoria: 'proteina', portionLabel: '100g', portionGrams: 100, kcal: 159, carbs: 0, sugars: 0, protein: 32, fat: 3, satFat: 0.9, transFat: 0, fiber: 0, sodium: 74 },
+  { name: 'Peito de frango grelhado', categoria: 'proteina', portionLabel: '100g', portionGrams: 100, kcal: 119, carbs: 0, sugars: 0, protein: 21.5, fat: 3, satFat: 0.9, transFat: 0, fiber: 0, sodium: 56 },
   { name: 'Ovo cozido', categoria: 'proteina', portionLabel: '1 unidade (50g)', portionGrams: 50, kcal: 78, carbs: 0.6, sugars: 0.6, protein: 6.3, fat: 5.3, satFat: 1.6, transFat: 0, fiber: 0, sodium: 62 },
   { name: 'Pão francês', categoria: 'carboidrato', portionLabel: '1 unidade (50g)', portionGrams: 50, kcal: 150, carbs: 28, sugars: 1, protein: 4, fat: 1.5, satFat: 0.3, transFat: 0, fiber: 1.3, sodium: 290 },
   { name: 'Banana prata', categoria: 'fruta', portionLabel: '1 unidade (90g)', portionGrams: 90, kcal: 80, carbs: 20, sugars: 12, protein: 1, fat: 0.2, satFat: 0, transFat: 0, fiber: 2, sodium: 1 },
@@ -47,8 +47,13 @@ const ALIMENTOS_PADRAO = [
   { name: 'Gema de ovo', categoria: 'proteina', portionLabel: '1 unidade (17g)', portionGrams: 17, kcal: 55, carbs: 0.3, sugars: 0.3, protein: 2.7, fat: 4.5, satFat: 1.6, transFat: 0, fiber: 0, sodium: 8 },
 
   // Carnes
-  { name: 'Peito de frango cru', categoria: 'proteina', portionLabel: '100g', portionGrams: 100, kcal: 119, carbs: 0, sugars: 0, protein: 21.5, fat: 3, satFat: 0.9, transFat: 0, fiber: 0, sodium: 53 },
-  { name: 'Coxa de frango assada', categoria: 'proteina', portionLabel: '100g', portionGrams: 100, kcal: 199, carbs: 0, sugars: 0, protein: 26, fat: 10, satFat: 2.7, transFat: 0, fiber: 0, sodium: 90 },
+  // Frango (fonte: TACO 4ª ed., NEPA/UNICAMP — valores por 100g de parte comestível, sem pele)
+  { name: 'Peito de frango cru', categoria: 'proteina', portionLabel: '100g', portionGrams: 100, kcal: 163, carbs: 0, sugars: 0, protein: 31.5, fat: 3.2, satFat: 1, transFat: 0, fiber: 0, sodium: 62 },
+  { name: 'Peito de frango cozido', categoria: 'proteina', portionLabel: '100g', portionGrams: 100, kcal: 149, carbs: 0, sugars: 0, protein: 20.8, fat: 6.7, satFat: 2, transFat: 0, fiber: 0, sodium: 62 },
+  { name: 'Coxa de frango crua', categoria: 'proteina', portionLabel: '100g', portionGrams: 100, kcal: 167, carbs: 0, sugars: 0, protein: 26.9, fat: 5.8, satFat: 1.7, transFat: 0, fiber: 0, sodium: 95 },
+  { name: 'Coxa de frango cozida', categoria: 'proteina', portionLabel: '100g', portionGrams: 100, kcal: 161, carbs: 0, sugars: 0, protein: 17.1, fat: 9.8, satFat: 2.9, transFat: 0, fiber: 0, sodium: 95 },
+  { name: 'Sobrecoxa de frango crua', categoria: 'proteina', portionLabel: '100g', portionGrams: 100, kcal: 233, carbs: 0, sugars: 0, protein: 29.2, fat: 12, satFat: 3.6, transFat: 0, fiber: 0, sodium: 70 },
+  { name: 'Sobrecoxa de frango assada', categoria: 'proteina', portionLabel: '100g', portionGrams: 100, kcal: 255, carbs: 0, sugars: 0, protein: 15.5, fat: 20.9, satFat: 6.3, transFat: 0, fiber: 0, sodium: 70 },
   { name: 'Carne bovina crua (patinho)', categoria: 'proteina', portionLabel: '100g', portionGrams: 100, kcal: 137, carbs: 0, sugars: 0, protein: 21.9, fat: 4.9, satFat: 1.9, transFat: 0, fiber: 0, sodium: 54 },
   { name: 'Picanha grelhada', categoria: 'proteina', portionLabel: '100g', portionGrams: 100, kcal: 289, carbs: 0, sugars: 0, protein: 25, fat: 21, satFat: 8.5, transFat: 0, fiber: 0, sodium: 60 },
   { name: 'Lombo suíno grelhado', categoria: 'proteina', portionLabel: '100g', portionGrams: 100, kcal: 210, carbs: 0, sugars: 0, protein: 27, fat: 11, satFat: 4, transFat: 0, fiber: 0, sodium: 55 },
