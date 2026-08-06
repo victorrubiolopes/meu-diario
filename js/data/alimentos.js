@@ -349,8 +349,10 @@ const ALIMENTOS_PADRAO = [
   { name: 'Shimeji refogado', categoria: 'legume', portionLabel: '100g', portionGrams: 100, kcal: 34, carbs: 4.5, sugars: 1.5, protein: 2.7, fat: 0.6, satFat: 0.1, transFat: 0, fiber: 2.5, sodium: 3 },
 
   // Laticínios extra, doces, salgados e pratos prontos
-  { name: 'Leite condensado', categoria: 'outro', portionLabel: '1 colher sopa (20g)', portionGrams: 20, kcal: 65, carbs: 11, sugars: 11, protein: 1.6, fat: 1.7, satFat: 1.1, transFat: 0, fiber: 0, sodium: 25 },
-  { name: 'Creme de leite', categoria: 'outro', portionLabel: '1 colher sopa (20g)', portionGrams: 20, kcal: 38, carbs: 0.8, sugars: 0.8, protein: 0.5, fat: 3.8, satFat: 2.4, transFat: 0, fiber: 0, sodium: 8 },
+  { name: 'Leite condensado', categoria: 'outro', portionLabel: '1 colher sopa (20g)', portionGrams: 20, kcal: 63, carbs: 11.4, sugars: 11.4, protein: 1.5, fat: 1.3, satFat: 0.9, transFat: 0, fiber: 0, sodium: 19 },
+  { name: 'Creme de leite', categoria: 'outro', portionLabel: '1 colher sopa (20g)', portionGrams: 20, kcal: 44, carbs: 0.9, sugars: 0.9, protein: 0.3, fat: 4.5, satFat: 2.8, transFat: 0, fiber: 0, sodium: 10 },
+  { name: 'Leite fermentado', categoria: 'outro', portionLabel: '100g', portionGrams: 100, kcal: 70, carbs: 15.7, sugars: 15.7, protein: 1.9, fat: 0.1, satFat: 0, transFat: 0, fiber: 0, sodium: 33 },
+  { name: 'Iogurte sabor morango', categoria: 'outro', portionLabel: '1 pote (170g)', portionGrams: 170, kcal: 119, carbs: 16.5, sugars: 16.5, protein: 4.6, fat: 3.9, satFat: 2.5, transFat: 0, fiber: 0.3, sodium: 65 },
   { name: 'Cream cheese', categoria: 'outro', portionLabel: '1 colher sopa (15g)', portionGrams: 15, kcal: 51, carbs: 0.6, sugars: 0.6, protein: 1.1, fat: 5, satFat: 3.2, transFat: 0, fiber: 0, sodium: 65 },
   { name: 'Pão de queijo', categoria: 'outro', portionLabel: '1 unidade (30g)', portionGrams: 30, kcal: 100, carbs: 11, sugars: 0.5, protein: 2, fat: 5, satFat: 2, transFat: 0, fiber: 0.3, sodium: 140 },
   { name: 'Coxinha de frango (frita)', categoria: 'outro', portionLabel: '1 unidade (90g)', portionGrams: 90, kcal: 245, carbs: 22, sugars: 1, protein: 9, fat: 13, satFat: 3.5, transFat: 0.5, fiber: 1, sodium: 380 },
