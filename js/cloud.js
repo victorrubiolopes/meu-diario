@@ -3,11 +3,15 @@
 // os dados são baixados na entrada e enviados (debounce) a cada alteração.
 // Se o Firebase não estiver configurado ou o SDK não carregar, tudo vira no-op e o app roda local.
 const Cloud = (() => {
-  // Chaves do Storage que sincronizam. Fotos (IndexedDB) ficam de fora nesta fase.
+  // Chaves do Storage que sincronizam no doc pessoal. Fotos (IndexedDB) ficam de fora nesta fase.
+  // alimentos_biblioteca e exercicios_biblioteca NÃO entram aqui: itens padrão vêm do
+  // mergeSeeds (código, não precisa de rede) e itens custom já sincronizam item-a-item via
+  // criarCompartilhado (compAlimentos/compExercicios) mais abaixo. Incluir essas duas listas
+  // aqui mandava a biblioteca inteira (centenas de itens) de novo a cada push — é o que
+  // deixava a sincronização lenta, principalmente depois que a biblioteca de alimentos cresceu.
   const SYNC_KEYS = [
     'treino', 'corridas', 'alimentacao', 'medidas', 'tarefas', 'tarefas_conclusoes',
-    'alimentos_biblioteca', 'exercicios_biblioteca', 'dietas_custom', 'treino_planos',
-    'combos', 'agua', 'gastos', 'refeicao_fotos',
+    'dietas_custom', 'treino_planos', 'combos', 'agua', 'gastos', 'refeicao_fotos',
   ];
 
   let enabled = false;

@@ -177,7 +177,7 @@ const ViewInicio = (() => {
           <label style="margin-top:12px">🔥 Calorias extras gastas hoje ${gastoExistente && gastoExistente.source === 'auto' ? '(estimado a partir do treino/corrida)' : gastoExistente && gastoExistente.source === 'manual' ? '(ajustado manualmente)' : '(manual)'}</label>
           <input type="number" id="gasto-extra-input" placeholder="Ex: 300" value="${gastoExtra || ''}">
           <p class="meta" style="font-size:0.72rem">Só informativo — não altera sua meta de calorias. Preenche sozinho quando você registra treino (com duração) ou corrida; edite se quiser ajustar.</p>
-        ` : `<p class="empty">Complete seu perfil para ver sua meta de calorias.</p><button class="link" id="ir-perfil-calorias">Completar perfil →</button>`}
+        ` : `<p class="empty">Complete seu perfil para ver sua meta de calorias.</p><button class="secondary" id="ir-perfil-calorias" style="margin-top:6px">Completar perfil →</button>`}
         ${aguaMeta ? progressBar('💧 Água', aguaConsumida, aguaMeta, 'ml') : ''}
       </div>
 
@@ -189,7 +189,7 @@ const ViewInicio = (() => {
           ${compRowHtml('🍃', bodyFatVal, '%', 1, gorduraPct, 'good', '% Gordura não registrada')}
           <p class="meta" style="margin-top:8px">${variacao != null ? `${variacao > 0 ? '+' : ''}${variacao.toFixed(1)}kg desde a última medição — ` : ''}medido em ${Util.fmtDate(pesoAtual.date)}</p>
           <p class="meta" style="font-size:0.68rem;margin-top:2px">Barras usam faixas de referência estimadas por altura/sexo (IMC saudável, % gordura de referência) — não substitui avaliação profissional.</p>
-        ` : `<p class="empty">Nenhuma medição registrada ainda</p><button class="link" id="ir-medidas-composicao">Registrar peso →</button>`}
+        ` : `<p class="empty">Nenhuma medição registrada ainda</p><button class="secondary" id="ir-medidas-composicao" style="margin-top:6px">Registrar peso →</button>`}
       </div>
 
       ${proximaRefeicao ? `
@@ -239,7 +239,7 @@ const ViewInicio = (() => {
           </div>
           <p class="meta" style="margin-top:10px;text-align:center">${STATUS_LABELS[tendencia.status]}</p>
           <p class="meta" style="font-size:0.7rem;text-align:center">Estimativa geral (~7700kcal ≈ 1kg), não substitui acompanhamento profissional.</p>
-        ` : `<p class="empty">Registre pelo menos 2 medições de peso (em dias diferentes) para ver sua tendência.</p><button class="link" id="ir-medidas-tendencia">Registrar peso →</button>`}
+        ` : `<p class="empty">Registre pelo menos 2 medições de peso (em dias diferentes) para ver sua tendência.</p><button class="secondary" id="ir-medidas-tendencia" style="margin-top:6px">Registrar peso →</button>`}
         ${projecao && projecao.horizontes.length > 0 ? `
           <h3 style="margin-top:16px;font-size:0.9rem">Projeção futura (mantendo o ritmo atual)</h3>
           <div class="row" style="flex-wrap:wrap">
