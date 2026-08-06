@@ -1,5 +1,6 @@
 // Lista de atualizações recentes do app, mais recente primeiro. Editável manualmente a cada mudança.
 const CHANGELOG = [
+  { date: '2026-08-06', texto: 'Fraldinha grelhada/assada (churrasco) e maminha assada corrigida — achei fonte real (TBCA) que trata grelhado e assado como a mesma medição pra cortes de churrasco' },
   { date: '2026-08-06', texto: 'Estimativa (não TACO/NuTrilho) pra maminha, lagarto e coxão mole assados — cortes que nenhuma fonte confiável media assados' },
   { date: '2026-08-06', texto: 'Novos itens: patinho assado e miolo de alcatra assado (fonte alternativa à TACO, que não media esses cortes assados)' },
   { date: '2026-08-06', texto: 'Sugestão de refeições (sem dieta específica) agora segue o hábito real do brasileiro: café da manhã com pão/tapioca/cuscuz + ovo/queijo, almoço e janta sempre com arroz OU batata + feijão junto, e janta às vezes vira hambúrguer caseiro pra variar' },
