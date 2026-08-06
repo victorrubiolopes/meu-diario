@@ -1,6 +1,7 @@
 // Lista de atualizações recentes do app, mais recente primeiro. Editável manualmente a cada mudança.
 const CHANGELOG = [
   { date: '2026-08-06', texto: 'Frango: valores corrigidos com dados reais da TACO (peito cru estava bem abaixo do real) e novas variações — peito cozido, coxa crua/cozida, sobrecoxa crua/assada' },
+  { date: '2026-08-05', texto: 'Novo alimento: Massa Leve Pizza de Frigideira' },
   { date: '2026-08-05', texto: 'Treino: agora dá pra registrar o peso de cada série separadamente (não só um peso final do exercício) — mostra o melhor peso e o PR com base na série mais pesada' },
   { date: '2026-08-05', texto: 'Correção: exercícios de fichas/pacotes pré-definidos (ex: ficha do personal) agora entram na biblioteca com grupo muscular — antes só existiam dentro do plano e ficavam sem ilustração' },
   { date: '2026-08-05', texto: 'Exercícios sem grupo muscular definido agora são preenchidos automaticamente pelo nome (ex: "Agachamento" → Quadríceps) — sem precisar corrigir um por um' },
