@@ -1,5 +1,6 @@
 // Lista de atualizações recentes do app, mais recente primeiro. Editável manualmente a cada mudança.
 const CHANGELOG = [
+  { date: '2026-08-06', texto: 'Caixas de macro (carboidrato, gordura, proteína, fibra) agora mostram o valor da meta junto com a porcentagem, ex: "45% de 100g"' },
   { date: '2026-08-06', texto: 'Fraldinha grelhada/assada (churrasco) e maminha assada corrigida — achei fonte real (TBCA) que trata grelhado e assado como a mesma medição pra cortes de churrasco' },
   { date: '2026-08-06', texto: 'Estimativa (não TACO/NuTrilho) pra maminha, lagarto e coxão mole assados — cortes que nenhuma fonte confiável media assados' },
   { date: '2026-08-06', texto: 'Novos itens: patinho assado e miolo de alcatra assado (fonte alternativa à TACO, que não media esses cortes assados)' },

@@ -428,6 +428,10 @@ button.danger-btn {
   margin-top: 2px;
 }
 
+.macro-box-meta {
+  opacity: 0.75;
+}
+
 .macro-split-row {
   display: flex;
   justify-content: space-between;
