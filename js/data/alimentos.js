@@ -90,6 +90,7 @@ const ALIMENTOS_PADRAO = [
   { name: 'Sobrecoxa de frango assada', categoria: 'proteina', portionLabel: '100g', portionGrams: 100, kcal: 233, carbs: 0, sugars: 0, protein: 29.2, fat: 12, satFat: 3.6, transFat: 0, fiber: 0, sodium: 106 },
   { name: 'Carne bovina crua (patinho)', categoria: 'proteina', portionLabel: '100g', portionGrams: 100, kcal: 133, carbs: 0, sugars: 0, protein: 21.7, fat: 4.5, satFat: 1.4, transFat: 0, fiber: 0, sodium: 49 },
   { name: 'Patinho grelhado', categoria: 'proteina', portionLabel: '100g', portionGrams: 100, kcal: 219, carbs: 0, sugars: 0, protein: 35.9, fat: 7.3, satFat: 2.2, transFat: 0, fiber: 0, sodium: 60 },
+  { name: 'Patinho assado', categoria: 'proteina', portionLabel: '100g', portionGrams: 100, kcal: 199, carbs: 0, sugars: 0, protein: 36.1, fat: 5, satFat: 1.5, transFat: 0, fiber: 0, sodium: 60 },
   { name: 'Coxão mole cru', categoria: 'proteina', portionLabel: '100g', portionGrams: 100, kcal: 169, carbs: 0, sugars: 0, protein: 21.2, fat: 8.7, satFat: 2.6, transFat: 0, fiber: 0, sodium: 61 },
   { name: 'Coxão mole cozido', categoria: 'proteina', portionLabel: '100g', portionGrams: 100, kcal: 219, carbs: 0, sugars: 0, protein: 32.4, fat: 8.9, satFat: 2.7, transFat: 0, fiber: 0, sodium: 44 },
   { name: 'Fraldinha crua', categoria: 'proteina', portionLabel: '100g', portionGrams: 100, kcal: 221, carbs: 0, sugars: 0, protein: 17.6, fat: 16.1, satFat: 4.8, transFat: 0, fiber: 0, sodium: 51 },
@@ -303,6 +304,7 @@ const ALIMENTOS_PADRAO = [
   { name: 'Maminha grelhada', categoria: 'proteina', portionLabel: '100g', portionGrams: 100, kcal: 153, carbs: 0, sugars: 0, protein: 30.7, fat: 2.4, satFat: 0.7, transFat: 0, fiber: 0, sodium: 58 },
   { name: 'Miolo de alcatra cru', categoria: 'proteina', portionLabel: '100g', portionGrams: 100, kcal: 163, carbs: 0, sugars: 0, protein: 21.6, fat: 7.8, satFat: 2.3, transFat: 0, fiber: 0, sodium: 43 },
   { name: 'Miolo de alcatra grelhado', categoria: 'proteina', portionLabel: '100g', portionGrams: 100, kcal: 241, carbs: 0, sugars: 0, protein: 31.9, fat: 11.6, satFat: 3.5, transFat: 0, fiber: 0, sodium: 52 },
+  { name: 'Miolo de alcatra assado', categoria: 'proteina', portionLabel: '100g', portionGrams: 100, kcal: 204, carbs: 0, sugars: 0, protein: 30.7, fat: 9, satFat: 2.7, transFat: 0, fiber: 0, sodium: 52 },
   { name: 'Músculo bovino cozido', categoria: 'proteina', portionLabel: '100g', portionGrams: 100, kcal: 194, carbs: 0, sugars: 0, protein: 31.2, fat: 6.7, satFat: 2, transFat: 0, fiber: 0, sodium: 62 },
   { name: 'Músculo bovino cru', categoria: 'proteina', portionLabel: '100g', portionGrams: 100, kcal: 142, carbs: 0, sugars: 0, protein: 21.6, fat: 5.5, satFat: 1.7, transFat: 0, fiber: 0, sodium: 66 },
 
