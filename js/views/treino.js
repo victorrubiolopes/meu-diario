@@ -2,6 +2,34 @@ const ViewTreino = (() => {
   // Sessão de edição aberta por data (permite mais de um treino no mesmo dia).
   // Valor: { editId: string|null, plano: object|null } — editId=null significa "treino novo".
   const treinoSessaoPorData = new Map();
+  // O Map acima é só memória — se o app recarregar no meio de um treino (celular mata a
+  // aba em segundo plano, comum em economia de bateria), ele some e a tela volta pra
+  // "escolher treino" mesmo com os exercícios já marcados até ali intactos no Storage.
+  // Espelha a sessão ativa no localStorage (só editId + id do plano, não o objeto todo) e
+  // restaura no primeiro acesso do dia, pra continuar de onde parou em vez de "encerrar".
+  const CHAVE_SESSAO_ATIVA = 'treino_sessao_ativa';
+  function _setSessao(date, sessao) {
+    treinoSessaoPorData.set(date, sessao);
+    const todas = JSON.parse(localStorage.getItem(CHAVE_SESSAO_ATIVA) || '{}');
+    todas[date] = { editId: sessao.editId, planoId: sessao.plano ? sessao.plano.id : null };
+    localStorage.setItem(CHAVE_SESSAO_ATIVA, JSON.stringify(todas));
+  }
+  function _clearSessao(date) {
+    treinoSessaoPorData.delete(date);
+    const todas = JSON.parse(localStorage.getItem(CHAVE_SESSAO_ATIVA) || '{}');
+    delete todas[date];
+    localStorage.setItem(CHAVE_SESSAO_ATIVA, JSON.stringify(todas));
+  }
+  // Restaura a sessão persistida (se houver e ainda não estiver no Map em memória).
+  function _sessaoAtiva(date, planos) {
+    if (treinoSessaoPorData.has(date)) return treinoSessaoPorData.get(date);
+    const todas = JSON.parse(localStorage.getItem(CHAVE_SESSAO_ATIVA) || '{}');
+    const salva = todas[date];
+    if (!salva) return null;
+    const sessao = { editId: salva.editId || null, plano: salva.planoId ? (planos.find(p => p.id === salva.planoId) || null) : null };
+    treinoSessaoPorData.set(date, sessao);
+    return sessao;
+  }
   // Histórico de treinos: recolhido por padrão, mostra só os mais recentes até expandir.
   let historicoAberto = false;
   const HISTORICO_RESUMO = 3;
@@ -92,7 +120,7 @@ const ViewTreino = (() => {
     const planos = Storage.getAll('treino_planos').sort((a, b) => a.ordem - b.ordem);
     const sugerido = Util.planoSugerido();
     const ultimoFeito = Util.ultimoTreinoFeito();
-    const sessao = treinoSessaoPorData.get(state.date);
+    const sessao = _sessaoAtiva(state.date, planos);
 
     if (!sessao) {
       const planoPromptHtml = `
@@ -129,7 +157,7 @@ const ViewTreino = (() => {
       `;
       content.querySelectorAll('[data-editar-treino]').forEach(btn => {
         btn.addEventListener('click', () => {
-          treinoSessaoPorData.set(state.date, { editId: btn.dataset.editarTreino, plano: null });
+          _setSessao(state.date, { editId: btn.dataset.editarTreino, plano: null });
           api.render();
         });
       });
@@ -144,7 +172,7 @@ const ViewTreino = (() => {
       document.getElementById('iniciar-treino').addEventListener('click', () => {
         const sel = document.getElementById('prompt-plano-select');
         const escolhido = sel ? (planos.find(p => p.id === sel.value) || null) : null;
-        treinoSessaoPorData.set(state.date, { editId: null, plano: escolhido });
+        _setSessao(state.date, { editId: null, plano: escolhido });
         api.render();
       });
       // Registro rápido: pra quem só quer sinalizar "treinei hoje" sem detalhar exercício
@@ -479,7 +507,7 @@ const ViewTreino = (() => {
       if (cleaned.length === 0) { alert('Adicione pelo menos um exercício antes de finalizar.'); return; }
       persist();
       atualizarGastoAuto(state.date);
-      treinoSessaoPorData.delete(state.date);
+      _clearSessao(state.date);
       alert('Treino concluído! 💪');
       api.render();
     });
@@ -491,7 +519,7 @@ const ViewTreino = (() => {
         if (!confirm('Excluir o treino registrado neste dia? Esta ação não pode ser desfeita.')) return;
         Storage.remove('treino', entryId);
         if (typeof atualizarGastoAuto === 'function') atualizarGastoAuto(state.date);
-        treinoSessaoPorData.delete(state.date);
+        _clearSessao(state.date);
         api.render();
       });
     }

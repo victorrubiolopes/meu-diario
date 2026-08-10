@@ -1,5 +1,6 @@
 // Lista de atualizações recentes do app, mais recente primeiro. Editável manualmente a cada mudança.
 const CHANGELOG = [
+  { date: '2026-08-10', texto: 'Correção: treino em andamento não "encerrava" mais sozinho quando o app demorava pra reabrir (ex: celular suspendendo em segundo plano) — a tela voltava mostrando um prompt de escolher treino ou "concluído", mas os dados dos exercícios continuavam salvos certinho. Agora a sessão ativa é lembrada e a tela de edição volta do jeito que você deixou' },
   { date: '2026-08-06', texto: 'Correção importante: correções em alimentos que já existiam na sua biblioteca (não itens novos) não estavam chegando em contas mais antigas — o app só adicionava itens novos, nunca atualizava um que já existia. Agora, ao abrir o app, itens não-personalizados são resincronizados com os valores mais recentes automaticamente' },
   { date: '2026-08-06', texto: 'Página evita ficar em cache no celular (principalmente em modo "adicionado à tela inicial") — deve ajudar atualizações a chegarem mais rápido' },
   { date: '2026-08-06', texto: 'Sugestão de refeições mostra a quantidade em gramas (ex: "90g") em vez do multiplicador de porção (ex: "1.8x")' },
