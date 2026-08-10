@@ -16,6 +16,7 @@ const Storage = (() => {
     gastos: 'gastos_entries',
     exames_meta: 'exames_meta',
     refeicao_fotos: 'refeicao_fotos',
+    refeicoes_livres: 'refeicoes_livres',
   };
 
   function uid() {

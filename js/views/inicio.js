@@ -57,6 +57,9 @@ const ViewInicio = (() => {
     Storage.getAll('agua').forEach(a => { aguaPorData[a.date] = (aguaPorData[a.date] || 0) + (a.ml || 0); });
 
     function checar(date) {
+      if (typeof RefeicaoLivre !== 'undefined' && RefeicaoLivre.protegida(date)) {
+        return { exercicioOk: true, caloriasOk: true, aguaOk: true, ok: true, protegida: true };
+      }
       const exercicioOk = treinoDatas.has(date) || corridaDatas.has(date);
       const kcalDia = kcalPorData[date] || 0;
       const caloriasOk = !!meta && kcalDia > 0 && kcalDia <= meta.kcal;
@@ -112,6 +115,55 @@ const ViewInicio = (() => {
           <span><i class="cal-dot cal-yellow"></i> Parcial</span>
           <span><i class="cal-dot cal-empty"></i> Sem registro</span>
         </div>
+      </div>
+    `;
+  }
+
+  const DOW_CURTO = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb'];
+
+  // Card "Refeição livre": progresso da semana (seg-sex) durante a semana, e no
+  // sábado/domingo, se elegível, o botão pra usar (até 2x) — protegendo a ofensiva.
+  function refeicaoLivreHtml(dateISO, meta, aguaMeta) {
+    if (typeof RefeicaoLivre === 'undefined') return '';
+    const el = RefeicaoLivre.elegibilidade(dateISO, meta, aguaMeta);
+    const usadaHoje = RefeicaoLivre.protegida(dateISO);
+
+    let corpo;
+    if (el.ehFimDeSemana) {
+      if (usadaHoje) {
+        corpo = `<p class="meta">🎉 Refeição livre usada hoje — esse dia conta como "em foco" na sua ofensiva de qualquer jeito.</p>`;
+      } else if (el.podeUsarHoje) {
+        corpo = `
+          <p>Semana batida! Você tem <strong>${el.restantes}</strong> refeição${el.restantes === 1 ? '' : 'ões'} livre${el.restantes === 1 ? '' : 's'} disponível${el.restantes === 1 ? '' : 'eis'} esse fim de semana, sem quebrar sua ofensiva.</p>
+          <button class="secondary" id="usar-refeicao-livre">🍔 Usar refeição livre hoje</button>
+        `;
+      } else if (el.elegivel && el.usosNaSemana >= 2) {
+        corpo = `<p class="meta">Você já usou as 2 refeições livres dessa semana. Volta semana que vem! 💪</p>`;
+      } else {
+        corpo = `<p class="meta">Essa semana não desbloqueou refeição livre — veja o que faltou abaixo.</p>`;
+      }
+    } else {
+      corpo = `<p class="meta">Bata a meta de segunda a sexta (calorias, treino, água) pra liberar até 2 refeições livres no sábado/domingo, sem quebrar sua ofensiva.</p>`;
+    }
+
+    const linhasDias = el.detalheDias.map(d => {
+      const dow = DOW_CURTO[Util.weekdayOf(d.date)];
+      let label;
+      if (d.futuro) label = `${dow} — ainda não chegou`;
+      else if (!d.preenchido) label = `${dow} — não preenchido`;
+      else label = `${dow} — ${d.caloriasOk ? 'calorias ok' : 'calorias fora da faixa'}, ${d.exercicioOk ? 'treino ok' : 'sem treino/corrida'}`;
+      return `<div class="task-item"><span class="task-check ${d.ok ? 'done' : ''}">${d.ok ? '✓' : ''}</span><span class="task-title ${d.ok ? 'done' : ''}">${label}</span></div>`;
+    }).join('');
+    const linhaAgua = `<div class="task-item"><span class="task-check ${el.aguaOk ? 'done' : ''}">${el.aguaOk ? '✓' : ''}</span><span class="task-title ${el.aguaOk ? 'done' : ''}">Água: ${el.diasAguaOk}/${el.diasAguaContados} dias (precisa ${el.diasAguaNecessarios})</span></div>`;
+
+    return `
+      <div class="card dashboard-section">
+        <h2>🍔 Refeição livre</h2>
+        ${corpo}
+        <details style="margin-top:8px"><summary class="meta" style="cursor:pointer">Ver regra da semana</summary>
+          ${linhasDias}
+          ${linhaAgua}
+        </details>
       </div>
     `;
   }
@@ -224,6 +276,8 @@ const ViewInicio = (() => {
 
       ${calendarioHtml(diasFoco.checar, state)}
 
+      ${refeicaoLivreHtml(state.date, meta, aguaMeta)}
+
       <div class="card dashboard-section">
         <h2>Tendência do seu plano</h2>
         ${tendencia ? `
@@ -304,6 +358,14 @@ const ViewInicio = (() => {
         });
       }
     });
+
+    const usarRefeicaoLivreBtn = document.getElementById('usar-refeicao-livre');
+    if (usarRefeicaoLivreBtn) {
+      usarRefeicaoLivreBtn.addEventListener('click', () => {
+        RefeicaoLivre.usar(state.date);
+        api.render();
+      });
+    }
 
     const addProximaBtn = document.getElementById('add-proxima-refeicao');
     if (addProximaBtn) {

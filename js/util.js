@@ -141,6 +141,13 @@ const Util = (() => {
     return toLocalISO(date);
   }
 
+  // Segunda-feira da semana (segunda a domingo) que contém dateISO.
+  function mondayOf(dateISO) {
+    const dow = weekdayOf(dateISO); // 0=domingo..6=sábado
+    const diff = dow === 0 ? -6 : 1 - dow;
+    return addDaysISO(dateISO, diff);
+  }
+
   // Ex: "sex., 24 de jul."
   function fmtDatePill(dateISO) {
     const [y, m, d] = dateISO.split('-').map(Number);
@@ -242,7 +249,7 @@ const Util = (() => {
     return pesos.length ? Math.max(...pesos) : 0;
   }
 
-  return { todayISO, fmtDate, escapeHtml, daysAgo, daysFromNow, movingAverage, getPesoAtual, planoSugerido, ultimoTreinoFeito, weekdayOf, daysBetween, addDaysISO, fmtDatePill, historicoTreinos,
+  return { todayISO, fmtDate, escapeHtml, daysAgo, daysFromNow, movingAverage, getPesoAtual, planoSugerido, ultimoTreinoFeito, weekdayOf, daysBetween, addDaysISO, mondayOf, fmtDatePill, historicoTreinos,
     faixaPesoSaudavel, faixaGorduraSaudavel, faixaMassaMagraSaudavel, faixaAguaSaudavel, faixaImcSaudavel, metricasComposicao, inputGroup, youtubeSearchUrl, youtubeEmbedId, fileToDataURL, compressImageToDataURL,
     pesosExercicio, maxPesoExercicio };
 })();

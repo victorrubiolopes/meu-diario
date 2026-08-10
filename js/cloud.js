@@ -11,7 +11,7 @@ const Cloud = (() => {
   // deixava a sincronização lenta, principalmente depois que a biblioteca de alimentos cresceu.
   const SYNC_KEYS = [
     'treino', 'corridas', 'alimentacao', 'medidas', 'tarefas', 'tarefas_conclusoes',
-    'dietas_custom', 'treino_planos', 'combos', 'agua', 'gastos', 'refeicao_fotos',
+    'dietas_custom', 'treino_planos', 'combos', 'agua', 'gastos', 'refeicao_fotos', 'refeicoes_livres',
   ];
 
   let enabled = false;
