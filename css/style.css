@@ -15,6 +15,8 @@
   --macro-fat: #e0654f;
   --macro-protein: #d6a336;
   --macro-fiber: #4a8f5c;
+  --water: #2f7a8c;
+  --water-soft: #d9ebee;
 }
 
 @media (prefers-color-scheme: dark) {
@@ -34,6 +36,8 @@
     --macro-fat: #f2836b;
     --macro-protein: #f2c14e;
     --macro-fiber: #6bc48a;
+    --water: #6db8c4;
+    --water-soft: #223c40;
   }
 }
 
@@ -532,6 +536,8 @@ button.danger-btn {
   font-size: 0.9rem;
 }
 
+.empty-illus { width: 96px; height: 96px; display: block; margin: 0 auto 10px; }
+
 .tabs-sub {
   display: flex;
   gap: 6px;
@@ -766,9 +772,11 @@ canvas {
   font-size: 1.15rem;
   flex-shrink: 0;
   background: var(--accent-soft);
+  color: var(--accent);
 }
 
-.comp-icon.good { background: rgba(74, 124, 89, 0.16); }
+.comp-icon.good { background: rgba(74, 124, 89, 0.16); color: var(--good); }
+.comp-icon.water { background: var(--water-soft); color: var(--water); }
 
 .comp-value {
   min-width: 84px;
@@ -802,6 +810,136 @@ canvas {
   background: var(--accent);
   transform: translateX(-50%);
 }
+
+/* ---- Anel de progresso (calorias + macros no Início) ---- */
+.ring {
+  --size: 108px;
+  width: var(--size);
+  height: var(--size);
+  border-radius: 50%;
+  background: conic-gradient(var(--ring-color, var(--accent)) calc(var(--pct, 0) * 1%), var(--border) 0);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  position: relative;
+}
+
+.ring::before {
+  content: '';
+  position: absolute;
+  inset: 10px;
+  border-radius: 50%;
+  background: var(--surface);
+}
+
+.ring-inner { position: relative; text-align: center; }
+.ring-inner .n { display: block; font-size: 1.3rem; font-weight: 700; line-height: 1.1; }
+.ring-inner .u { display: block; font-size: 0.6rem; color: var(--text-muted); font-weight: 600; margin-top: 1px; }
+
+.calorie-hero { display: flex; align-items: center; gap: 16px; }
+.calorie-hero-info { flex: 1; min-width: 0; }
+.calorie-hero-info .headline { font-size: 0.95rem; font-weight: 700; margin: 0 0 2px; }
+.calorie-hero-info .sub { font-size: 0.78rem; color: var(--text-muted); margin: 0; }
+
+.macro-ring-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(64px, 1fr));
+  gap: 8px;
+  margin-top: 14px;
+}
+
+.macro-ring-item { text-align: center; }
+
+.macro-ring {
+  --size: 46px;
+  width: var(--size);
+  height: var(--size);
+  margin: 0 auto 6px;
+  border-radius: 50%;
+  background: conic-gradient(var(--ring-color) calc(var(--pct, 0) * 1%), var(--border) 0);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+}
+
+.macro-ring::before {
+  content: '';
+  position: absolute;
+  inset: 6px;
+  border-radius: 50%;
+  background: var(--surface);
+}
+
+.macro-ring-label { position: relative; font-size: 0.6rem; font-weight: 700; }
+.macro-ring-name { display: block; font-size: 0.66rem; font-weight: 700; color: var(--ring-color); margin-bottom: 1px; }
+.macro-ring-grams { display: block; font-size: 0.64rem; color: var(--text-muted); }
+
+/* ---- Linha de estatística com barra fina (Água no Início) ---- */
+.stat-row { display: flex; align-items: center; gap: 12px; }
+.stat-icon {
+  width: 38px;
+  height: 38px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.05rem;
+  flex-shrink: 0;
+  background: var(--water-soft);
+  color: var(--water);
+}
+.stat-row-info { flex: 1; min-width: 0; }
+.stat-row-label { font-size: 0.76rem; color: var(--text-muted); font-weight: 600; }
+.stat-row-value { font-size: 1.1rem; font-weight: 700; line-height: 1.25; }
+.stat-row-unit { font-size: 0.74rem; font-weight: 400; color: var(--text-muted); }
+.stat-row-pct { font-size: 0.92rem; font-weight: 700; flex-shrink: 0; color: var(--water); }
+.stat-bar { height: 7px; border-radius: 999px; background: var(--border); overflow: hidden; margin-top: 10px; }
+.stat-bar-fill { height: 100%; border-radius: 999px; background: var(--water); }
+
+/* ---- Pastilhas compactas (status de hoje / refeição livre) ---- */
+.today-status-row { display: flex; gap: 6px; margin: 10px 0 2px; flex-wrap: wrap; }
+.today-status-chip {
+  font-size: 0.72rem;
+  font-weight: 600;
+  padding: 5px 10px;
+  border-radius: 999px;
+  background: var(--border);
+  color: var(--text-muted);
+}
+.today-status-chip.on { background: rgba(74, 124, 89, 0.16); color: var(--good); }
+
+.livre-status {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 0.66rem;
+  font-weight: 700;
+  padding: 3px 9px;
+  border-radius: 999px;
+  background: rgba(201, 150, 44, 0.18);
+  color: #c9962c;
+  margin-left: 8px;
+}
+
+.livre-progress-row { display: flex; gap: 6px; margin: 10px 0 4px; }
+.livre-day-chip {
+  flex: 1;
+  padding: 7px 0;
+  text-align: center;
+  border-radius: 10px;
+  font-size: 0.66rem;
+  font-weight: 700;
+  background: var(--border);
+  color: var(--text-muted);
+}
+.livre-day-chip.done { background: rgba(74, 124, 89, 0.16); color: var(--good); }
+.livre-day-chip.today { outline: 2px solid #c9962c; outline-offset: 1px; }
+
+.marco-illus { width: 72px; height: 72px; display: block; margin: 0 auto 8px; }
+.livre-card { border: 1px solid rgba(201, 150, 44, 0.35); }
+.livre-card h2 { display: flex; align-items: center; }
 
 /* ---- Composição corporal / Análise corporal (Medidas) ---- */
 .comp2-row { padding: 12px 0; }
@@ -1169,6 +1307,7 @@ canvas {
 }
 
 .auth-logo { font-size: 2.6rem; line-height: 1; }
+.auth-illus { width: 88px; height: 88px; display: block; margin: 0 auto; }
 .auth-box h1 { margin: 10px 0 6px; font-size: 1.4rem; }
 .auth-sub { color: var(--text-muted); font-size: 0.85rem; margin: 0 0 18px; }
 .auth-box .primary { margin-top: 0; }

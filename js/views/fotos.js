@@ -35,6 +35,7 @@ const ViewFotos = (() => {
         <div class="photo-grid" id="photo-grid">
           ${fotos.length === 0 ? `
             <div class="empty">
+              <img class="empty-illus" src="imagens/ilustracoes/fotos-vazio.png" alt="">
               Nenhuma foto ainda
               <div style="margin-top:10px"><button class="secondary" id="empty-cta-foto">+ Adicionar minha primeira foto</button></div>
             </div>

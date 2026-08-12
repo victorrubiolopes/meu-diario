@@ -12,6 +12,12 @@ const ViewInicio = (() => {
     oposto: '⚠️ Tendência oposta ao seu objetivo',
   };
 
+  // Ícones de linha (mesmo traço dos ícones da navegação inferior) pro card Composição corporal —
+  // ficam nítidos em qualquer tamanho e mudam de cor sozinhos com currentColor.
+  const ICON_PESO = `<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3.5" y="12.5" width="17" height="7.5" rx="2.5"/><path d="M7.3 12.5a4.7 4.7 0 0 1 9.4 0"/><circle cx="12" cy="16.2" r="0.6" fill="currentColor" stroke="none"/></svg>`;
+  const ICON_MASSA_MAGRA = `<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19V14.5"/><path d="M10 19V9.5"/><path d="M16 19V5.5"/><path d="M3.5 19h17"/></svg>`;
+  const ICON_GORDURA = `<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><line x1="6.5" y1="17.5" x2="17.5" y2="6.5"/><circle cx="8" cy="8" r="1.6" fill="currentColor" stroke="none"/><circle cx="16" cy="16" r="1.6" fill="currentColor" stroke="none"/></svg>`;
+
   // Uma linha do card "Composição corporal": ícone + valor + barra (verde = posição na faixa
   // de referência, marcador laranja = valor atual). pct null = sem dado suficiente pra calcular a barra.
   function compRowHtml(icon, valor, unidade, casas, pct, corIcone, semDadoLabel) {
@@ -43,6 +49,23 @@ const ViewInicio = (() => {
           <span class="val">${consumed.toFixed(0)}${unit} / ${target ? target.toFixed(0) : '—'}${unit}</span>
         </div>
         <div class="progress-track"><div class="progress-fill ${over ? 'over' : ''}" style="width:${pct}%"></div></div>
+      </div>
+    `;
+  }
+
+  // Anel de progresso genérico (calorias e macros no Início) — conic-gradient, sem lib de gráfico.
+  function ringHtml(pct, corVar, size, innerHtml) {
+    const p = Math.max(0, Math.min(100, pct || 0));
+    return `<div class="ring" style="--size:${size}px;--pct:${p};--ring-color:var(${corVar})"><div class="ring-inner">${innerHtml}</div></div>`;
+  }
+
+  function macroRingHtml(label, corVar, valor, alvo) {
+    const pct = alvo ? Math.min(100, Math.round((valor / alvo) * 100)) : 0;
+    return `
+      <div class="macro-ring-item">
+        <div class="macro-ring" style="--pct:${pct};--ring-color:var(${corVar})"><span class="macro-ring-label">${pct}%</span></div>
+        <span class="macro-ring-name" style="color:var(${corVar})">${label}</span>
+        <span class="macro-ring-grams">${valor.toFixed(0)}/${Math.round(alvo || 0)}g</span>
       </div>
     `;
   }
@@ -128,40 +151,46 @@ const ViewInicio = (() => {
     const el = RefeicaoLivre.elegibilidade(dateISO, meta, aguaMeta);
     const usadaHoje = RefeicaoLivre.protegida(dateISO);
 
+    const diasBatidos = el.detalheDias.filter(d => d.ok).length;
+    let badge = '';
     let corpo;
     if (el.ehFimDeSemana) {
       if (usadaHoje) {
+        badge = '<span class="livre-status">usada hoje</span>';
         corpo = `<p class="meta">🎉 Refeição livre usada hoje — esse dia conta como "em foco" na sua ofensiva de qualquer jeito.</p>`;
       } else if (el.podeUsarHoje) {
+        badge = '<span class="livre-status">disponível</span>';
         corpo = `
-          <p>Semana batida! Você tem <strong>${el.restantes}</strong> refeição${el.restantes === 1 ? '' : 'ões'} livre${el.restantes === 1 ? '' : 's'} disponível${el.restantes === 1 ? '' : 'eis'} esse fim de semana, sem quebrar sua ofensiva.</p>
-          <button class="secondary" id="usar-refeicao-livre">🍔 Usar refeição livre hoje</button>
+          <img class="marco-illus" src="imagens/ilustracoes/marco-desbloqueado.png" alt="">
+          <p style="text-align:center">Semana batida! Você tem <strong>${el.restantes}</strong> refeição${el.restantes === 1 ? '' : 'ões'} livre${el.restantes === 1 ? '' : 's'} disponível${el.restantes === 1 ? '' : 'eis'} esse fim de semana, sem quebrar sua ofensiva.</p>
+          <button class="secondary" id="usar-refeicao-livre" style="width:100%">🍔 Usar refeição livre hoje</button>
         `;
       } else if (el.elegivel && el.usosNaSemana >= 2) {
+        badge = '<span class="livre-status">usadas</span>';
         corpo = `<p class="meta">Você já usou as 2 refeições livres dessa semana. Volta semana que vem! 💪</p>`;
       } else {
+        badge = `<span class="livre-status">${diasBatidos}/5 dias</span>`;
         corpo = `<p class="meta">Essa semana não desbloqueou refeição livre — veja o que faltou abaixo.</p>`;
       }
     } else {
+      badge = `<span class="livre-status">${diasBatidos}/5 dias</span>`;
       corpo = `<p class="meta">Bata a meta de segunda a sexta (calorias, treino, água) pra liberar até 2 refeições livres no sábado/domingo, sem quebrar sua ofensiva.</p>`;
     }
 
-    const linhasDias = el.detalheDias.map(d => {
-      const dow = DOW_CURTO[Util.weekdayOf(d.date)];
-      let label;
-      if (d.futuro) label = `${dow} — ainda não chegou`;
-      else if (!d.preenchido) label = `${dow} — não preenchido`;
-      else label = `${dow} — ${d.caloriasOk ? 'calorias ok' : 'calorias fora da faixa'}, ${d.exercicioOk ? 'treino ok' : 'sem treino/corrida'}`;
-      return `<div class="task-item"><span class="task-check ${d.ok ? 'done' : ''}">${d.ok ? '✓' : ''}</span><span class="task-title ${d.ok ? 'done' : ''}">${label}</span></div>`;
+    const chipsDias = el.detalheDias.map(d => {
+      const dow = DOW_CURTO[Util.weekdayOf(d.date)].slice(0, 3);
+      const classe = d.futuro ? '' : d.ok ? 'done' : '';
+      const hoje = d.date === dateISO ? ' today' : '';
+      return `<div class="livre-day-chip ${classe}${hoje}">${dow}</div>`;
     }).join('');
-    const linhaAgua = `<div class="task-item"><span class="task-check ${el.aguaOk ? 'done' : ''}">${el.aguaOk ? '✓' : ''}</span><span class="task-title ${el.aguaOk ? 'done' : ''}">Água: ${el.diasAguaOk}/${el.diasAguaContados} dias (precisa ${el.diasAguaNecessarios})</span></div>`;
+    const linhaAgua = `<p class="meta" style="margin-top:8px">💧 Água: ${el.diasAguaOk}/${el.diasAguaContados} dias (precisa ${el.diasAguaNecessarios})</p>`;
 
     return `
-      <div class="card dashboard-section">
-        <h2>🍔 Refeição livre</h2>
+      <div class="card dashboard-section livre-card">
+        <h2>🍔 Refeição livre ${badge}</h2>
         ${corpo}
         <details style="margin-top:8px"><summary class="meta" style="cursor:pointer">Ver regra da semana</summary>
-          ${linhasDias}
+          <div class="livre-progress-row">${chipsDias}</div>
           ${linhaAgua}
         </details>
       </div>
@@ -173,6 +202,10 @@ const ViewInicio = (() => {
     const meta = calcularMetas(perfil);
     const comidas = Storage.getByDate('alimentacao', state.date);
     const kcalConsumido = comidas.reduce((s, e) => s + (e.kcal || 0), 0);
+    const macrosHoje = comidas.reduce((t, e) => {
+      t.carbs += e.carbs || 0; t.protein += e.protein || 0; t.fat += e.fat || 0; t.fiber += e.fiber || 0;
+      return t;
+    }, { carbs: 0, protein: 0, fat: 0, fiber: 0 });
     const aguaMeta = calcularMetaAgua(perfil);
     const aguaConsumida = Storage.getByDate('agua', state.date).reduce((s, a) => s + a.ml, 0);
 
@@ -220,28 +253,48 @@ const ViewInicio = (() => {
       <div class="card dashboard-section">
         <h2>Calorias hoje</h2>
         ${meta ? `
-          <div class="kcal-summary">
-            <div><div class="num">${kcalConsumido.toFixed(0)}</div><div class="lbl">Consumido</div></div>
-            <div><div class="num">${meta.kcal}</div><div class="lbl">Meta</div></div>
-            <div><div class="num">${(meta.kcal - kcalConsumido).toFixed(0)}</div><div class="lbl">${meta.kcal - kcalConsumido >= 0 ? 'Restante' : 'Excedeu'}</div></div>
+          <div class="calorie-hero">
+            ${ringHtml((kcalConsumido / meta.kcal) * 100, '--accent', 108, `<span class="n">${kcalConsumido.toFixed(0)}</span><span class="u">de ${meta.kcal} kcal</span>`)}
+            <div class="calorie-hero-info">
+              <p class="headline">${meta.kcal - kcalConsumido >= 0 ? `${(meta.kcal - kcalConsumido).toFixed(0)} kcal restantes` : `${(kcalConsumido - meta.kcal).toFixed(0)} kcal excedidas`}</p>
+              <p class="sub">${Math.round((kcalConsumido / meta.kcal) * 100)}% da meta de hoje</p>
+            </div>
           </div>
-          ${progressBar('Calorias', kcalConsumido, meta.kcal, '')}
-          <label style="margin-top:12px">🔥 Calorias extras gastas hoje ${gastoExistente && gastoExistente.source === 'auto' ? '(estimado a partir do treino/corrida)' : gastoExistente && gastoExistente.source === 'manual' ? '(ajustado manualmente)' : '(manual)'}</label>
+          <div class="macro-ring-grid">
+            ${macroRingHtml('Carbo', '--macro-carb', macrosHoje.carbs, meta.carb)}
+            ${macroRingHtml('Prot', '--macro-protein', macrosHoje.protein, meta.protein)}
+            ${macroRingHtml('Gord', '--macro-fat', macrosHoje.fat, meta.fat)}
+            ${meta.fiber ? macroRingHtml('Fibra', '--macro-fiber', macrosHoje.fiber, meta.fiber) : ''}
+          </div>
+          <label style="margin-top:14px">🔥 Calorias extras gastas hoje ${gastoExistente && gastoExistente.source === 'auto' ? '(estimado a partir do treino/corrida)' : gastoExistente && gastoExistente.source === 'manual' ? '(ajustado manualmente)' : '(manual)'}</label>
           <input type="number" id="gasto-extra-input" placeholder="Ex: 300" value="${gastoExtra || ''}">
           <p class="meta" style="font-size:0.72rem">Só informativo — não altera sua meta de calorias. Preenche sozinho quando você registra treino (com duração) ou corrida; edite se quiser ajustar.</p>
         ` : `<p class="empty">Complete seu perfil para ver sua meta de calorias.</p><button class="secondary" id="ir-perfil-calorias" style="margin-top:6px">Completar perfil →</button>`}
-        ${aguaMeta ? progressBar('💧 Água', aguaConsumida, aguaMeta, 'ml') : ''}
       </div>
+
+      ${aguaMeta ? `
+        <div class="card dashboard-section">
+          <div class="stat-row">
+            <div class="stat-icon">💧</div>
+            <div class="stat-row-info">
+              <div class="stat-row-label">Água</div>
+              <div class="stat-row-value">${aguaConsumida.toFixed(0)}<span class="stat-row-unit"> / ${aguaMeta.toFixed(0)}ml</span></div>
+            </div>
+            <div class="stat-row-pct">${Math.min(100, Math.round((aguaConsumida / aguaMeta) * 100))}%</div>
+          </div>
+          <div class="stat-bar"><div class="stat-bar-fill" style="width:${Math.min(100, (aguaConsumida / aguaMeta) * 100)}%"></div></div>
+        </div>
+      ` : ''}
 
       <div class="card dashboard-section">
         <h2>Composição corporal</h2>
         ${pesoAtual ? `
-          ${compRowHtml('⚖️', pesoVal, 'kg', 1, pesoPct, '', 'Peso não registrado')}
-          ${compRowHtml('💪', leanMassVal, 'kg', 1, magraPct, '', 'Massa magra não registrada')}
-          ${compRowHtml('🍃', bodyFatVal, '%', 1, gorduraPct, 'good', '% Gordura não registrada')}
+          ${compRowHtml(ICON_PESO, pesoVal, 'kg', 1, pesoPct, '', 'Peso não registrado')}
+          ${compRowHtml(ICON_MASSA_MAGRA, leanMassVal, 'kg', 1, magraPct, 'good', 'Massa magra não registrada')}
+          ${compRowHtml(ICON_GORDURA, bodyFatVal, '%', 1, gorduraPct, 'water', '% Gordura não registrada')}
           <p class="meta" style="margin-top:8px">${variacao != null ? `${variacao > 0 ? '+' : ''}${variacao.toFixed(1)}kg desde a última medição — ` : ''}medido em ${Util.fmtDate(pesoAtual.date)}</p>
           <p class="meta" style="font-size:0.68rem;margin-top:2px">Barras usam faixas de referência estimadas por altura/sexo (IMC saudável, % gordura de referência) — não substitui avaliação profissional.</p>
-        ` : `<p class="empty">Nenhuma medição registrada ainda</p><button class="secondary" id="ir-medidas-composicao" style="margin-top:6px">Registrar peso →</button>`}
+        ` : `<div class="empty"><img class="empty-illus" src="imagens/ilustracoes/medidas-vazio.png" alt="">Nenhuma medição registrada ainda</div><button class="secondary" id="ir-medidas-composicao" style="margin-top:6px">Registrar peso →</button>`}
       </div>
 
       ${proximaRefeicao ? `
@@ -260,17 +313,10 @@ const ViewInicio = (() => {
           <div class="meta">dia${diasFoco.streak === 1 ? '' : 's'} seguido${diasFoco.streak === 1 ? '' : 's'} em foco</div>
         </div>
         <p class="meta">Hoje, pra manter o foco:</p>
-        <div class="task-item">
-          <span class="task-check ${diasFoco.hoje.exercicioOk ? 'done' : ''}">${diasFoco.hoje.exercicioOk ? '✓' : ''}</span>
-          <span class="task-title ${diasFoco.hoje.exercicioOk ? 'done' : ''}">Treino ou corrida registrada</span>
-        </div>
-        <div class="task-item">
-          <span class="task-check ${diasFoco.hoje.caloriasOk ? 'done' : ''}">${diasFoco.hoje.caloriasOk ? '✓' : ''}</span>
-          <span class="task-title ${diasFoco.hoje.caloriasOk ? 'done' : ''}">Dentro da meta de calorias</span>
-        </div>
-        <div class="task-item">
-          <span class="task-check ${diasFoco.hoje.aguaOk ? 'done' : ''}">${diasFoco.hoje.aguaOk ? '✓' : ''}</span>
-          <span class="task-title ${diasFoco.hoje.aguaOk ? 'done' : ''}">Meta de água batida</span>
+        <div class="today-status-row">
+          <span class="today-status-chip ${diasFoco.hoje.exercicioOk ? 'on' : ''}">${diasFoco.hoje.exercicioOk ? '✓ ' : ''}Treino</span>
+          <span class="today-status-chip ${diasFoco.hoje.caloriasOk ? 'on' : ''}">${diasFoco.hoje.caloriasOk ? '✓ ' : ''}Calorias</span>
+          <span class="today-status-chip ${diasFoco.hoje.aguaOk ? 'on' : ''}">${diasFoco.hoje.aguaOk ? '✓ ' : ''}Água</span>
         </div>
       </div>
 
