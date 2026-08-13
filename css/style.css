@@ -282,6 +282,27 @@ label {
   margin: 10px 0 4px;
 }
 
+.livre-refeicoes-check {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 16px;
+}
+
+.check-item {
+  display: flex !important;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.85rem;
+  color: var(--text);
+  margin: 0 !important;
+}
+
+.check-item input[type="checkbox"] {
+  width: 16px;
+  height: 16px;
+  accent-color: var(--accent);
+}
+
 label:first-child { margin-top: 0; }
 
 textarea, input[type="text"], input[type="number"], input[type="date"], select {

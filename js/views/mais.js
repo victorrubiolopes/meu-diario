@@ -10,6 +10,7 @@ const ViewMais = (() => {
     { key: 'planos-treino', icon: '🔄', label: 'Planos de Treino' },
     { key: 'combos', icon: '🥗', label: 'Combos de Refeição' },
     { key: 'dietas-custom', icon: '📋', label: 'Minhas Dietas' },
+    { key: 'refeicao-livre', icon: '🍔', label: 'Refeição Livre' },
     { key: 'backup', icon: '💾', label: 'Backup' },
   ];
 
@@ -25,6 +26,7 @@ const ViewMais = (() => {
       case 'planos-treino': return renderPlanosTreino($app, state, api);
       case 'combos': return renderCombos($app, state, api);
       case 'dietas-custom': return renderDietasCustom($app, state, api);
+      case 'refeicao-livre': return renderRegrasRefeicaoLivre($app, state, api);
       case 'backup': return renderBackup($app, state, api);
       case 'admin': return renderAdmin($app, state, api);
       default: return renderMenu($app, state, api);
@@ -331,6 +333,69 @@ const ViewMais = (() => {
 
     document.getElementById('go-dietas-custom').addEventListener('click', () => {
       api.goToMais('dietas-custom');
+    });
+  }
+
+  // ---------------- REGRAS DA REFEIÇÃO LIVRE ----------------
+  function renderRegrasRefeicaoLivre($app, state, api) {
+    const cfg = RefeicaoLivre.getConfig();
+
+    $app.innerHTML = `
+      <div class="card">
+        <h2>🍔 Regras da refeição livre</h2>
+        <p class="meta">Ajuste como a semana (segunda a sexta) precisa ser batida pra liberar refeições livres no fim de semana, sem quebrar sua ofensiva.</p>
+
+        <label>Calorias: no máximo quanto % acima da meta (por dia)?</label>
+        <input type="number" id="rl-tolerancia" min="0" max="100" step="1" value="${cfg.toleranciaMaxPct}">
+        <p class="meta" style="font-size:0.75rem">Ficar abaixo da meta nunca conta contra — só ultrapassar esse limite reprova o dia.</p>
+
+        <label style="margin-top:10px">Refeições obrigatórias no dia</label>
+        <div class="livre-refeicoes-check">
+          ${RefeicaoLivre.TODAS_REFEICOES.map(r => `
+            <label class="check-item">
+              <input type="checkbox" data-rl-refeicao value="${Util.escapeHtml(r)}" ${cfg.refeicoesObrigatorias.includes(r) ? 'checked' : ''}>
+              ${Util.escapeHtml(r)}
+            </label>
+          `).join('')}
+        </div>
+
+        <label style="margin-top:10px">Água: em pelo menos quanto % dos dias da semana (seg-dom)?</label>
+        <input type="number" id="rl-agua" min="0" max="100" step="1" value="${cfg.aguaPercentMin}">
+
+        <label style="margin-top:10px">Quantas refeições livres por semana</label>
+        <input type="number" id="rl-usos" min="1" max="7" step="1" value="${cfg.maxUsosSemana}">
+
+        <div class="row" style="margin-top:12px">
+          <button class="secondary" id="rl-restaurar">Restaurar padrão</button>
+          <button class="primary" id="rl-salvar">Salvar regras</button>
+        </div>
+      </div>
+    `;
+
+    function preencherCampos(c) {
+      document.getElementById('rl-tolerancia').value = c.toleranciaMaxPct;
+      document.getElementById('rl-agua').value = c.aguaPercentMin;
+      document.getElementById('rl-usos').value = c.maxUsosSemana;
+      $app.querySelectorAll('[data-rl-refeicao]').forEach(chk => {
+        chk.checked = c.refeicoesObrigatorias.includes(chk.value);
+      });
+    }
+
+    document.getElementById('rl-salvar').addEventListener('click', () => {
+      const refeicoesObrigatorias = Array.from($app.querySelectorAll('[data-rl-refeicao]:checked')).map(chk => chk.value);
+      const novaConfig = {
+        toleranciaMaxPct: Math.max(0, Number(document.getElementById('rl-tolerancia').value) || 0),
+        refeicoesObrigatorias,
+        aguaPercentMin: Math.min(100, Math.max(0, Number(document.getElementById('rl-agua').value) || 0)),
+        maxUsosSemana: Math.max(1, Number(document.getElementById('rl-usos').value) || 1),
+      };
+      RefeicaoLivre.saveConfig(novaConfig);
+      alert('Regras da refeição livre salvas!');
+      api.render();
+    });
+
+    document.getElementById('rl-restaurar').addEventListener('click', () => {
+      preencherCampos(RefeicaoLivre.CONFIG_PADRAO);
     });
   }
 

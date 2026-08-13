@@ -73,6 +73,19 @@ const Storage = (() => {
     localStorage.setItem('perfil', JSON.stringify(data));
   }
 
+  // ---- config da refeição livre (objeto único, null se nunca configurado) ----
+  function getConfigRefeicaoLivre() {
+    try {
+      return JSON.parse(localStorage.getItem('refeicaoLivre_config') || 'null');
+    } catch {
+      return null;
+    }
+  }
+
+  function saveConfigRefeicaoLivre(data) {
+    localStorage.setItem('refeicaoLivre_config', JSON.stringify(data));
+  }
+
   // ---- bibliotecas: seed padrão + itens do usuário, mesclados e cacheados ----
   function seedIfEmpty(key, seedData) {
     const current = getAll(key);
@@ -101,6 +114,7 @@ const Storage = (() => {
     const data = {};
     Object.keys(KEYS).forEach(k => { data[k] = getAll(k); });
     data.perfil = getPerfil();
+    data.refeicaoLivre_config = getConfigRefeicaoLivre();
     data._exportedAt = new Date().toISOString();
     return data;
   }
@@ -110,10 +124,12 @@ const Storage = (() => {
       if (Array.isArray(data[k])) saveAll(k, data[k]);
     });
     if (data.perfil) savePerfil(data.perfil);
+    if (data.refeicaoLivre_config) saveConfigRefeicaoLivre(data.refeicaoLivre_config);
   }
 
   return {
     KEYS, uid, getAll, saveAll, getByDate, add, update, remove,
-    getPerfil, savePerfil, seedIfEmpty, mergeSeeds, exportAll, importAll,
+    getPerfil, savePerfil, getConfigRefeicaoLivre, saveConfigRefeicaoLivre,
+    seedIfEmpty, mergeSeeds, exportAll, importAll,
   };
 })();

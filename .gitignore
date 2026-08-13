@@ -2,3 +2,4 @@
 node_modules/
 .firebase/
 ferramentas/gemini-imagens/saida/
+*firebase-adminsdk*.json
