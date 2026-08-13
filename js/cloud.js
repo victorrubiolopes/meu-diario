@@ -372,6 +372,13 @@ const Cloud = (() => {
         mudou = true;
       }
 
+      // Regras de refeição livre prescritas pela nutri → substituem a config local do
+      // paciente (ele ainda pode ajustar depois em Mais → Refeição Livre).
+      if (d.refeicaoLivreConfig) {
+        localStorage.setItem('refeicaoLivre_config', JSON.stringify(d.refeicaoLivreConfig));
+        mudou = true;
+      }
+
       if (mudou) emit();
     } catch (e) { console.error('Aplicar prescrição falhou', e); }
   }
@@ -414,6 +421,12 @@ const Cloud = (() => {
   async function enviarTreino(uidAlvo, planosTreino) {
     await db.collection('prescricoes').doc(uidAlvo).set(
       { planosTreino, updatedAt: Date.now(), byUid: user.uid }, { merge: true }
+    );
+  }
+
+  async function enviarRegrasRefeicaoLivre(uidAlvo, config) {
+    await db.collection('prescricoes').doc(uidAlvo).set(
+      { refeicaoLivreConfig: config, updatedAt: Date.now(), byUid: user.uid }, { merge: true }
     );
   }
 
@@ -506,7 +519,7 @@ const Cloud = (() => {
   return {
     init, wrapStorage, isEnabled, currentUser, getStatus, onChange,
     loginGoogle, loginEmail, signupEmail, logout, push,
-    isAdmin, isSuperAdmin, uid, listarUsuarios, dadosUsuario, prescricaoDe, enviarDieta, enviarPlano, enviarTreino, enviarListaCompras,
+    isAdmin, isSuperAdmin, uid, listarUsuarios, dadosUsuario, prescricaoDe, enviarDieta, enviarPlano, enviarTreino, enviarListaCompras, enviarRegrasRefeicaoLivre,
     gerarConviteLink, listarNutris, reatribuirPaciente,
     sugerirVideo, listarVideosPendentes, aprovarVideoPendente, rejeitarVideoPendente,
     sugerirReceita, listarReceitasPendentes, aprovarReceitaPendente, rejeitarReceitaPendente,

@@ -75,9 +75,19 @@ const ViewInicio = (() => {
     const treinoDatas = new Set(Storage.getAll('treino').map(t => t.date));
     const corridaDatas = new Set(Storage.getAll('corridas').map(c => c.date));
     const kcalPorData = {};
-    Storage.getAll('alimentacao').forEach(e => { kcalPorData[e.date] = (kcalPorData[e.date] || 0) + (e.kcal || 0); });
+    const refeicoesPorData = {};
+    Storage.getAll('alimentacao').forEach(e => {
+      kcalPorData[e.date] = (kcalPorData[e.date] || 0) + (e.kcal || 0);
+      if (!refeicoesPorData[e.date]) refeicoesPorData[e.date] = new Set();
+      refeicoesPorData[e.date].add(e.mealType);
+    });
     const aguaPorData = {};
     Storage.getAll('agua').forEach(a => { aguaPorData[a.date] = (aguaPorData[a.date] || 0) + (a.ml || 0); });
+    // Mesma regra de "refeições obrigatórias" da Refeição Livre (Mais → Refeição Livre),
+    // pra não ter duas definições diferentes do que é "um dia completo de alimentação".
+    const refeicoesObrigatorias = typeof RefeicaoLivre !== 'undefined'
+      ? RefeicaoLivre.getConfig().refeicoesObrigatorias
+      : ['Café da manhã', 'Almoço', 'Jantar'];
 
     function checar(date) {
       if (typeof RefeicaoLivre !== 'undefined' && RefeicaoLivre.protegida(date)) {
@@ -85,7 +95,9 @@ const ViewInicio = (() => {
       }
       const exercicioOk = treinoDatas.has(date) || corridaDatas.has(date);
       const kcalDia = kcalPorData[date] || 0;
-      const caloriasOk = !!meta && kcalDia > 0 && kcalDia <= meta.kcal;
+      const refeicoesDoDia = refeicoesPorData[date] || new Set();
+      const refeicoesOk = refeicoesObrigatorias.every(r => refeicoesDoDia.has(r));
+      const caloriasOk = !!meta && kcalDia > 0 && kcalDia <= meta.kcal && refeicoesOk;
       const aguaDia = aguaPorData[date] || 0;
       const aguaOk = !!aguaMeta && aguaDia >= aguaMeta;
       return { exercicioOk, caloriasOk, aguaOk, ok: exercicioOk && caloriasOk && aguaOk };
@@ -367,7 +379,7 @@ const ViewInicio = (() => {
         <p>${corridasHoje.length > 0 ? `✅ ${corridasHoje.length} corrida(s) registrada(s)` : '⬜ Nenhuma corrida registrada hoje'}</p>
       </div>
 
-      ${typeof CHANGELOG !== 'undefined' && CHANGELOG.length > 0 && (typeof Cloud === 'undefined' || !Cloud.isEnabled() || (typeof Cloud.isAdmin === 'function' && Cloud.isAdmin())) ? `
+      ${typeof CHANGELOG !== 'undefined' && CHANGELOG.length > 0 && (typeof Cloud === 'undefined' || !Cloud.isEnabled() || (typeof Cloud.isSuperAdmin === 'function' && Cloud.isSuperAdmin())) ? `
         <div class="card dashboard-section" style="padding:10px 14px">
           <p class="meta" style="font-size:0.7rem;font-weight:600;margin-bottom:4px">🆕 Últimas atualizações</p>
           ${CHANGELOG.slice(0, 4).map(c => `

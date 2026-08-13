@@ -1208,6 +1208,7 @@ const ViewMais = (() => {
           <div style="flex:0 0 auto"><button class="secondary" id="admin-invite-copy">copiar</button></div>
         </div>
       </div>
+      ${souSuperAdmin ? `
       <div class="card">
         <h2>🎬 Vídeos para aprovar</h2>
         <div id="admin-videos"><div class="empty">Carregando…</div></div>
@@ -1216,6 +1217,7 @@ const ViewMais = (() => {
         <h2>🍲 Receitas para aprovar</h2>
         <div id="admin-receitas"><div class="empty">Carregando…</div></div>
       </div>
+      ` : ''}
       <div class="card">
         <h2>👥 ${souSuperAdmin ? 'Todos os pacientes (todas as nutris)' : 'Seus pacientes'}</h2>
         ${souSuperAdmin ? '<p class="meta"><span class="badge pr">super-admin</span> Você vê pacientes de todas as nutris.</p>' : ''}
@@ -1279,7 +1281,7 @@ const ViewMais = (() => {
         });
       }).catch(e => { videosEl.innerHTML = `<div class="empty">Erro: ${Util.escapeHtml(e.message || '')}</div>`; });
     }
-    carregarVideos();
+    if (souSuperAdmin) carregarVideos();
 
     // O paciente só manda nome + ingredientes em texto; o admin monta a conta de verdade
     // aqui (ingrediente por ingrediente da biblioteca + peso final) antes de adicionar.
@@ -1455,7 +1457,7 @@ const ViewMais = (() => {
         } catch (e) { btnSalvar.textContent = 'erro'; }
       });
     }
-    carregarReceitas();
+    if (souSuperAdmin) carregarReceitas();
 
     function formatarUltimaAtividade(ts) {
       if (!ts) return 'nunca';
@@ -1563,11 +1565,13 @@ const ViewMais = (() => {
         </div>
         <div id="admin-plano"></div>
         <div id="admin-lista-compras"></div>
+        <div id="admin-refeicao-livre"></div>
         <div id="admin-treino"></div>
         <div id="admin-reatribuir"></div>
       `;
       montarPlano(uid, presc);
       montarListaCompras(uid, presc);
+      montarRegrasRefeicaoLivre(uid, presc);
       montarTreino(uid, presc);
       montarReatribuir(uid, info);
       const diarioConteudo = detailEl.querySelector('#ad-diario-conteudo');
@@ -1874,6 +1878,56 @@ const ViewMais = (() => {
         if (!texto) { msg.textContent = 'Escreva ou preencha a lista antes de enviar.'; return; }
         msg.textContent = 'Enviando…';
         try { await Cloud.enviarListaCompras(uid, texto); msg.textContent = '✅ Lista enviada! O paciente já vê em Alimentação.'; }
+        catch (e) { msg.textContent = '⚠️ Falha: ' + (e.message || ''); }
+      });
+    }
+
+    // Regras de refeição livre: a nutri pode já deixar pré-configurado pro paciente
+    // (mesmos campos que o próprio paciente edita em Mais → Refeição Livre). Ele ainda
+    // pode ajustar depois — isso só preenche um ponto de partida.
+    function montarRegrasRefeicaoLivre(uid, presc) {
+      const cont = detailEl.querySelector('#admin-refeicao-livre');
+      if (!cont) return;
+      const cfg = { ...RefeicaoLivre.CONFIG_PADRAO, ...(presc && presc.refeicaoLivreConfig) };
+      cont.innerHTML = `
+        <div class="card">
+          <h3 style="font-size:0.92rem;margin:0 0 8px">🍔 Regras da refeição livre</h3>
+          <p class="meta">Pré-configure as regras da semana pra esse paciente. Ele ainda pode ajustar depois no app dele.</p>
+
+          <label>Calorias: no máximo quanto % acima da meta (por dia)?</label>
+          <input type="number" id="arl-tolerancia" min="0" max="100" step="1" value="${cfg.toleranciaMaxPct}">
+
+          <label style="margin-top:10px">Refeições obrigatórias no dia</label>
+          <div class="livre-refeicoes-check">
+            ${RefeicaoLivre.TODAS_REFEICOES.map(r => `
+              <label class="check-item">
+                <input type="checkbox" data-arl-refeicao value="${Util.escapeHtml(r)}" ${cfg.refeicoesObrigatorias.includes(r) ? 'checked' : ''}>
+                ${Util.escapeHtml(r)}
+              </label>
+            `).join('')}
+          </div>
+
+          <label style="margin-top:10px">Água: em pelo menos quanto % dos dias da semana?</label>
+          <input type="number" id="arl-agua" min="0" max="100" step="1" value="${cfg.aguaPercentMin}">
+
+          <label style="margin-top:10px">Quantas refeições livres por semana</label>
+          <input type="number" id="arl-usos" min="1" max="7" step="1" value="${cfg.maxUsosSemana}">
+
+          <button class="primary" id="arl-enviar" style="margin-top:12px">Enviar regras</button>
+          <p class="meta" id="arl-msg" style="margin-top:6px"></p>
+        </div>
+      `;
+      cont.querySelector('#arl-enviar').addEventListener('click', async () => {
+        const refeicoesObrigatorias = Array.from(cont.querySelectorAll('[data-arl-refeicao]:checked')).map(chk => chk.value);
+        const novaConfig = {
+          toleranciaMaxPct: Math.max(0, Number(cont.querySelector('#arl-tolerancia').value) || 0),
+          refeicoesObrigatorias,
+          aguaPercentMin: Math.min(100, Math.max(0, Number(cont.querySelector('#arl-agua').value) || 0)),
+          maxUsosSemana: Math.max(1, Number(cont.querySelector('#arl-usos').value) || 1),
+        };
+        const msg = cont.querySelector('#arl-msg');
+        msg.textContent = 'Enviando…';
+        try { await Cloud.enviarRegrasRefeicaoLivre(uid, novaConfig); msg.textContent = '✅ Regras enviadas! Já valem no app do paciente.'; }
         catch (e) { msg.textContent = '⚠️ Falha: ' + (e.message || ''); }
       });
     }
