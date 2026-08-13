@@ -449,11 +449,46 @@ const Cloud = (() => {
     await db.collection('pendingVideos').doc(pendingId).delete();
   }
 
+  // ---- Receitas: sugestão (usuário monta ingredientes+peso final, app já calcula) e
+  // aprovação (admin) — mesmo padrão dos vídeos, mas aplicado à biblioteca de alimentos.
+  async function aplicarAlimentoCompartilhado(entry) {
+    const q = await db.collection('sharedFoods').where('name', '==', entry.name).limit(1).get();
+    if (!q.empty) await q.docs[0].ref.set(entry, { merge: true });
+    else await db.collection('sharedFoods').add({ ...entry, addedBy: user.uid });
+  }
+
+  // entry: o alimento já calculado (name, portionLabel, portionGrams, kcal, protein...).
+  // ingredientes/pesoFinalGramas: guardados só pra quem for revisar conferir a conta.
+  async function sugerirReceita(entry, ingredientes, pesoFinalGramas) {
+    if (!enabled || !user || !db || !entry || !entry.name) return;
+    try {
+      if (isAdminFlag) await aplicarAlimentoCompartilhado(entry);
+      else await db.collection('pendingRecipes').add({
+        entry, ingredientes, pesoFinalGramas, byUid: user.uid, byEmail: user.email || '', createdAt: Date.now(),
+      });
+    } catch (e) { console.error('Sugerir receita falhou', e); }
+  }
+
+  async function listarReceitasPendentes() {
+    const snap = await db.collection('pendingRecipes').get();
+    const arr = [];
+    snap.forEach(doc => arr.push({ id: doc.id, ...doc.data() }));
+    return arr;
+  }
+  async function aprovarReceitaPendente(pendingId, entry) {
+    await aplicarAlimentoCompartilhado(entry);
+    await db.collection('pendingRecipes').doc(pendingId).delete();
+  }
+  async function rejeitarReceitaPendente(pendingId) {
+    await db.collection('pendingRecipes').doc(pendingId).delete();
+  }
+
   return {
     init, wrapStorage, isEnabled, currentUser, getStatus, onChange,
     loginGoogle, loginEmail, signupEmail, logout, push,
     isAdmin, isSuperAdmin, uid, listarUsuarios, dadosUsuario, prescricaoDe, enviarDieta, enviarPlano, enviarTreino,
     gerarConviteLink, listarNutris, reatribuirPaciente,
     sugerirVideo, listarVideosPendentes, aprovarVideoPendente, rejeitarVideoPendente,
+    sugerirReceita, listarReceitasPendentes, aprovarReceitaPendente, rejeitarReceitaPendente,
   };
 })();

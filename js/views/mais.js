@@ -499,6 +499,23 @@ const ViewMais = (() => {
         <button class="primary" id="add-food">Adicionar à biblioteca</button>
       </div>
       <div class="card">
+        <h2>🍲 Sugerir uma receita</h2>
+        <p class="meta">Monte com os ingredientes e as quantidades, informe o peso da receita já pronta, e o app calcula sozinho as calorias por 100g — sem precisar preencher a tabela nutricional na mão.</p>
+        <label>Nome da receita</label>
+        <input type="text" id="rc-nome" placeholder="Ex: Frango com quinoa da vovó">
+        <label>Adicionar ingrediente</label>
+        <div class="autocomplete-wrap">
+          <input type="text" id="rc-food-search" placeholder="Buscar na biblioteca..." autocomplete="off">
+          <div class="autocomplete-list" id="rc-food-results" style="display:none"></div>
+        </div>
+        <div id="rc-selected-food-box"></div>
+        <div id="rc-itens-list" style="margin-top:12px"></div>
+        <label style="margin-top:10px">Peso da receita já pronta (gramas)</label>
+        <input type="number" id="rc-peso-final" placeholder="Ex: 850">
+        <div id="rc-preview" class="meta" style="margin-top:8px"></div>
+        <button class="primary" id="rc-enviar" style="margin-top:8px">Enviar receita</button>
+      </div>
+      <div class="card">
         <h2>Alimentos cadastrados (${lib.length})</h2>
         <input type="text" id="food-filter" placeholder="Buscar..." style="margin-bottom:10px">
         <div id="food-lib-list">${libListHtml(lib)}</div>
@@ -531,6 +548,117 @@ const ViewMais = (() => {
         entry[k] = Number(document.getElementById(`f-${k}`).value) || 0;
       });
       Storage.add('alimentos_biblioteca', entry);
+      api.render();
+    });
+
+    // ---- Sugerir receita: ingredientes (mesmo padrão do combo) + peso final calcula sozinho ----
+    let receitaItens = [];
+    const rcSearchInput = document.getElementById('rc-food-search');
+    const rcResultsBox = document.getElementById('rc-food-results');
+
+    function rcUpdatePreview() {
+      const previewEl = document.getElementById('rc-preview');
+      const pesoFinal = Number(document.getElementById('rc-peso-final').value) || 0;
+      if (receitaItens.length === 0 || pesoFinal <= 0) { previewEl.textContent = ''; return; }
+      const totais = {};
+      NUTRI_FIELDS_COMBO.forEach(f => { totais[f] = receitaItens.reduce((s, it) => s + (it[f] || 0), 0); });
+      const fator = 100 / pesoFinal;
+      previewEl.innerHTML = `Por 100g da receita pronta: <strong>${Math.round(totais.kcal * fator)} kcal</strong> · P ${(totais.protein * fator).toFixed(1)}g · C ${(totais.carbs * fator).toFixed(1)}g · G ${(totais.fat * fator).toFixed(1)}g · Fibra ${(totais.fiber * fator).toFixed(1)}g`;
+    }
+
+    function rcRenderItensList() {
+      const wrap = document.getElementById('rc-itens-list');
+      if (receitaItens.length === 0) {
+        wrap.innerHTML = '<div class="empty">Nenhum ingrediente adicionado ainda</div>';
+      } else {
+        wrap.innerHTML = receitaItens.map((it, i) => `
+          <div class="list-item">
+            <div>
+              <div>${Util.escapeHtml(it.foodName)} ${it.qty !== 1 ? `<span class="meta">(${it.qty}x)</span>` : ''}</div>
+              <div class="meta">${it.kcal} kcal · P ${it.protein}g · C ${it.carbs}g · G ${it.fat}g</div>
+            </div>
+            <button class="link" data-rc-remove-item="${i}">✕</button>
+          </div>
+        `).join('');
+        wrap.querySelectorAll('[data-rc-remove-item]').forEach(btn => {
+          btn.addEventListener('click', () => {
+            receitaItens.splice(Number(btn.dataset.rcRemoveItem), 1);
+            rcRenderItensList();
+          });
+        });
+      }
+      rcUpdatePreview();
+    }
+    rcRenderItensList();
+
+    document.getElementById('rc-peso-final').addEventListener('input', rcUpdatePreview);
+
+    rcSearchInput.addEventListener('input', () => {
+      const q = rcSearchInput.value.trim().toLowerCase();
+      document.getElementById('rc-selected-food-box').innerHTML = '';
+      if (!q) { rcResultsBox.style.display = 'none'; return; }
+      const libAll = Storage.getAll('alimentos_biblioteca');
+      const matches = libAll.filter(f => f.name.toLowerCase().includes(q)).slice(0, 8);
+      rcResultsBox.innerHTML = matches.length === 0
+        ? `<div class="autocomplete-item">Nenhum resultado</div>`
+        : matches.map(f => `<div class="autocomplete-item" data-id="${f.id}">${Util.escapeHtml(f.name)}<div class="meta">${f.kcal} kcal / ${f.portionLabel}</div></div>`).join('');
+      rcResultsBox.style.display = '';
+      rcResultsBox.querySelectorAll('[data-id]').forEach(el => {
+        el.addEventListener('click', () => rcSelectFood(libAll.find(f => f.id === el.dataset.id)));
+      });
+    });
+
+    function rcSelectFood(food) {
+      rcSearchInput.value = food.name;
+      rcResultsBox.style.display = 'none';
+      document.getElementById('rc-selected-food-box').innerHTML = `
+        <div class="row">
+          <div><label>Porções (de ${Util.escapeHtml(food.portionLabel)})</label><input type="number" id="rc-qty-input" value="1" min="0.01" step="0.1"></div>
+          <div><label>ou gramas direto</label><input type="number" id="rc-qty-grams-input" value="${food.portionGrams}" min="1" step="1"></div>
+        </div>
+        <button class="secondary" id="rc-add-item" style="margin-top:8px">Adicionar ingrediente</button>
+      `;
+      const qtyInput = document.getElementById('rc-qty-input');
+      const gramsInput = document.getElementById('rc-qty-grams-input');
+      qtyInput.addEventListener('input', () => {
+        gramsInput.value = Math.round((Number(qtyInput.value) || 0) * food.portionGrams * 10) / 10;
+      });
+      gramsInput.addEventListener('input', () => {
+        qtyInput.value = Math.round(((Number(gramsInput.value) || 0) / food.portionGrams) * 1000) / 1000;
+      });
+      document.getElementById('rc-add-item').addEventListener('click', () => {
+        const qty = Number(qtyInput.value) || 1;
+        const item = { foodName: food.name, qty };
+        NUTRI_FIELDS_COMBO.forEach(f => { item[f] = Math.round((food[f] || 0) * qty * 10) / 10; });
+        receitaItens.push(item);
+        rcSearchInput.value = '';
+        document.getElementById('rc-selected-food-box').innerHTML = '';
+        rcRenderItensList();
+      });
+    }
+
+    document.getElementById('rc-enviar').addEventListener('click', async () => {
+      const nome = document.getElementById('rc-nome').value.trim();
+      const pesoFinal = Number(document.getElementById('rc-peso-final').value) || 0;
+      if (!nome || receitaItens.length === 0 || pesoFinal <= 0) {
+        alert('Preencha o nome da receita, pelo menos 1 ingrediente e o peso da receita pronta.');
+        return;
+      }
+      const totais = {};
+      NUTRI_FIELDS_COMBO.forEach(f => { totais[f] = receitaItens.reduce((s, it) => s + (it[f] || 0), 0); });
+      const fator = 100 / pesoFinal;
+      const entry = { name: nome, portionLabel: '100g', portionGrams: 100, custom: true };
+      NUTRI_FIELDS_COMBO.forEach(f => { entry[f] = Math.round(totais[f] * fator * 10) / 10; });
+
+      Storage.add('alimentos_biblioteca', entry);
+      if (typeof Cloud !== 'undefined' && Cloud.isEnabled() && Cloud.currentUser() && Cloud.sugerirReceita) {
+        try { await Cloud.sugerirReceita(entry, receitaItens, pesoFinal); } catch (e) { /* segue só local */ }
+        alert((typeof Cloud.isAdmin === 'function' && Cloud.isAdmin())
+          ? 'Receita adicionada à biblioteca de todo mundo!'
+          : 'Receita adicionada à sua biblioteca e enviada pra revisão — assim que aprovada, entra pra todo mundo.');
+      } else {
+        alert('Receita adicionada à biblioteca!');
+      }
       api.render();
     });
   }
@@ -1118,7 +1246,7 @@ const ViewMais = (() => {
     }
     if (tendencia) {
       linhas.push(`Tendência esperada pela dieta: ${tendencia.taxaEsperada >= 0 ? '+' : ''}${tendencia.taxaEsperada.toFixed(2)}kg/semana`);
-      linhas.push(`Tendência real (histórico completo, ${tendencia.dias} dias): ${tendencia.taxaReal >= 0 ? '+' : ''}${tendencia.taxaReal.toFixed(2)}kg/semana`);
+      linhas.push(`Tendência real (${tendencia.janelaRecente ? 'últimos' : 'todo o histórico,'} ${tendencia.dias} dias): ${tendencia.taxaReal >= 0 ? '+' : ''}${tendencia.taxaReal.toFixed(2)}kg/semana`);
     }
     linhas.push('');
 
@@ -1180,6 +1308,10 @@ const ViewMais = (() => {
         <div id="admin-videos"><div class="empty">Carregando…</div></div>
       </div>
       <div class="card">
+        <h2>🍲 Receitas para aprovar</h2>
+        <div id="admin-receitas"><div class="empty">Carregando…</div></div>
+      </div>
+      <div class="card">
         <h2>👥 ${souSuperAdmin ? 'Todos os pacientes (todas as nutris)' : 'Seus pacientes'}</h2>
         ${souSuperAdmin ? '<p class="meta"><span class="badge pr">super-admin</span> Você vê pacientes de todas as nutris.</p>' : ''}
         <p class="meta">Toque para ver o resumo e enviar uma dieta.</p>
@@ -1190,6 +1322,7 @@ const ViewMais = (() => {
     const usersEl = $app.querySelector('#admin-users');
     const detailEl = $app.querySelector('#admin-detail');
     const videosEl = $app.querySelector('#admin-videos');
+    const receitasEl = $app.querySelector('#admin-receitas');
 
     const inviteInput = $app.querySelector('#admin-invite-link');
     Cloud.gerarConviteLink().then(link => { inviteInput.value = link; })
@@ -1235,6 +1368,42 @@ const ViewMais = (() => {
       }).catch(e => { videosEl.innerHTML = `<div class="empty">Erro: ${Util.escapeHtml(e.message || '')}</div>`; });
     }
     carregarVideos();
+
+    function carregarReceitas() {
+      Cloud.listarReceitasPendentes().then(recs => {
+        if (!recs.length) { receitasEl.innerHTML = '<div class="empty">Nenhuma receita pendente.</div>'; return; }
+        receitasEl.innerHTML = recs.map(r => {
+          const e = r.entry || {};
+          return `
+            <div class="list-item" data-rid="${Util.escapeHtml(r.id)}" style="display:block">
+              <strong>${Util.escapeHtml(e.name || '')}</strong>
+              <div class="meta">sugerido por ${Util.escapeHtml(r.byEmail || r.byUid || '')}</div>
+              <div class="meta">${e.kcal ?? 0} kcal / 100g · P ${e.protein ?? 0}g · C ${e.carbs ?? 0}g · G ${e.fat ?? 0}g · Fibra ${e.fiber ?? 0}g (receita pronta: ${r.pesoFinalGramas ?? '?'}g)</div>
+              <div class="meta" style="margin-top:4px">Ingredientes: ${(r.ingredientes || []).map(i => `${Util.escapeHtml(i.foodName)} (${i.qty}x)`).join(', ')}</div>
+              <div style="display:flex;gap:6px;margin-top:8px">
+                <button class="secondary" data-aprovar-receita="${Util.escapeHtml(r.id)}" style="font-size:0.75rem;padding:6px 10px">Aprovar</button>
+                <button class="link" data-rejeitar-receita="${Util.escapeHtml(r.id)}">Rejeitar</button>
+              </div>
+            </div>
+          `;
+        }).join('');
+        receitasEl.querySelectorAll('[data-aprovar-receita]').forEach(btn => {
+          btn.addEventListener('click', async () => {
+            const r = recs.find(x => x.id === btn.dataset.aprovarReceita);
+            btn.textContent = '...';
+            try { await Cloud.aprovarReceitaPendente(r.id, r.entry); carregarReceitas(); }
+            catch (e) { btn.textContent = 'erro'; }
+          });
+        });
+        receitasEl.querySelectorAll('[data-rejeitar-receita]').forEach(btn => {
+          btn.addEventListener('click', async () => {
+            try { await Cloud.rejeitarReceitaPendente(btn.dataset.rejeitarReceita); carregarReceitas(); }
+            catch (e) { /* segue */ }
+          });
+        });
+      }).catch(e => { receitasEl.innerHTML = `<div class="empty">Erro: ${Util.escapeHtml(e.message || '')}</div>`; });
+    }
+    carregarReceitas();
 
     Cloud.listarUsuarios().then(users => {
       if (!users.length) { usersEl.innerHTML = '<div class="empty">Nenhum usuário ainda.</div>'; return; }
@@ -1415,6 +1584,24 @@ const ViewMais = (() => {
       let itensNovo = [];
       let plSelectedFood = null;
 
+      // Soma a quantidade (em "porções" do alimento) de cada ingrediente em todas as
+      // refeições do plano, e converte pra gramas usando o portionGrams da biblioteca —
+      // dá pro nutri mandar/copiar pro paciente fazer a compra da semana.
+      function gerarListaCompras() {
+        const somaPorNome = {};
+        refeicoes.forEach(r => {
+          (r.itens || []).forEach(it => {
+            somaPorNome[it.foodName] = (somaPorNome[it.foodName] || 0) + (it.qty || 0);
+          });
+        });
+        return Object.keys(somaPorNome).sort((a, b) => a.localeCompare(b)).map(nome => {
+          const qtyTotal = somaPorNome[nome];
+          const alimento = biblioteca.find(f => f.name === nome);
+          const gramas = alimento ? Math.round(qtyTotal * alimento.portionGrams) : null;
+          return gramas != null ? `${nome} — ${gramas}g` : `${nome} — ${qtyTotal.toFixed(2)}x`;
+        }).join('\n');
+      }
+
       function paint() {
         cont.innerHTML = `
           <div class="card">
@@ -1428,6 +1615,11 @@ const ViewMais = (() => {
                 <button class="link" data-del-ref="${i}">✕</button>
               </div>
             `).join('')}
+            ${refeicoes.length > 0 ? `
+              <button class="secondary" id="pl-lista-compras" style="width:100%;margin-top:8px">🛒 Gerar lista de compras</button>
+              <textarea id="pl-lista-compras-box" readonly style="display:none;min-height:120px;margin-top:8px;font-family:monospace;font-size:0.8rem"></textarea>
+              <button class="secondary" id="pl-lista-compras-copiar" style="display:none;margin-top:6px">Copiar lista</button>
+            ` : ''}
             <hr style="border:none;border-top:1px solid var(--border);margin:12px 0">
             <label>Nome da refeição</label>
             <input type="text" id="pl-nome" placeholder="Ex: Café da manhã">
@@ -1448,6 +1640,21 @@ const ViewMais = (() => {
         `;
         pintarItens();
         cont.querySelectorAll('[data-del-ref]').forEach(b => b.addEventListener('click', () => { refeicoes.splice(Number(b.dataset.delRef), 1); paint(); }));
+        const listaBtn = cont.querySelector('#pl-lista-compras');
+        if (listaBtn) {
+          listaBtn.addEventListener('click', () => {
+            const box = cont.querySelector('#pl-lista-compras-box');
+            box.value = gerarListaCompras();
+            box.style.display = '';
+            cont.querySelector('#pl-lista-compras-copiar').style.display = '';
+          });
+          cont.querySelector('#pl-lista-compras-copiar').addEventListener('click', () => {
+            const box = cont.querySelector('#pl-lista-compras-box');
+            const copyBtn = cont.querySelector('#pl-lista-compras-copiar');
+            if (navigator.clipboard) navigator.clipboard.writeText(box.value).then(() => { copyBtn.textContent = 'copiado!'; });
+            else window.prompt('Lista de compras (copie):', box.value);
+          });
+        }
         wireFoodSearch();
         cont.querySelector('#pl-add-ref').addEventListener('click', () => {
           const nome = cont.querySelector('#pl-nome').value.trim();

@@ -1,5 +1,7 @@
 // Lista de atualizações recentes do app, mais recente primeiro. Editável manualmente a cada mudança.
 const CHANGELOG = [
+  { date: '2026-08-13', texto: 'Painel do nutri: no plano alimentar, botão "Gerar lista de compras" soma os ingredientes de todas as refeições do plano e monta uma lista (com gramas) pra copiar e mandar pro paciente' },
+  { date: '2026-08-13', texto: 'Nova forma de adicionar alimento: em Biblioteca de Alimentos, "Sugerir uma receita" — monte com ingredientes + quantidades, informe o peso da receita pronta, e o app calcula sozinho as calorias por 100g. Fica disponível na hora pra você usar; se tiver nutri vinculada, ela recebe pra revisar antes de entrar na biblioteca de todo mundo' },
   { date: '2026-08-13', texto: 'Tendência e projeção de peso ficaram mais realistas: a tendência agora olha só as pesagens dos últimos ~21 dias (fica "ao vivo"), e a projeção futura usa seu progresso real quando há dado recente, ou uma estimativa que já leva em conta a queda do gasto calórico conforme o peso muda (adaptação metabólica). Horizontes reduzidos de 12 pra 6 semanas' },
   { date: '2026-08-13', texto: 'Início ficou mais enxuto: removido o card "Próxima refeição" — ele agora aparece só na aba Comida, junto das outras sugestões de refeição' },
   { date: '2026-08-13', texto: 'Alimentação: removida a barra "Recomendados" (duplicava a % de meta que já aparece nas caixas de macro) — fica só a distribuição real' },

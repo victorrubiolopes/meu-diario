@@ -65,6 +65,11 @@ service cloud.firestore {
       allow create: if request.auth != null;
       allow delete: if ehAdmin();
     }
+    match /pendingRecipes/{doc} {
+      allow read:   if ehAdmin();
+      allow create: if request.auth != null;
+      allow delete: if ehAdmin();
+    }
     match /sharedFoods/{doc}     { allow read, write: if request.auth != null; }
     match /sharedExercises/{doc} { allow read, write: if request.auth != null; }
   }
