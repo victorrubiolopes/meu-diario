@@ -405,7 +405,7 @@ button.danger-btn {
 .macro-box {
   flex: 1 1 0;
   min-width: 70px;
-  border: 1px solid var(--mc, var(--border));
+  border: 1px solid var(--accent-soft);
   border-radius: 12px;
   padding: 10px 6px;
   text-align: center;
