@@ -92,16 +92,31 @@ function calcularMetas(perfil) {
 // ~7700 kcal equivalem a ~1kg de gordura corporal (referência geral usada em nutrição esportiva).
 const KCAL_POR_KG = 7700;
 
+// Janela usada pra calcular a taxa REAL de variação de peso — só as medições dos últimos N dias,
+// não o histórico inteiro desde a primeira pesagem. Assim a tendência reage ao que você fez
+// recentemente (fica "ao viva" conforme registra peso), em vez de ficar diluída por meses de dados.
+const JANELA_TENDENCIA_DIAS = 21;
+
 function calcularTendenciaPeso() {
   const perfil = Storage.getPerfil();
   const meta = calcularMetas(perfil);
   if (!meta || meta.tdee == null) return null;
 
-  const medidas = Storage.getAll('medidas').filter(m => m.weight != null).sort((a, b) => a.date.localeCompare(b.date));
-  if (medidas.length < 2) return null;
+  const todas = Storage.getAll('medidas').filter(m => m.weight != null).sort((a, b) => a.date.localeCompare(b.date));
+  if (todas.length < 2) return null;
 
-  const primeiro = medidas[0];
-  const ultimo = medidas[medidas.length - 1];
+  const hojeISO = Util.todayISO();
+  const limiteISO = Util.addDaysISO(hojeISO, -JANELA_TENDENCIA_DIAS);
+  const recentes = todas.filter(m => m.date >= limiteISO);
+
+  // Usa a janela recente se tiver pelo menos 2 medições com um intervalo mínimo (senão uma
+  // pesagem de ontem pra hoje ia gerar uma taxa maluca por ruído normal de balança/água/comida).
+  // Sem dado recente suficiente, cai pro histórico completo — mesmo comportamento de antes.
+  const usarRecente = recentes.length >= 2 && Util.daysBetween(recentes[0].date, recentes[recentes.length - 1].date) >= 5;
+  const janela = usarRecente ? recentes : todas;
+
+  const primeiro = janela[0];
+  const ultimo = janela[janela.length - 1];
   const dias = Util.daysBetween(primeiro.date, ultimo.date);
   if (dias < 3) return null;
 
@@ -123,12 +138,17 @@ function calcularTendenciaPeso() {
     else status = 'esperado';
   }
 
-  return { taxaReal, taxaEsperada, status, dias, pesoInicial: primeiro.weight, pesoAtual: ultimo.weight };
+  return { taxaReal, taxaEsperada, status, dias, pesoInicial: primeiro.weight, pesoAtual: ultimo.weight, janelaRecente: usarRecente };
 }
 
-// Projeção futura: com base no déficit/superávit da dieta selecionada (meta.kcal vs TDEE),
-// estima o peso em algumas semanas à frente. É uma extrapolação simples (regra dos 7700kcal/kg),
-// não considera adaptação metabólica.
+// Projeção futura: 2 caminhos, dependendo do que temos de dado.
+// 1) Com pesagens recentes suficientes (janela de calcularTendenciaPeso): usa a taxa REAL
+//    observada, extrapolada só por algumas semanas — fica "ao vivo", muda conforme você
+//    registra peso/refeições, e não finge que sabe o que vai acontecer daqui 3 meses.
+// 2) Sem dado recente: cai pra uma estimativa teórica (déficit/superávit da meta vs TDEE),
+//    mas recalculando o TDEE semana a semana com o peso projetado — uma aproximação simples
+//    de adaptação metabólica (corpo mais leve gasta menos), em vez de assumir o mesmo ritmo
+//    pra sempre.
 function calcularProjecaoPeso() {
   const perfil = Storage.getPerfil();
   const meta = calcularMetas(perfil);
@@ -137,18 +157,40 @@ function calcularProjecaoPeso() {
   const pesoAtual = Util.getPesoAtual();
   if (!pesoAtual) return null;
 
-  const ajusteDiario = meta.kcal - meta.tdee;
-  const kgPorSemana = (ajusteDiario * 7) / KCAL_POR_KG;
-  if (Math.abs(kgPorSemana) < 0.01) return { pesoAtual, kgPorSemana: 0, horizontes: [] };
+  const semanasHorizontes = [2, 4, 6];
+  const tendencia = calcularTendenciaPeso();
+  const usarReal = !!(tendencia && tendencia.janelaRecente && tendencia.dias >= 10);
 
-  const semanasHorizontes = [2, 4, 8, 12];
+  if (usarReal) {
+    const kgPorSemana = tendencia.taxaReal;
+    if (Math.abs(kgPorSemana) < 0.01) return { pesoAtual, kgPorSemana: 0, horizontes: [], baseadoEm: 'real' };
+    const horizontes = semanasHorizontes.map(semanas => ({
+      semanas,
+      data: Util.daysFromNow(semanas * 7),
+      peso: Math.round((pesoAtual + kgPorSemana * semanas) * 10) / 10,
+    }));
+    return { pesoAtual, kgPorSemana: Math.round(kgPorSemana * 100) / 100, horizontes, baseadoEm: 'real' };
+  }
+
+  let pesoSimulado = pesoAtual;
+  const porSemana = [];
+  for (let s = 1; s <= Math.max(...semanasHorizontes); s++) {
+    const bmrProjetado = calcularBMR({ peso: pesoSimulado, altura: perfil.altura, idade: perfil.idade, sexo: perfil.sexo });
+    const tdeeProjetado = bmrProjetado ? calcularTDEE(bmrProjetado, perfil.nivelAtividade) : meta.tdee;
+    const kgSemana = ((meta.kcal - tdeeProjetado) * 7) / KCAL_POR_KG;
+    pesoSimulado = Math.round((pesoSimulado + kgSemana) * 100) / 100;
+    porSemana.push(pesoSimulado);
+  }
+  const kgPorSemanaInicial = Math.round((porSemana[0] - pesoAtual) * 100) / 100;
+  if (Math.abs(kgPorSemanaInicial) < 0.01) return { pesoAtual, kgPorSemana: 0, horizontes: [], baseadoEm: 'estimativa' };
+
   const horizontes = semanasHorizontes.map(semanas => ({
     semanas,
     data: Util.daysFromNow(semanas * 7),
-    peso: Math.round((pesoAtual + kgPorSemana * semanas) * 10) / 10,
+    peso: porSemana[semanas - 1],
   }));
 
-  return { pesoAtual, kgPorSemana: Math.round(kgPorSemana * 100) / 100, horizontes };
+  return { pesoAtual, kgPorSemana: kgPorSemanaInicial, horizontes, baseadoEm: 'estimativa' };
 }
 
 // Recomendação de próxima refeição com base no horário e nos combos com horário definido.

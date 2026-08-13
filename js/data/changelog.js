@@ -1,5 +1,8 @@
 // Lista de atualizações recentes do app, mais recente primeiro. Editável manualmente a cada mudança.
 const CHANGELOG = [
+  { date: '2026-08-13', texto: 'Tendência e projeção de peso ficaram mais realistas: a tendência agora olha só as pesagens dos últimos ~21 dias (fica "ao vivo"), e a projeção futura usa seu progresso real quando há dado recente, ou uma estimativa que já leva em conta a queda do gasto calórico conforme o peso muda (adaptação metabólica). Horizontes reduzidos de 12 pra 6 semanas' },
+  { date: '2026-08-13', texto: 'Início ficou mais enxuto: removido o card "Próxima refeição" — ele agora aparece só na aba Comida, junto das outras sugestões de refeição' },
+  { date: '2026-08-13', texto: 'Alimentação: removida a barra "Recomendados" (duplicava a % de meta que já aparece nas caixas de macro) — fica só a distribuição real' },
   { date: '2026-08-13', texto: 'Nova tela em Mais → Refeição Livre: dá pra editar as próprias regras (tolerância de calorias, quais refeições são obrigatórias, % de água exigido, quantas refeições livres por semana), com botão de restaurar padrão' },
   { date: '2026-08-13', texto: 'Regra da refeição livre mudou: calorias agora podem passar no máximo 5% da meta (antes era ±10%) e ficar abaixo da meta não conta mais contra você. Também passou a exigir café da manhã, almoço e janta registrados no dia (lanche continua opcional)' },
   { date: '2026-08-13', texto: 'Sugestão de alimentos (Infor. nutric.) parou de indicar itens crus e passou a respeitar o padrão de prato brasileiro: proteína sugere carnes/peixes/ovo, carboidrato sugere arroz/pão/tapioca/batata (não fruta), gordura sugere azeite/manteiga/oleaginosas, fibra sugere grãos/feijão/legumes/fruta' },

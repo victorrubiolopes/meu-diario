@@ -40,6 +40,22 @@ const ViewAlimentacao = (() => {
     `;
   }
 
+  // Sugestão de próxima refeição por horário, com base nos combos com horário definido
+  // (é como o plano alimentar prescrito pelo nutri chega — via Cloud.enviarPlano). Só faz
+  // sentido pra quem tem uma dieta nomeada (perfil.dietaCustomId) — ver calcularProximaRefeicao.
+  function proximaRefeicaoHtml() {
+    const proximaRefeicao = typeof calcularProximaRefeicao === 'function' ? calcularProximaRefeicao() : null;
+    if (!proximaRefeicao) return '';
+    return `
+      <div class="card">
+        <h2>🍽️ ${proximaRefeicao.amanha ? 'Próxima refeição (amanhã)' : 'Próxima refeição'}</h2>
+        <p><strong>${proximaRefeicao.combo.horario}</strong> — ${Util.escapeHtml(proximaRefeicao.combo.nome)}</p>
+        <p class="meta">${proximaRefeicao.combo.itens.map(i => `${Util.escapeHtml(i.foodName)}${i.qty !== 1 ? ` (${i.qty}x)` : ''}`).join(', ')}</p>
+        <button class="secondary" id="add-proxima-refeicao">Adicionar agora</button>
+      </div>
+    `;
+  }
+
   // Categorias que fazem sentido sugerir pra cada macro, seguindo o mesmo método do
   // prato usado na sugestão de refeições (proteína = carnes/ovo/whey, carboidrato =
   // arroz/pão/tapioca/batata, gordura = azeite/manteiga/oleaginosas/queijo, fibra =
@@ -92,16 +108,6 @@ const ViewAlimentacao = (() => {
       protein: totalReal > 0 ? Math.round((proteinKcalReal / totalReal) * 100) : 0,
     };
 
-    const carbKcalMeta = (meta.carb || 0) * 4;
-    const fatKcalMeta = (meta.fat || 0) * 9;
-    const proteinKcalMeta = (meta.protein || 0) * 4;
-    const totalMetaKcal = carbKcalMeta + fatKcalMeta + proteinKcalMeta;
-    const metaPct = {
-      carbs: totalMetaKcal > 0 ? Math.round((carbKcalMeta / totalMetaKcal) * 100) : 0,
-      fat: totalMetaKcal > 0 ? Math.round((fatKcalMeta / totalMetaKcal) * 100) : 0,
-      protein: totalMetaKcal > 0 ? Math.round((proteinKcalMeta / totalMetaKcal) * 100) : 0,
-    };
-
     const fiberPct = meta.fiber ? Math.min(100, Math.round((totals.fiber / meta.fiber) * 100)) : null;
     const pctDaMeta = (val, alvo) => alvo ? Math.min(100, Math.round((val / alvo) * 100)) : null;
 
@@ -148,18 +154,6 @@ const ViewAlimentacao = (() => {
         <div style="width:${realPct.protein}%;background:var(--macro-protein)"></div>
       </div>
       <div class="macro-split-caption">Real</div>
-
-      <div class="macro-split-bar macro-split-bar-thin">
-        <div style="width:${metaPct.carbs}%;background:var(--macro-carb)"></div>
-        <div style="width:${metaPct.fat}%;background:var(--macro-fat)"></div>
-        <div style="width:${metaPct.protein}%;background:var(--macro-protein)"></div>
-      </div>
-      <div class="macro-split-row">
-        <span style="color:var(--macro-carb)">${metaPct.carbs}%</span>
-        <span style="color:var(--macro-fat)">${metaPct.fat}%</span>
-        <span style="color:var(--macro-protein)">${metaPct.protein}%</span>
-      </div>
-      <div class="macro-split-caption">Recomendados</div>
 
       <button type="button" class="macro-info-toggle" data-toggle-info-nutric>
         <span>Infor. nutric.</span><span class="chev">${infoAberto ? '⌄' : '›'}</span>
@@ -276,6 +270,7 @@ const ViewAlimentacao = (() => {
           </div>
         ` : ''}
       </div>
+      ${perfil.dietaCustomId ? proximaRefeicaoHtml() : ''}
       ${(!perfil.dietaCustomId && meta) ? renderSugestaoRefeicoes(state.date, meta) : ''}
       ${combos.length > 0 ? `
         <div class="card">
@@ -369,6 +364,20 @@ const ViewAlimentacao = (() => {
       state.tab = 'mais';
       api.goToMais('combos');
     });
+
+    const addProximaBtn = document.getElementById('add-proxima-refeicao');
+    if (addProximaBtn) {
+      addProximaBtn.addEventListener('click', () => {
+        const proximaRefeicao = calcularProximaRefeicao();
+        if (!proximaRefeicao) return;
+        const combo = proximaRefeicao.combo;
+        const mealType = inferMealTypeFromHorario(combo.horario);
+        combo.itens.forEach(item => {
+          Storage.add('alimentacao', { date: state.date, mealType, foodName: item.foodName, qty: item.qty, order: Date.now(), ...Object.fromEntries(NUTRI_FIELDS.map(f => [f, item[f] || 0])) });
+        });
+        api.render();
+      });
+    }
 
     function addAgua(ml) {
       if (!ml) return;

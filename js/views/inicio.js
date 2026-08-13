@@ -214,7 +214,6 @@ const ViewInicio = (() => {
 
     const tendencia = typeof calcularTendenciaPeso === 'function' ? calcularTendenciaPeso() : null;
     const projecao = typeof calcularProjecaoPeso === 'function' ? calcularProjecaoPeso() : null;
-    const proximaRefeicao = typeof calcularProximaRefeicao === 'function' ? calcularProximaRefeicao() : null;
     const diasFoco = calcularDiasFoco(meta, aguaMeta);
 
     const tarefas = Storage.getAll('tarefas').filter(t => ViewTarefas.isApplicable(t, state.date));
@@ -297,15 +296,6 @@ const ViewInicio = (() => {
         ` : `<div class="empty"><img class="empty-illus" src="imagens/ilustracoes/medidas-vazio.png" alt="">Nenhuma medição registrada ainda</div><button class="secondary" id="ir-medidas-composicao" style="margin-top:6px">Registrar peso →</button>`}
       </div>
 
-      ${proximaRefeicao ? `
-        <div class="card dashboard-section">
-          <h2>🍽️ ${proximaRefeicao.amanha ? 'Próxima refeição (amanhã)' : 'Próxima refeição'}</h2>
-          <p><strong>${proximaRefeicao.combo.horario}</strong> — ${Util.escapeHtml(proximaRefeicao.combo.nome)}</p>
-          <p class="meta">${proximaRefeicao.combo.itens.map(i => `${Util.escapeHtml(i.foodName)}${i.qty !== 1 ? ` (${i.qty}x)` : ''}`).join(', ')}</p>
-          <button class="secondary" id="add-proxima-refeicao">Adicionar agora</button>
-        </div>
-      ` : ''}
-
       <div class="card dashboard-section">
         <h2>🔥 Dias em foco</h2>
         <div style="text-align:center;padding:4px 0 10px">
@@ -338,10 +328,10 @@ const ViewInicio = (() => {
             </div>
           </div>
           <p class="meta" style="margin-top:10px;text-align:center">${STATUS_LABELS[tendencia.status]}</p>
-          <p class="meta" style="font-size:0.7rem;text-align:center">Estimativa geral (~7700kcal ≈ 1kg), não substitui acompanhamento profissional.</p>
+          <p class="meta" style="font-size:0.7rem;text-align:center">${tendencia.janelaRecente ? `Baseado nos últimos ${tendencia.dias} dias.` : 'Poucas pesagens recentes — usando todo o histórico.'} Estimativa geral (~7700kcal ≈ 1kg), não substitui acompanhamento profissional.</p>
         ` : `<p class="empty">Registre pelo menos 2 medições de peso (em dias diferentes) para ver sua tendência.</p><button class="secondary" id="ir-medidas-tendencia" style="margin-top:6px">Registrar peso →</button>`}
         ${projecao && projecao.horizontes.length > 0 ? `
-          <h3 style="margin-top:16px;font-size:0.9rem">Projeção futura (mantendo o ritmo atual)</h3>
+          <h3 style="margin-top:16px;font-size:0.9rem">Projeção futura ${projecao.baseadoEm === 'real' ? '(ao vivo, pelo seu progresso)' : '(estimativa)'}</h3>
           <div class="row" style="flex-wrap:wrap">
             ${projecao.horizontes.map(h => `
               <div class="card" style="margin:4px 0;padding:10px;text-align:center;flex:1 1 40%">
@@ -351,7 +341,10 @@ const ViewInicio = (() => {
             `).join('')}
           </div>
           <p class="meta" style="font-size:0.7rem;text-align:center">
-            ${projecao.kgPorSemana < 0 ? 'Perdendo' : 'Ganhando'} ~${Math.abs(projecao.kgPorSemana)}kg/semana com base na meta de calorias selecionada (${meta.kcal}kcal) vs. seu gasto (TDEE ${meta.tdee}kcal). Projeção simples, não considera adaptação metabólica.
+            ${projecao.kgPorSemana < 0 ? 'Perdendo' : 'Ganhando'} ~${Math.abs(projecao.kgPorSemana)}kg/semana
+            ${projecao.baseadoEm === 'real'
+              ? 'com base no seu progresso real recente — atualiza sozinha conforme você registra peso.'
+              : `com base na meta de calorias selecionada (${meta.kcal}kcal) vs. seu gasto (TDEE ${meta.tdee}kcal), já considerando que o TDEE cai um pouco conforme o peso muda (adaptação metabólica). Registre pelo menos 2 pesagens recentes pra essa projeção virar "ao vivo".`}
           </p>
         ` : ''}
       </div>
@@ -409,18 +402,6 @@ const ViewInicio = (() => {
     if (usarRefeicaoLivreBtn) {
       usarRefeicaoLivreBtn.addEventListener('click', () => {
         RefeicaoLivre.usar(state.date);
-        api.render();
-      });
-    }
-
-    const addProximaBtn = document.getElementById('add-proxima-refeicao');
-    if (addProximaBtn) {
-      addProximaBtn.addEventListener('click', () => {
-        const combo = proximaRefeicao.combo;
-        const mealType = inferMealTypeFromHorario(combo.horario);
-        combo.itens.forEach(item => {
-          Storage.add('alimentacao', { date: state.date, mealType, foodName: item.foodName, qty: item.qty, order: Date.now(), ...Object.fromEntries(['kcal', 'carbs', 'sugars', 'protein', 'fat', 'satFat', 'transFat', 'fiber', 'sodium'].map(f => [f, item[f] || 0])) });
-        });
         api.render();
       });
     }
