@@ -1219,8 +1219,15 @@ const ViewMais = (() => {
       <div class="card">
         <h2>👥 ${souSuperAdmin ? 'Todos os pacientes (todas as nutris)' : 'Seus pacientes'}</h2>
         ${souSuperAdmin ? '<p class="meta"><span class="badge pr">super-admin</span> Você vê pacientes de todas as nutris.</p>' : ''}
-        <p class="meta">Toque para ver o resumo e enviar uma dieta.</p>
-        <div id="admin-users"><div class="empty">Carregando…</div></div>
+        <p class="meta">Toque num paciente pra ver o resumo e enviar uma dieta.</p>
+        <input type="text" id="admin-users-filter" placeholder="Buscar por nome, e-mail ou nutri...">
+        ${souSuperAdmin ? `
+          <div class="chip-group" id="admin-users-chip-filter" style="margin-top:8px">
+            <button class="chip active" data-nutri-filter="todos">Todos</button>
+            <button class="chip" data-nutri-filter="sem-nutri">Sem nutri</button>
+          </div>
+        ` : ''}
+        <div id="admin-users" style="margin-top:8px"><div class="empty">Carregando…</div></div>
       </div>
       <div id="admin-detail"></div>
     `;
@@ -1450,16 +1457,66 @@ const ViewMais = (() => {
     }
     carregarReceitas();
 
-    Cloud.listarUsuarios().then(users => {
-      if (!users.length) { usersEl.innerHTML = '<div class="empty">Nenhum usuário ainda.</div>'; return; }
-      users.sort((a, b) => (a.email || '').localeCompare(b.email || ''));
-      usersEl.innerHTML = users.map(u => `
-        <button class="menu-item" data-uid="${Util.escapeHtml(u.uid)}">
-          <span class="icon">👤</span> ${Util.escapeHtml(u.displayName || u.email || u.uid)} <span class="chev">›</span>
+    function formatarUltimaAtividade(ts) {
+      if (!ts) return 'nunca';
+      const dias = Math.floor((Date.now() - ts) / 86400000);
+      if (dias <= 0) return 'hoje';
+      if (dias === 1) return 'ontem';
+      if (dias < 30) return `há ${dias}d`;
+      return Util.fmtDate(new Date(ts).toISOString().slice(0, 10));
+    }
+
+    let usersCache = [];
+    let nutriPorUid = {};
+    let nutriChipAtivo = 'todos';
+
+    function pintarUsuarios() {
+      const filtroEl = $app.querySelector('#admin-users-filter');
+      const q = (filtroEl ? filtroEl.value : '').trim().toLowerCase();
+      let lista = usersCache;
+      if (nutriChipAtivo === 'sem-nutri') lista = lista.filter(u => !u.nutriId);
+      if (q) {
+        lista = lista.filter(u => {
+          const nutriLabel = u.nutriId ? (nutriPorUid[u.nutriId] || u.nutriId) : '';
+          return (u.displayName || '').toLowerCase().includes(q)
+            || (u.email || '').toLowerCase().includes(q)
+            || nutriLabel.toLowerCase().includes(q);
+        });
+      }
+      if (!lista.length) { usersEl.innerHTML = '<div class="empty">Nenhum paciente encontrado.</div>'; return; }
+      usersEl.innerHTML = lista.map(u => `
+        <button class="menu-item" data-uid="${Util.escapeHtml(u.uid)}" style="align-items:flex-start;text-align:left">
+          <span class="icon">👤</span>
+          <div style="flex:1">
+            <div><strong>${Util.escapeHtml(u.displayName || u.email || u.uid)}</strong></div>
+            ${u.displayName && u.email ? `<div class="meta">${Util.escapeHtml(u.email)}</div>` : ''}
+            <div class="meta">Nutri: ${u.nutriId ? Util.escapeHtml(nutriPorUid[u.nutriId] || u.nutriId) : '— (solto)'}</div>
+            <div class="meta">Última atividade: ${formatarUltimaAtividade(u.updatedAt)}</div>
+          </div>
+          <span class="chev">›</span>
         </button>
       `).join('');
       usersEl.querySelectorAll('[data-uid]').forEach(btn => {
-        btn.addEventListener('click', () => abrirUsuario(btn.dataset.uid, users.find(x => x.uid === btn.dataset.uid)));
+        btn.addEventListener('click', () => abrirUsuario(btn.dataset.uid, usersCache.find(x => x.uid === btn.dataset.uid)));
+      });
+    }
+
+    Promise.all([
+      Cloud.listarUsuarios(),
+      souSuperAdmin && typeof Cloud.listarNutris === 'function' ? Cloud.listarNutris() : Promise.resolve([]),
+    ]).then(([users, nutris]) => {
+      usersCache = users.sort((a, b) => (a.displayName || a.email || '').localeCompare(b.displayName || b.email || ''));
+      nutris.forEach(n => { nutriPorUid[n.uid] = n.displayName || n.email || n.uid; });
+      if (!usersCache.length) { usersEl.innerHTML = '<div class="empty">Nenhum usuário ainda.</div>'; return; }
+      pintarUsuarios();
+      const filtroEl = $app.querySelector('#admin-users-filter');
+      if (filtroEl) filtroEl.addEventListener('input', pintarUsuarios);
+      $app.querySelectorAll('[data-nutri-filter]').forEach(chip => {
+        chip.addEventListener('click', () => {
+          nutriChipAtivo = chip.dataset.nutriFilter;
+          $app.querySelectorAll('[data-nutri-filter]').forEach(c => c.classList.toggle('active', c === chip));
+          pintarUsuarios();
+        });
       });
     }).catch(e => { usersEl.innerHTML = `<div class="empty">Erro ao listar: ${Util.escapeHtml(e.message || '')}</div>`; });
 

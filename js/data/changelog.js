@@ -1,5 +1,6 @@
 // Lista de atualizações recentes do app, mais recente primeiro. Editável manualmente a cada mudança.
 const CHANGELOG = [
+  { date: '2026-08-13', texto: 'Painel do nutri: lista de pacientes ganhou busca (nome, e-mail ou nutri) e mostra nutri atual + última atividade de cada um direto na lista, sem precisar abrir um por um. Super-admin também ganha um filtro rápido "Sem nutri" pra achar pacientes soltos' },
   { date: '2026-08-13', texto: 'Sugestão de receita mudou: o paciente agora só escreve o nome e a lista de ingredientes (não calcula mais nada). A nutri revisa em Painel do nutri → "Receitas para aprovar", monta a receita de verdade (ingrediente por ingrediente + peso pronto) e o app calcula sozinho antes de adicionar à biblioteca' },
   { date: '2026-08-13', texto: 'Lista de compras simplificada: a nutri escreve (ou pré-preenche a partir do plano alimentar) um texto livre e manda pro paciente, que vê direto na aba Alimentação. Não depende mais de ter um plano alimentar montado' },
   { date: '2026-08-13', texto: 'Nova forma de adicionar alimento: em Biblioteca de Alimentos, "Sugerir uma receita" — monte com ingredientes + quantidades, informe o peso da receita pronta, e o app calcula sozinho as calorias por 100g. Fica disponível na hora pra você usar; se tiver nutri vinculada, ela recebe pra revisar antes de entrar na biblioteca de todo mundo' },
