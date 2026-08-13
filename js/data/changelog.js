@@ -1,5 +1,9 @@
 // Lista de atualizações recentes do app, mais recente primeiro. Editável manualmente a cada mudança.
 const CHANGELOG = [
+  { date: '2026-08-13', texto: 'Correção importante: treino em andamento que sofria um refresh (celular suspendendo em segundo plano) perdia as cargas já digitadas e, ao salvar, criava registros duplicados no histórico. A sessão agora se re-liga certinho na entrada já salva assim que ela é criada, então isso não acontece mais' },
+  { date: '2026-08-13', texto: 'Ao iniciar um plano de treino, cada série já vem com a carga da última vez que você fez aquele exercício, em vez de vazia' },
+  { date: '2026-08-13', texto: 'Cronômetro do treino: mostra o tempo desde que você iniciou, sobrevive a um refresh sem reiniciar' },
+  { date: '2026-08-13', texto: 'Cronômetro de descanso: botões de 30s/60s/90s/120s pra cronometrar a pausa entre séries' },
   { date: '2026-08-12', texto: 'Início ganhou um visual novo: anel de progresso pras calorias e um anel por macro (carboidrato/proteína/gordura/fibra) mostrando gramas consumidas vs. meta, no lugar das barrinhas antigas' },
   { date: '2026-08-12', texto: 'Água ganhou seu próprio card (separado de calorias), e cada métrica agora tem uma cor fixa (calorias=terracota, água=azul-petróleo, foco=verde, refeição livre=dourado) em vez de reaproveitar a mesma cor pra tudo' },
   { date: '2026-08-12', texto: 'Composição corporal: os emojis de peso/massa magra/%gordura viraram ícones de linha (mesmo estilo dos ícones da navegação), pra ficar nítido em qualquer tela e mudar de cor sozinho no modo escuro' },

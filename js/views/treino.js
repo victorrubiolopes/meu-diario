@@ -2,6 +2,10 @@ const ViewTreino = (() => {
   // Sessão de edição aberta por data (permite mais de um treino no mesmo dia).
   // Valor: { editId: string|null, plano: object|null } — editId=null significa "treino novo".
   const treinoSessaoPorData = new Map();
+  // Intervalos dos cronômetros (treino e descanso) — vivem fora do ciclo normal de render pra
+  // não travar/reiniciar a cada edição de série; só são limpos quando a tela de treino remonta.
+  let cronometroInterval = null;
+  let restTimerInterval = null;
   // O Map acima é só memória — se o app recarregar no meio de um treino (celular mata a
   // aba em segundo plano, comum em economia de bateria), ele some e a tela volta pra
   // "escolher treino" mesmo com os exercícios já marcados até ali intactos no Storage.
@@ -9,9 +13,14 @@ const ViewTreino = (() => {
   // restaura no primeiro acesso do dia, pra continuar de onde parou em vez de "encerrar".
   const CHAVE_SESSAO_ATIVA = 'treino_sessao_ativa';
   function _setSessao(date, sessao) {
-    treinoSessaoPorData.set(date, sessao);
+    // Preserva o inicioTs já existente quando a chamada é só pra re-linkar o editId (ex: primeiro
+    // persist() criando a entrada) — sem isso o cronômetro do treino reiniciaria do zero.
+    const atual = treinoSessaoPorData.get(date);
+    const inicioTs = sessao.inicioTs !== undefined ? sessao.inicioTs : (atual ? atual.inicioTs : null);
+    const nova = { ...sessao, inicioTs };
+    treinoSessaoPorData.set(date, nova);
     const todas = JSON.parse(localStorage.getItem(CHAVE_SESSAO_ATIVA) || '{}');
-    todas[date] = { editId: sessao.editId, planoId: sessao.plano ? sessao.plano.id : null };
+    todas[date] = { editId: nova.editId, planoId: nova.plano ? nova.plano.id : null, inicioTs: nova.inicioTs };
     localStorage.setItem(CHAVE_SESSAO_ATIVA, JSON.stringify(todas));
   }
   function _clearSessao(date) {
@@ -26,7 +35,7 @@ const ViewTreino = (() => {
     const todas = JSON.parse(localStorage.getItem(CHAVE_SESSAO_ATIVA) || '{}');
     const salva = todas[date];
     if (!salva) return null;
-    const sessao = { editId: salva.editId || null, plano: salva.planoId ? (planos.find(p => p.id === salva.planoId) || null) : null };
+    const sessao = { editId: salva.editId || null, plano: salva.planoId ? (planos.find(p => p.id === salva.planoId) || null) : null, inicioTs: salva.inicioTs || null };
     treinoSessaoPorData.set(date, sessao);
     return sessao;
   }
@@ -51,6 +60,21 @@ const ViewTreino = (() => {
       });
     });
     return max;
+  }
+
+  // Última carga registrada por série pra um exercício (o treino mais recente até dateISO que
+  // tem esse exercício). Usa Util.pesosExercicio, tolerante ao formato antigo (peso único) e
+  // novo (por série). Retorna null se nunca foi feito antes.
+  function ultimaCargaPorSerie(name, dateISO) {
+    if (!name || !name.trim()) return null;
+    const all = Storage.getAll('treino').filter(e => e.date <= dateISO).sort((a, b) => b.date.localeCompare(a.date));
+    for (const e of all) {
+      const ex = (e.exercises || []).find(x => x.name && x.name.trim().toLowerCase() === name.trim().toLowerCase());
+      if (!ex) continue;
+      const pesos = Util.pesosExercicio(ex);
+      if (pesos.length) return pesos;
+    }
+    return null;
   }
 
   function melhorPaceHistorico(excludeId) {
@@ -115,6 +139,10 @@ const ViewTreino = (() => {
   }
 
   function renderMusculacao(content, state, api) {
+    // A tela remonta inteira (api.render()) bem menos vezes do que os cards re-renderizam sozinhos
+    // (renderCards()), então é seguro limpar aqui: não interrompe o cronômetro a cada série marcada.
+    if (cronometroInterval) { clearInterval(cronometroInterval); cronometroInterval = null; }
+    if (restTimerInterval) { clearInterval(restTimerInterval); restTimerInterval = null; }
     const todosHoje = Storage.getByDate('treino', state.date);
     const biblioteca = Storage.getAll('exercicios_biblioteca');
     const planos = Storage.getAll('treino_planos').sort((a, b) => a.ordem - b.ordem);
@@ -172,7 +200,7 @@ const ViewTreino = (() => {
       document.getElementById('iniciar-treino').addEventListener('click', () => {
         const sel = document.getElementById('prompt-plano-select');
         const escolhido = sel ? (planos.find(p => p.id === sel.value) || null) : null;
-        _setSessao(state.date, { editId: null, plano: escolhido });
+        _setSessao(state.date, { editId: null, plano: escolhido, inicioTs: Date.now() });
         api.render();
       });
       // Registro rápido: pra quem só quer sinalizar "treinei hoje" sem detalhar exercício
@@ -191,6 +219,7 @@ const ViewTreino = (() => {
     const planoParaPrefill = existing ? null : sessao.plano;
     let rows = (existing ? existing.exercises : (planoParaPrefill ? planoParaPrefill.exercises.map(e => ({ ...e })) : [{ name: '', sets: '', reps: '', weight: '', done: [] }])).map(e => ({ ...e }));
     if (rows.length === 0) rows = [{ name: '', sets: '', reps: '', weight: '', done: [] }];
+    if (!existing) seedCargasHistorico(rows);
     // Id da entrada sendo editada nesta sessão — começa null se for um treino novo, e passa a
     // apontar pro registro assim que o primeiro persist() o cria.
     let entryId = existing ? existing.id : null;
@@ -202,6 +231,23 @@ const ViewTreino = (() => {
       <datalist id="exercicios-datalist">
         ${biblioteca.map(e => `<option value="${Util.escapeHtml(e.name)}">`).join('')}
       </datalist>
+      ${sessao.inicioTs ? `
+        <div class="card treino-timer-card">
+          <div class="treino-timer-elapsed" id="treino-cronometro">0:00</div>
+          <p class="meta" style="margin:2px 0 0;text-align:center">⏱ treino em andamento</p>
+        </div>
+      ` : ''}
+      <div class="card rest-timer-card">
+        <h2>😮‍💨 Descanso</h2>
+        <div class="rest-timer-display" id="rest-timer-display">Pronto</div>
+        <div class="rest-timer-buttons">
+          <button type="button" class="rest-timer-btn" data-rest="30">30s</button>
+          <button type="button" class="rest-timer-btn" data-rest="60">60s</button>
+          <button type="button" class="rest-timer-btn" data-rest="90">90s</button>
+          <button type="button" class="rest-timer-btn" data-rest="120">120s</button>
+          <button type="button" class="secondary rest-timer-stop" id="rest-timer-stop" style="display:none">Parar</button>
+        </div>
+      </div>
       ${planos.length > 0 ? `
         <div class="card">
           <h2>Treino sugerido hoje</h2>
@@ -266,6 +312,21 @@ const ViewTreino = (() => {
       return r.weights;
     }
 
+    // Pré-preenche a carga de cada série com o que foi usado da última vez nesse exercício —
+    // só entra em linhas que ainda não têm peso nenhum (não pisa em cima do que o usuário já digitou).
+    function seedCargasHistorico(alvoRows) {
+      alvoRows.forEach(r => {
+        if (!r.name || !r.name.trim()) return;
+        const jaTemPeso = (Array.isArray(r.weights) && r.weights.some(w => w != null && w !== '')) || (r.weight != null && r.weight !== '');
+        if (jaTemPeso) return;
+        const cargas = ultimaCargaPorSerie(r.name, state.date);
+        if (!cargas || !cargas.length) return;
+        const n = setsCount(r) || cargas.length;
+        r.weights = Array.from({ length: n }, (_, j) => String(cargas[j] != null ? cargas[j] : cargas[cargas.length - 1]));
+        r.weight = String(Math.max(...cargas));
+      });
+    }
+
     function persist() {
       const cleaned = rows
         .filter(r => r.name && r.name.trim() !== '')
@@ -279,6 +340,10 @@ const ViewTreino = (() => {
       } else if (cleaned.length) {
         const novo = Storage.add('treino', { date: state.date, exercises: cleaned, notes, planoId: planoIdAtual, duracaoMin });
         entryId = novo.id;
+        // Sem isso, um refresh antes daqui nunca sabe que essa entrada já existe: a sessão
+        // restaurada volta pro template do plano (perdendo as cargas já digitadas) e o próximo
+        // persist() cria OUTRA entrada nova — é assim que viravam 2-3 históricos duplicados.
+        _setSessao(state.date, { editId: entryId, plano: null });
       }
       if (typeof atualizarGastoAuto === 'function') atualizarGastoAuto(state.date);
     }
@@ -473,8 +538,9 @@ const ViewTreino = (() => {
     function aplicarPlano(plano) {
       if (!plano) return;
       planoIdAtual = plano.id;
-      rows = (plano.exercises || []).map(e => ({ ...e, done: [] }));
+      rows = (plano.exercises || []).map(e => ({ ...e, done: [], weights: [] }));
       if (rows.length === 0) rows.push({ name: '', sets: '', reps: '', weight: '', done: [] });
+      seedCargasHistorico(rows);
       persist();
       renderCards();
     }
@@ -523,6 +589,56 @@ const ViewTreino = (() => {
         api.render();
       });
     }
+
+    // Cronômetro do treino: conta desde sessao.inicioTs, sobrevive a refresh (inicioTs vem do
+    // localStorage) e não é reiniciado pelos re-renders de renderCards() porque vive fora do #ex-cards.
+    if (sessao.inicioTs) {
+      const elCronometro = document.getElementById('treino-cronometro');
+      function tickCronometro() {
+        const segs = Math.max(0, Math.floor((Date.now() - sessao.inicioTs) / 1000));
+        const h = Math.floor(segs / 3600);
+        const m = Math.floor((segs % 3600) / 60);
+        const s = segs % 60;
+        const txt = h > 0 ? `${h}:${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}` : `${m}:${String(s).padStart(2, '0')}`;
+        if (elCronometro) elCronometro.textContent = txt;
+      }
+      tickCronometro();
+      cronometroInterval = setInterval(tickCronometro, 1000);
+    }
+
+    // Cronômetro de descanso: manual, com presets — não precisa sobreviver a refresh.
+    function pararRestTimer(mensagemFinal) {
+      if (restTimerInterval) { clearInterval(restTimerInterval); restTimerInterval = null; }
+      const display = document.getElementById('rest-timer-display');
+      const stopBtn = document.getElementById('rest-timer-stop');
+      if (display) display.textContent = mensagemFinal || 'Pronto';
+      if (stopBtn) stopBtn.style.display = 'none';
+    }
+    function iniciarRestTimer(segundosTotal) {
+      pararRestTimer();
+      let restante = segundosTotal;
+      const display = document.getElementById('rest-timer-display');
+      const stopBtn = document.getElementById('rest-timer-stop');
+      if (stopBtn) stopBtn.style.display = '';
+      function tick() {
+        const m = Math.floor(restante / 60);
+        const s = restante % 60;
+        if (display) display.textContent = `${m}:${String(s).padStart(2, '0')}`;
+        if (restante === 0) {
+          pararRestTimer('🔔 Descanso acabou!');
+          if (navigator.vibrate) navigator.vibrate([200, 100, 200]);
+          return;
+        }
+        restante--;
+      }
+      tick();
+      restTimerInterval = setInterval(tick, 1000);
+    }
+    content.querySelectorAll('[data-rest]').forEach(btn => {
+      btn.addEventListener('click', () => iniciarRestTimer(Number(btn.dataset.rest)));
+    });
+    const restStopBtn = document.getElementById('rest-timer-stop');
+    if (restStopBtn) restStopBtn.addEventListener('click', () => pararRestTimer());
 
     renderCards();
   }
