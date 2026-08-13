@@ -1,5 +1,6 @@
 // Lista de atualizações recentes do app, mais recente primeiro. Editável manualmente a cada mudança.
 const CHANGELOG = [
+  { date: '2026-08-13', texto: 'Correção: o logo da tela de login estava com pouco contraste (branco sobre um fundo quase branco). Agora fica num selo verde sólido, igual ao ícone do app. Também centralizei o texto dos campos de e-mail e senha' },
   { date: '2026-08-13', texto: 'Correção: o app estava seguindo o modo escuro do celular automaticamente, o que ficava estranho pra quem queria o fundo branco. Agora é sempre claro por padrão, com uma opção de tema escuro em Mais → Aparência pra quem preferir' },
   { date: '2026-08-13', texto: 'Nova identidade visual: verde como cor principal (no lugar do terracota) e fundo quase branco em vez do bege — em todo o app, não só numa tela' },
   { date: '2026-08-13', texto: 'Ícone do app trocado: um caderno com um haltere cruzando, feito sob medida' },

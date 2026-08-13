@@ -1350,7 +1350,8 @@ canvas {
   display: flex;
   align-items: center;
   justify-content: center;
-  background: linear-gradient(155deg, var(--accent-soft), var(--surface));
+  background: linear-gradient(155deg, var(--accent), #2f6b45);
+  box-shadow: 0 6px 18px rgba(63, 138, 90, 0.35);
 }
 .auth-logo-ring img { width: 48px; height: 48px; }
 
@@ -1385,7 +1386,7 @@ canvas {
 .auth-sep::before, .auth-sep::after { content: ''; flex: 1; height: 1px; background: var(--border); }
 
 .auth-box input[type="email"],
-.auth-box input[type="password"] { margin-bottom: 8px; }
+.auth-box input[type="password"] { margin-bottom: 8px; text-align: center; }
 
 .auth-box .row .secondary { flex: 1; text-align: center; padding: 10px; }
 
