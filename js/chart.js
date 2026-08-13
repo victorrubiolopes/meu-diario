@@ -9,9 +9,9 @@ function drawLineChart(canvas, points, opts = {}) {
   ctx.clearRect(0, 0, cssW, cssH);
 
   const styles = getComputedStyle(document.documentElement);
-  const accent = styles.getPropertyValue('--accent').trim() || '#b5734a';
-  const border = styles.getPropertyValue('--border').trim() || '#e8e1d6';
-  const textMuted = styles.getPropertyValue('--text-muted').trim() || '#8a8177';
+  const accent = styles.getPropertyValue('--accent').trim() || '#3f8a5a';
+  const border = styles.getPropertyValue('--border').trim() || '#e6e5e0';
+  const textMuted = styles.getPropertyValue('--text-muted').trim() || '#837f76';
 
   if (!points || points.length === 0) {
     ctx.fillStyle = textMuted;

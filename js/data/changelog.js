@@ -1,5 +1,8 @@
 // Lista de atualizações recentes do app, mais recente primeiro. Editável manualmente a cada mudança.
 const CHANGELOG = [
+  { date: '2026-08-13', texto: 'Nova identidade visual: verde como cor principal (no lugar do terracota) e fundo quase branco em vez do bege — em todo o app, não só numa tela' },
+  { date: '2026-08-13', texto: 'Ícone do app trocado: um caderno com um haltere cruzando, feito sob medida' },
+  { date: '2026-08-13', texto: 'Tela de login redesenhada: logo maior num selo com gradiente, fundo com glow suave, divisor "ou com e-mail" com linhas de verdade, botão do Google com o ícone colorido' },
   { date: '2026-08-13', texto: 'Correção importante: treino em andamento que sofria um refresh (celular suspendendo em segundo plano) perdia as cargas já digitadas e, ao salvar, criava registros duplicados no histórico. A sessão agora se re-liga certinho na entrada já salva assim que ela é criada, então isso não acontece mais' },
   { date: '2026-08-13', texto: 'Ao iniciar um plano de treino, cada série já vem com a carga da última vez que você fez aquele exercício, em vez de vazia' },
   { date: '2026-08-13', texto: 'Cronômetro do treino: mostra o tempo desde que você iniciou, sobrevive a um refresh sem reiniciar' },
