@@ -1,5 +1,6 @@
 // Lista de atualizações recentes do app, mais recente primeiro. Editável manualmente a cada mudança.
 const CHANGELOG = [
+  { date: '2026-08-13', texto: 'Regra da refeição livre mudou: calorias agora podem passar no máximo 5% da meta (antes era ±10%) e ficar abaixo da meta não conta mais contra você. Também passou a exigir café da manhã, almoço e janta registrados no dia (lanche continua opcional)' },
   { date: '2026-08-13', texto: 'Sugestão de alimentos (Infor. nutric.) parou de indicar itens crus e passou a respeitar o padrão de prato brasileiro: proteína sugere carnes/peixes/ovo, carboidrato sugere arroz/pão/tapioca/batata (não fruta), gordura sugere azeite/manteiga/oleaginosas, fibra sugere grãos/feijão/legumes/fruta' },
   { date: '2026-08-13', texto: 'Infor. nutric. (dentro de Alimentação): uma linha fina verde-clara agora separa os grupos de proteína/carboidrato/gordura/fibra, e quando algum macro está abaixo da meta, aparece uma sugestão discreta de alimentos ricos nele' },
   { date: '2026-08-13', texto: 'Caixas de macro (carboidrato, gordura, proteína, fibra) em Alimentação: contorno colorido forte trocado por uma borda fina verde-clara, deixando mais discreto e separando visualmente cada uma' },

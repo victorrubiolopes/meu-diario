@@ -174,7 +174,7 @@ const ViewInicio = (() => {
       }
     } else {
       badge = `<span class="livre-status">${diasBatidos}/5 dias</span>`;
-      corpo = `<p class="meta">Bata a meta de segunda a sexta (calorias, treino, água) pra liberar até 2 refeições livres no sábado/domingo, sem quebrar sua ofensiva.</p>`;
+      corpo = `<p class="meta">De segunda a sexta: calorias no máximo 5% acima da meta (pode ficar abaixo à vontade), café/almoço/janta registrados e treino ou corrida — bata isso pra liberar até 2 refeições livres no sábado/domingo, sem quebrar sua ofensiva.</p>`;
     }
 
     const chipsDias = el.detalheDias.map(d => {
