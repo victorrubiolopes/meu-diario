@@ -19,26 +19,26 @@
   --water-soft: #d9ebee;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --bg: #1a1c19;
-    --surface: #262a24;
-    --text: #edf0ea;
-    --text-muted: #a3a89d;
-    --accent: #6bc48a;
-    --accent-soft: #2e3f31;
-    --border: #38403a;
-    --danger: #e07a63;
-    --good: #7fb695;
-    --shadow: 0 1px 2px rgba(0, 0, 0, 0.2), 0 6px 20px rgba(0, 0, 0, 0.28);
-    --focus-ring: rgba(107, 196, 138, 0.4);
-    --macro-carb: #b98af0;
-    --macro-fat: #f2836b;
-    --macro-protein: #f2c14e;
-    --macro-fiber: #6bc48a;
-    --water: #6db8c4;
-    --water-soft: #223c40;
-  }
+/* Tema escuro só entra por escolha manual (Mais → Aparência) — não segue mais o
+   modo escuro do celular sozinho, então isso não é um @media, é um atributo. */
+:root[data-theme="dark"] {
+  --bg: #1a1c19;
+  --surface: #262a24;
+  --text: #edf0ea;
+  --text-muted: #a3a89d;
+  --accent: #6bc48a;
+  --accent-soft: #2e3f31;
+  --border: #38403a;
+  --danger: #e07a63;
+  --good: #7fb695;
+  --shadow: 0 1px 2px rgba(0, 0, 0, 0.2), 0 6px 20px rgba(0, 0, 0, 0.28);
+  --focus-ring: rgba(107, 196, 138, 0.4);
+  --macro-carb: #b98af0;
+  --macro-fat: #f2836b;
+  --macro-protein: #f2c14e;
+  --macro-fiber: #6bc48a;
+  --water: #6db8c4;
+  --water-soft: #223c40;
 }
 
 * { box-sizing: border-box; }
@@ -360,6 +360,9 @@ button.secondary {
   color: var(--text);
   font-size: 0.85rem;
 }
+
+.theme-btn { flex: 1; }
+.theme-btn.active { background: var(--accent); border-color: var(--accent); color: #fff; }
 
 button.link {
   background: none;

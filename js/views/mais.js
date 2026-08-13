@@ -108,9 +108,40 @@ const ViewMais = (() => {
     });
   }
 
+  // O app não segue mais o modo escuro do celular sozinho — é sempre claro a não ser
+  // que a pessoa escolha escuro aqui. O <script> no <head> do index.html já aplica
+  // esse valor salvo antes do CSS carregar, pra não dar flash de tela clara.
+  function temaEscuroAtivo() {
+    return localStorage.getItem('tema_escuro') === '1';
+  }
+  function aparenciaCardHtml() {
+    const escuro = temaEscuroAtivo();
+    return `
+      <div class="card">
+        <h2>🎨 Aparência</h2>
+        <div class="row">
+          <button class="secondary theme-btn ${!escuro ? 'active' : ''}" data-tema="claro">☀️ Claro</button>
+          <button class="secondary theme-btn ${escuro ? 'active' : ''}" data-tema="escuro">🌙 Escuro</button>
+        </div>
+      </div>
+    `;
+  }
+  function bindAparenciaCard($app, api) {
+    $app.querySelectorAll('[data-tema]').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const escuro = btn.dataset.tema === 'escuro';
+        localStorage.setItem('tema_escuro', escuro ? '1' : '0');
+        if (escuro) document.documentElement.setAttribute('data-theme', 'dark');
+        else document.documentElement.removeAttribute('data-theme');
+        api.render();
+      });
+    });
+  }
+
   function renderMenu($app, state, api) {
     $app.innerHTML = `
       ${contaCardHtml()}
+      ${aparenciaCardHtml()}
       <div class="card" style="padding:4px 16px">
         <div class="menu-list">
           ${MENU.map(m => `
@@ -122,6 +153,7 @@ const ViewMais = (() => {
       </div>
     `;
     bindContaCard($app, api);
+    bindAparenciaCard($app, api);
     $app.querySelectorAll('[data-go]').forEach(btn => {
       btn.addEventListener('click', () => api.goToMais(btn.dataset.go));
     });

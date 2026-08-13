@@ -3,6 +3,17 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<!-- Aplica o tema escuro (se o usuário escolheu isso em Mais → Aparência) antes do CSS
+     carregar, senão dava um "flash" de tela clara antes de trocar pra escura. O app não
+     segue mais o modo escuro do celular automaticamente — é sempre claro a não ser que a
+     pessoa escolha escuro aqui dentro. -->
+<script>
+try {
+  if (localStorage.getItem('tema_escuro') === '1') {
+    document.documentElement.setAttribute('data-theme', 'dark');
+  }
+} catch (e) {}
+</script>
 <!-- Evita que o navegador (principalmente em modo "adicionado à tela inicial" no
      celular) guarde este HTML em cache — sem isso, o app pode continuar apontando
      pros arquivos JS/CSS antigos mesmo depois de uma atualização publicada. -->
@@ -18,7 +29,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Meu Diário">
-<link rel="stylesheet" href="css/style.css?v=48">
+<link rel="stylesheet" href="css/style.css?v=49">
 </head>
 <body>
 
@@ -135,28 +146,28 @@
 <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore-compat.js"></script>
 <script src="js/firebase-config.js"></script>
 
-<script src="js/util.js?v=48"></script>
-<script src="js/storage.js?v=48"></script>
-<script src="js/cloud.js?v=48"></script>
-<script src="js/db.js?v=48"></script>
-<script src="js/chart.js?v=48"></script>
-<script src="js/data/exercicios.js?v=48"></script>
-<script src="js/data/alimentos.js?v=48"></script>
-<script src="js/data/dietas.js?v=48"></script>
-<script src="js/data/refeicaoLivre.js?v=48"></script>
-<script src="js/data/treinosPredefinidos.js?v=48"></script>
-<script src="js/data/planoVictor.js?v=48"></script>
-<script src="js/data/combos.js?v=48"></script>
-<script src="js/data/changelog.js?v=48"></script>
-<script src="js/views/inicio.js?v=48"></script>
-<script src="js/views/treino.js?v=48"></script>
-<script src="js/views/alimentacao.js?v=48"></script>
-<script src="js/views/medidas.js?v=48"></script>
-<script src="js/views/fotos.js?v=48"></script>
-<script src="js/views/exames.js?v=48"></script>
-<script src="js/views/tarefas.js?v=48"></script>
-<script src="js/views/historico.js?v=48"></script>
-<script src="js/views/mais.js?v=48"></script>
-<script src="js/app.js?v=48"></script>
+<script src="js/util.js?v=49"></script>
+<script src="js/storage.js?v=49"></script>
+<script src="js/cloud.js?v=49"></script>
+<script src="js/db.js?v=49"></script>
+<script src="js/chart.js?v=49"></script>
+<script src="js/data/exercicios.js?v=49"></script>
+<script src="js/data/alimentos.js?v=49"></script>
+<script src="js/data/dietas.js?v=49"></script>
+<script src="js/data/refeicaoLivre.js?v=49"></script>
+<script src="js/data/treinosPredefinidos.js?v=49"></script>
+<script src="js/data/planoVictor.js?v=49"></script>
+<script src="js/data/combos.js?v=49"></script>
+<script src="js/data/changelog.js?v=49"></script>
+<script src="js/views/inicio.js?v=49"></script>
+<script src="js/views/treino.js?v=49"></script>
+<script src="js/views/alimentacao.js?v=49"></script>
+<script src="js/views/medidas.js?v=49"></script>
+<script src="js/views/fotos.js?v=49"></script>
+<script src="js/views/exames.js?v=49"></script>
+<script src="js/views/tarefas.js?v=49"></script>
+<script src="js/views/historico.js?v=49"></script>
+<script src="js/views/mais.js?v=49"></script>
+<script src="js/app.js?v=49"></script>
 </body>
 </html>
