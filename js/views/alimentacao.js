@@ -245,8 +245,17 @@ const ViewAlimentacao = (() => {
     const aguaEntradas = Storage.getByDate('agua', state.date).sort((a, b) => (a.order || 0) - (b.order || 0));
     const aguaConsumida = aguaEntradas.reduce((s, a) => s + a.ml, 0);
 
+    const listaCompras = Storage.getListaCompras();
+
     $app.innerHTML = `
       ${metaBlock}
+      ${listaCompras && listaCompras.texto ? `
+        <div class="card">
+          <h2>🛒 Lista de compras</h2>
+          <p class="meta">Enviada pela sua nutri.</p>
+          <p style="white-space:pre-wrap">${Util.escapeHtml(listaCompras.texto)}</p>
+        </div>
+      ` : ''}
       <div class="card">
         <h2>Água</h2>
         ${progressBar('Consumida', aguaConsumida, aguaMeta, 'ml')}

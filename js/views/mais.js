@@ -500,20 +500,12 @@ const ViewMais = (() => {
       </div>
       <div class="card">
         <h2>🍲 Sugerir uma receita</h2>
-        <p class="meta">Monte com os ingredientes e as quantidades, informe o peso da receita já pronta, e o app calcula sozinho as calorias por 100g — sem precisar preencher a tabela nutricional na mão.</p>
+        <p class="meta">Escreva o nome e a lista de ingredientes (com quantidade, se souber) — sua nutri revisa, monta a conta certinha e adiciona à biblioteca. Assim que atendida, ela avisa.</p>
         <label>Nome da receita</label>
         <input type="text" id="rc-nome" placeholder="Ex: Frango com quinoa da vovó">
-        <label>Adicionar ingrediente</label>
-        <div class="autocomplete-wrap">
-          <input type="text" id="rc-food-search" placeholder="Buscar na biblioteca..." autocomplete="off">
-          <div class="autocomplete-list" id="rc-food-results" style="display:none"></div>
-        </div>
-        <div id="rc-selected-food-box"></div>
-        <div id="rc-itens-list" style="margin-top:12px"></div>
-        <label style="margin-top:10px">Peso da receita já pronta (gramas)</label>
-        <input type="number" id="rc-peso-final" placeholder="Ex: 850">
-        <div id="rc-preview" class="meta" style="margin-top:8px"></div>
-        <button class="primary" id="rc-enviar" style="margin-top:8px">Enviar receita</button>
+        <label>Ingredientes</label>
+        <textarea id="rc-ingredientes" rows="5" placeholder="Ex:&#10;200g de peito de frango&#10;1 xícara de quinoa cozida&#10;1 colher de azeite&#10;..."></textarea>
+        <button class="primary" id="rc-enviar" style="margin-top:8px">Enviar sugestão</button>
       </div>
       <div class="card">
         <h2>Alimentos cadastrados (${lib.length})</h2>
@@ -551,115 +543,28 @@ const ViewMais = (() => {
       api.render();
     });
 
-    // ---- Sugerir receita: ingredientes (mesmo padrão do combo) + peso final calcula sozinho ----
-    let receitaItens = [];
-    const rcSearchInput = document.getElementById('rc-food-search');
-    const rcResultsBox = document.getElementById('rc-food-results');
-
-    function rcUpdatePreview() {
-      const previewEl = document.getElementById('rc-preview');
-      const pesoFinal = Number(document.getElementById('rc-peso-final').value) || 0;
-      if (receitaItens.length === 0 || pesoFinal <= 0) { previewEl.textContent = ''; return; }
-      const totais = {};
-      NUTRI_FIELDS_COMBO.forEach(f => { totais[f] = receitaItens.reduce((s, it) => s + (it[f] || 0), 0); });
-      const fator = 100 / pesoFinal;
-      previewEl.innerHTML = `Por 100g da receita pronta: <strong>${Math.round(totais.kcal * fator)} kcal</strong> · P ${(totais.protein * fator).toFixed(1)}g · C ${(totais.carbs * fator).toFixed(1)}g · G ${(totais.fat * fator).toFixed(1)}g · Fibra ${(totais.fiber * fator).toFixed(1)}g`;
-    }
-
-    function rcRenderItensList() {
-      const wrap = document.getElementById('rc-itens-list');
-      if (receitaItens.length === 0) {
-        wrap.innerHTML = '<div class="empty">Nenhum ingrediente adicionado ainda</div>';
-      } else {
-        wrap.innerHTML = receitaItens.map((it, i) => `
-          <div class="list-item">
-            <div>
-              <div>${Util.escapeHtml(it.foodName)} ${it.qty !== 1 ? `<span class="meta">(${it.qty}x)</span>` : ''}</div>
-              <div class="meta">${it.kcal} kcal · P ${it.protein}g · C ${it.carbs}g · G ${it.fat}g</div>
-            </div>
-            <button class="link" data-rc-remove-item="${i}">✕</button>
-          </div>
-        `).join('');
-        wrap.querySelectorAll('[data-rc-remove-item]').forEach(btn => {
-          btn.addEventListener('click', () => {
-            receitaItens.splice(Number(btn.dataset.rcRemoveItem), 1);
-            rcRenderItensList();
-          });
-        });
-      }
-      rcUpdatePreview();
-    }
-    rcRenderItensList();
-
-    document.getElementById('rc-peso-final').addEventListener('input', rcUpdatePreview);
-
-    rcSearchInput.addEventListener('input', () => {
-      const q = rcSearchInput.value.trim().toLowerCase();
-      document.getElementById('rc-selected-food-box').innerHTML = '';
-      if (!q) { rcResultsBox.style.display = 'none'; return; }
-      const libAll = Storage.getAll('alimentos_biblioteca');
-      const matches = libAll.filter(f => f.name.toLowerCase().includes(q)).slice(0, 8);
-      rcResultsBox.innerHTML = matches.length === 0
-        ? `<div class="autocomplete-item">Nenhum resultado</div>`
-        : matches.map(f => `<div class="autocomplete-item" data-id="${f.id}">${Util.escapeHtml(f.name)}<div class="meta">${f.kcal} kcal / ${f.portionLabel}</div></div>`).join('');
-      rcResultsBox.style.display = '';
-      rcResultsBox.querySelectorAll('[data-id]').forEach(el => {
-        el.addEventListener('click', () => rcSelectFood(libAll.find(f => f.id === el.dataset.id)));
-      });
-    });
-
-    function rcSelectFood(food) {
-      rcSearchInput.value = food.name;
-      rcResultsBox.style.display = 'none';
-      document.getElementById('rc-selected-food-box').innerHTML = `
-        <div class="row">
-          <div><label>Porções (de ${Util.escapeHtml(food.portionLabel)})</label><input type="number" id="rc-qty-input" value="1" min="0.01" step="0.1"></div>
-          <div><label>ou gramas direto</label><input type="number" id="rc-qty-grams-input" value="${food.portionGrams}" min="1" step="1"></div>
-        </div>
-        <button class="secondary" id="rc-add-item" style="margin-top:8px">Adicionar ingrediente</button>
-      `;
-      const qtyInput = document.getElementById('rc-qty-input');
-      const gramsInput = document.getElementById('rc-qty-grams-input');
-      qtyInput.addEventListener('input', () => {
-        gramsInput.value = Math.round((Number(qtyInput.value) || 0) * food.portionGrams * 10) / 10;
-      });
-      gramsInput.addEventListener('input', () => {
-        qtyInput.value = Math.round(((Number(gramsInput.value) || 0) / food.portionGrams) * 1000) / 1000;
-      });
-      document.getElementById('rc-add-item').addEventListener('click', () => {
-        const qty = Number(qtyInput.value) || 1;
-        const item = { foodName: food.name, qty };
-        NUTRI_FIELDS_COMBO.forEach(f => { item[f] = Math.round((food[f] || 0) * qty * 10) / 10; });
-        receitaItens.push(item);
-        rcSearchInput.value = '';
-        document.getElementById('rc-selected-food-box').innerHTML = '';
-        rcRenderItensList();
-      });
-    }
-
+    // ---- Sugerir receita: o paciente só escreve nome + ingredientes. Quem monta a conta
+    // (ingrediente por ingrediente + peso final) e decide o que entra na biblioteca é o
+    // admin/nutri, no painel dele — ver renderAdmin/carregarReceitas.
     document.getElementById('rc-enviar').addEventListener('click', async () => {
       const nome = document.getElementById('rc-nome').value.trim();
-      const pesoFinal = Number(document.getElementById('rc-peso-final').value) || 0;
-      if (!nome || receitaItens.length === 0 || pesoFinal <= 0) {
-        alert('Preencha o nome da receita, pelo menos 1 ingrediente e o peso da receita pronta.');
+      const ingredientes = document.getElementById('rc-ingredientes').value.trim();
+      if (!nome || !ingredientes) {
+        alert('Escreva o nome da receita e a lista de ingredientes.');
         return;
       }
-      const totais = {};
-      NUTRI_FIELDS_COMBO.forEach(f => { totais[f] = receitaItens.reduce((s, it) => s + (it[f] || 0), 0); });
-      const fator = 100 / pesoFinal;
-      const entry = { name: nome, portionLabel: '100g', portionGrams: 100, custom: true };
-      NUTRI_FIELDS_COMBO.forEach(f => { entry[f] = Math.round(totais[f] * fator * 10) / 10; });
-
-      Storage.add('alimentos_biblioteca', entry);
-      if (typeof Cloud !== 'undefined' && Cloud.isEnabled() && Cloud.currentUser() && Cloud.sugerirReceita) {
-        try { await Cloud.sugerirReceita(entry, receitaItens, pesoFinal); } catch (e) { /* segue só local */ }
-        alert((typeof Cloud.isAdmin === 'function' && Cloud.isAdmin())
-          ? 'Receita adicionada à biblioteca de todo mundo!'
-          : 'Receita adicionada à sua biblioteca e enviada pra revisão — assim que aprovada, entra pra todo mundo.');
-      } else {
-        alert('Receita adicionada à biblioteca!');
+      if (typeof Cloud === 'undefined' || !Cloud.isEnabled() || !Cloud.currentUser()) {
+        alert('Pra sugerir uma receita você precisa estar conectado (entre com sua conta em Mais). Assim sua nutri consegue ver e adicionar à biblioteca.');
+        return;
       }
-      api.render();
+      try {
+        await Cloud.sugerirReceita(nome, ingredientes);
+        alert('Receita enviada! Assim que ela for montada e aprovada, você recebe aviso.');
+        document.getElementById('rc-nome').value = '';
+        document.getElementById('rc-ingredientes').value = '';
+      } catch (e) {
+        alert('Não deu pra enviar agora — tenta de novo em instantes.');
+      }
     });
   }
 
@@ -1369,39 +1274,179 @@ const ViewMais = (() => {
     }
     carregarVideos();
 
+    // O paciente só manda nome + ingredientes em texto; o admin monta a conta de verdade
+    // aqui (ingrediente por ingrediente da biblioteca + peso final) antes de adicionar.
+    let recsCache = [];
+    let receitaEmMontagemId = null;
+
     function carregarReceitas() {
       Cloud.listarReceitasPendentes().then(recs => {
-        if (!recs.length) { receitasEl.innerHTML = '<div class="empty">Nenhuma receita pendente.</div>'; return; }
-        receitasEl.innerHTML = recs.map(r => {
-          const e = r.entry || {};
-          return `
-            <div class="list-item" data-rid="${Util.escapeHtml(r.id)}" style="display:block">
-              <strong>${Util.escapeHtml(e.name || '')}</strong>
-              <div class="meta">sugerido por ${Util.escapeHtml(r.byEmail || r.byUid || '')}</div>
-              <div class="meta">${e.kcal ?? 0} kcal / 100g · P ${e.protein ?? 0}g · C ${e.carbs ?? 0}g · G ${e.fat ?? 0}g · Fibra ${e.fiber ?? 0}g (receita pronta: ${r.pesoFinalGramas ?? '?'}g)</div>
-              <div class="meta" style="margin-top:4px">Ingredientes: ${(r.ingredientes || []).map(i => `${Util.escapeHtml(i.foodName)} (${i.qty}x)`).join(', ')}</div>
-              <div style="display:flex;gap:6px;margin-top:8px">
-                <button class="secondary" data-aprovar-receita="${Util.escapeHtml(r.id)}" style="font-size:0.75rem;padding:6px 10px">Aprovar</button>
-                <button class="link" data-rejeitar-receita="${Util.escapeHtml(r.id)}">Rejeitar</button>
-              </div>
-            </div>
-          `;
-        }).join('');
-        receitasEl.querySelectorAll('[data-aprovar-receita]').forEach(btn => {
-          btn.addEventListener('click', async () => {
-            const r = recs.find(x => x.id === btn.dataset.aprovarReceita);
-            btn.textContent = '...';
-            try { await Cloud.aprovarReceitaPendente(r.id, r.entry); carregarReceitas(); }
-            catch (e) { btn.textContent = 'erro'; }
-          });
-        });
-        receitasEl.querySelectorAll('[data-rejeitar-receita]').forEach(btn => {
-          btn.addEventListener('click', async () => {
-            try { await Cloud.rejeitarReceitaPendente(btn.dataset.rejeitarReceita); carregarReceitas(); }
-            catch (e) { /* segue */ }
-          });
-        });
+        recsCache = recs;
+        pintarReceitas();
       }).catch(e => { receitasEl.innerHTML = `<div class="empty">Erro: ${Util.escapeHtml(e.message || '')}</div>`; });
+    }
+
+    function pintarReceitas() {
+      if (receitaEmMontagemId) {
+        const r = recsCache.find(x => x.id === receitaEmMontagemId);
+        if (!r) { receitaEmMontagemId = null; return pintarReceitas(); }
+        renderMontarReceita(r);
+        return;
+      }
+      if (!recsCache.length) { receitasEl.innerHTML = '<div class="empty">Nenhuma receita pendente.</div>'; return; }
+      receitasEl.innerHTML = recsCache.map(r => `
+        <div class="list-item" data-rid="${Util.escapeHtml(r.id)}" style="display:block">
+          <strong>${Util.escapeHtml(r.nomeReceita || '')}</strong>
+          <div class="meta">sugerido por ${Util.escapeHtml(r.byEmail || r.byUid || '')}</div>
+          <div class="meta" style="white-space:pre-wrap;margin-top:4px">${Util.escapeHtml(r.ingredientesTexto || '')}</div>
+          <div style="display:flex;gap:6px;margin-top:8px">
+            <button class="secondary" data-montar-receita="${Util.escapeHtml(r.id)}" style="font-size:0.75rem;padding:6px 10px">Montar e adicionar</button>
+            <button class="link" data-rejeitar-receita="${Util.escapeHtml(r.id)}">Rejeitar</button>
+          </div>
+        </div>
+      `).join('');
+      receitasEl.querySelectorAll('[data-montar-receita]').forEach(btn => {
+        btn.addEventListener('click', () => { receitaEmMontagemId = btn.dataset.montarReceita; pintarReceitas(); });
+      });
+      receitasEl.querySelectorAll('[data-rejeitar-receita]').forEach(btn => {
+        btn.addEventListener('click', async () => {
+          try { await Cloud.rejeitarReceitaPendente(btn.dataset.rejeitarReceita); carregarReceitas(); }
+          catch (e) { /* segue */ }
+        });
+      });
+    }
+
+    // Construtor de receita (ingrediente da biblioteca + peso final calcula sozinho),
+    // mesmo padrão do picker de combos/plano alimentar, mas só acessível aqui pro admin.
+    function renderMontarReceita(r) {
+      let itensMontagem = [];
+      const bibliotecaAtual = Storage.getAll('alimentos_biblioteca');
+      receitasEl.innerHTML = `
+        <div class="list-item" style="display:block">
+          <button class="link" id="montar-voltar">‹ Voltar pra lista</button>
+          <p class="meta" style="margin-top:6px">${Util.escapeHtml(r.byEmail || r.byUid || 'Paciente')} escreveu:</p>
+          <div class="meta" style="white-space:pre-wrap;background:var(--bg);padding:8px;border-radius:8px">${Util.escapeHtml(r.ingredientesTexto || '')}</div>
+          <label style="margin-top:10px">Nome da receita</label>
+          <input type="text" id="mr-nome" value="${Util.escapeHtml(r.nomeReceita || '')}">
+          <label>Adicionar ingrediente (da biblioteca)</label>
+          <div class="autocomplete-wrap">
+            <input type="text" id="mr-food-search" placeholder="Buscar na biblioteca..." autocomplete="off">
+            <div class="autocomplete-list" id="mr-food-results" style="display:none"></div>
+          </div>
+          <div id="mr-selected-food-box"></div>
+          <div id="mr-itens-list" style="margin-top:12px"></div>
+          <label style="margin-top:10px">Peso da receita pronta (gramas)</label>
+          <input type="number" id="mr-peso-final" placeholder="Ex: 850">
+          <div id="mr-preview" class="meta" style="margin-top:8px"></div>
+          <button class="primary" id="mr-adicionar" style="margin-top:8px">Adicionar à biblioteca</button>
+        </div>
+      `;
+      receitasEl.querySelector('#montar-voltar').addEventListener('click', () => { receitaEmMontagemId = null; pintarReceitas(); });
+
+      const mrSearchInput = receitasEl.querySelector('#mr-food-search');
+      const mrResultsBox = receitasEl.querySelector('#mr-food-results');
+
+      function mrUpdatePreview() {
+        const previewEl = receitasEl.querySelector('#mr-preview');
+        const pesoFinal = Number(receitasEl.querySelector('#mr-peso-final').value) || 0;
+        if (itensMontagem.length === 0 || pesoFinal <= 0) { previewEl.textContent = ''; return; }
+        const totais = {};
+        NUTRI_FIELDS_COMBO.forEach(f => { totais[f] = itensMontagem.reduce((s, it) => s + (it[f] || 0), 0); });
+        const fator = 100 / pesoFinal;
+        previewEl.innerHTML = `Por 100g da receita pronta: <strong>${Math.round(totais.kcal * fator)} kcal</strong> · P ${(totais.protein * fator).toFixed(1)}g · C ${(totais.carbs * fator).toFixed(1)}g · G ${(totais.fat * fator).toFixed(1)}g · Fibra ${(totais.fiber * fator).toFixed(1)}g`;
+      }
+
+      function mrRenderItensList() {
+        const wrap = receitasEl.querySelector('#mr-itens-list');
+        if (itensMontagem.length === 0) {
+          wrap.innerHTML = '<div class="empty">Nenhum ingrediente adicionado ainda</div>';
+        } else {
+          wrap.innerHTML = itensMontagem.map((it, i) => `
+            <div class="list-item">
+              <div>
+                <div>${Util.escapeHtml(it.foodName)} ${it.qty !== 1 ? `<span class="meta">(${it.qty}x)</span>` : ''}</div>
+                <div class="meta">${it.kcal} kcal · P ${it.protein}g · C ${it.carbs}g · G ${it.fat}g</div>
+              </div>
+              <button class="link" data-mr-remove-item="${i}">✕</button>
+            </div>
+          `).join('');
+          wrap.querySelectorAll('[data-mr-remove-item]').forEach(btn => {
+            btn.addEventListener('click', () => {
+              itensMontagem.splice(Number(btn.dataset.mrRemoveItem), 1);
+              mrRenderItensList();
+            });
+          });
+        }
+        mrUpdatePreview();
+      }
+      mrRenderItensList();
+
+      receitasEl.querySelector('#mr-peso-final').addEventListener('input', mrUpdatePreview);
+
+      mrSearchInput.addEventListener('input', () => {
+        const q = mrSearchInput.value.trim().toLowerCase();
+        receitasEl.querySelector('#mr-selected-food-box').innerHTML = '';
+        if (!q) { mrResultsBox.style.display = 'none'; return; }
+        const matches = bibliotecaAtual.filter(f => f.name.toLowerCase().includes(q)).slice(0, 8);
+        mrResultsBox.innerHTML = matches.length === 0
+          ? `<div class="autocomplete-item">Nenhum resultado</div>`
+          : matches.map(f => `<div class="autocomplete-item" data-id="${f.id}">${Util.escapeHtml(f.name)}<div class="meta">${f.kcal} kcal / ${f.portionLabel}</div></div>`).join('');
+        mrResultsBox.style.display = '';
+        mrResultsBox.querySelectorAll('[data-id]').forEach(el => {
+          el.addEventListener('click', () => mrSelectFood(bibliotecaAtual.find(f => f.id === el.dataset.id)));
+        });
+      });
+
+      function mrSelectFood(food) {
+        mrSearchInput.value = food.name;
+        mrResultsBox.style.display = 'none';
+        receitasEl.querySelector('#mr-selected-food-box').innerHTML = `
+          <div class="row">
+            <div><label>Porções (de ${Util.escapeHtml(food.portionLabel)})</label><input type="number" id="mr-qty-input" value="1" min="0.01" step="0.1"></div>
+            <div><label>ou gramas direto</label><input type="number" id="mr-qty-grams-input" value="${food.portionGrams}" min="1" step="1"></div>
+          </div>
+          <button class="secondary" id="mr-add-item" style="margin-top:8px">Adicionar ingrediente</button>
+        `;
+        const qtyInput = receitasEl.querySelector('#mr-qty-input');
+        const gramsInput = receitasEl.querySelector('#mr-qty-grams-input');
+        qtyInput.addEventListener('input', () => {
+          gramsInput.value = Math.round((Number(qtyInput.value) || 0) * food.portionGrams * 10) / 10;
+        });
+        gramsInput.addEventListener('input', () => {
+          qtyInput.value = Math.round(((Number(gramsInput.value) || 0) / food.portionGrams) * 1000) / 1000;
+        });
+        receitasEl.querySelector('#mr-add-item').addEventListener('click', () => {
+          const qty = Number(qtyInput.value) || 1;
+          const item = { foodName: food.name, qty };
+          NUTRI_FIELDS_COMBO.forEach(f => { item[f] = Math.round((food[f] || 0) * qty * 10) / 10; });
+          itensMontagem.push(item);
+          mrSearchInput.value = '';
+          receitasEl.querySelector('#mr-selected-food-box').innerHTML = '';
+          mrRenderItensList();
+        });
+      }
+
+      receitasEl.querySelector('#mr-adicionar').addEventListener('click', async () => {
+        const nome = receitasEl.querySelector('#mr-nome').value.trim();
+        const pesoFinal = Number(receitasEl.querySelector('#mr-peso-final').value) || 0;
+        if (!nome || itensMontagem.length === 0 || pesoFinal <= 0) {
+          alert('Preencha o nome, pelo menos 1 ingrediente e o peso da receita pronta.');
+          return;
+        }
+        const totais = {};
+        NUTRI_FIELDS_COMBO.forEach(f => { totais[f] = itensMontagem.reduce((s, it) => s + (it[f] || 0), 0); });
+        const fator = 100 / pesoFinal;
+        const entry = { name: nome, portionLabel: '100g', portionGrams: 100, custom: true };
+        NUTRI_FIELDS_COMBO.forEach(f => { entry[f] = Math.round(totais[f] * fator * 10) / 10; });
+        const btnSalvar = receitasEl.querySelector('#mr-adicionar');
+        btnSalvar.textContent = '...';
+        try {
+          await Cloud.aprovarReceitaPendente(r.id, entry);
+          alert('Receita adicionada à biblioteca! Agora é só avisar quem pediu.');
+          receitaEmMontagemId = null;
+          carregarReceitas();
+        } catch (e) { btnSalvar.textContent = 'erro'; }
+      });
     }
     carregarReceitas();
 
@@ -1460,10 +1505,12 @@ const ViewMais = (() => {
           <p class="meta" id="ad-msg" style="margin-top:8px"></p>
         </div>
         <div id="admin-plano"></div>
+        <div id="admin-lista-compras"></div>
         <div id="admin-treino"></div>
         <div id="admin-reatribuir"></div>
       `;
       montarPlano(uid, presc);
+      montarListaCompras(uid, presc);
       montarTreino(uid, presc);
       montarReatribuir(uid, info);
       const diarioConteudo = detailEl.querySelector('#ad-diario-conteudo');
@@ -1584,24 +1631,6 @@ const ViewMais = (() => {
       let itensNovo = [];
       let plSelectedFood = null;
 
-      // Soma a quantidade (em "porções" do alimento) de cada ingrediente em todas as
-      // refeições do plano, e converte pra gramas usando o portionGrams da biblioteca —
-      // dá pro nutri mandar/copiar pro paciente fazer a compra da semana.
-      function gerarListaCompras() {
-        const somaPorNome = {};
-        refeicoes.forEach(r => {
-          (r.itens || []).forEach(it => {
-            somaPorNome[it.foodName] = (somaPorNome[it.foodName] || 0) + (it.qty || 0);
-          });
-        });
-        return Object.keys(somaPorNome).sort((a, b) => a.localeCompare(b)).map(nome => {
-          const qtyTotal = somaPorNome[nome];
-          const alimento = biblioteca.find(f => f.name === nome);
-          const gramas = alimento ? Math.round(qtyTotal * alimento.portionGrams) : null;
-          return gramas != null ? `${nome} — ${gramas}g` : `${nome} — ${qtyTotal.toFixed(2)}x`;
-        }).join('\n');
-      }
-
       function paint() {
         cont.innerHTML = `
           <div class="card">
@@ -1615,11 +1644,6 @@ const ViewMais = (() => {
                 <button class="link" data-del-ref="${i}">✕</button>
               </div>
             `).join('')}
-            ${refeicoes.length > 0 ? `
-              <button class="secondary" id="pl-lista-compras" style="width:100%;margin-top:8px">🛒 Gerar lista de compras</button>
-              <textarea id="pl-lista-compras-box" readonly style="display:none;min-height:120px;margin-top:8px;font-family:monospace;font-size:0.8rem"></textarea>
-              <button class="secondary" id="pl-lista-compras-copiar" style="display:none;margin-top:6px">Copiar lista</button>
-            ` : ''}
             <hr style="border:none;border-top:1px solid var(--border);margin:12px 0">
             <label>Nome da refeição</label>
             <input type="text" id="pl-nome" placeholder="Ex: Café da manhã">
@@ -1640,21 +1664,6 @@ const ViewMais = (() => {
         `;
         pintarItens();
         cont.querySelectorAll('[data-del-ref]').forEach(b => b.addEventListener('click', () => { refeicoes.splice(Number(b.dataset.delRef), 1); paint(); }));
-        const listaBtn = cont.querySelector('#pl-lista-compras');
-        if (listaBtn) {
-          listaBtn.addEventListener('click', () => {
-            const box = cont.querySelector('#pl-lista-compras-box');
-            box.value = gerarListaCompras();
-            box.style.display = '';
-            cont.querySelector('#pl-lista-compras-copiar').style.display = '';
-          });
-          cont.querySelector('#pl-lista-compras-copiar').addEventListener('click', () => {
-            const box = cont.querySelector('#pl-lista-compras-box');
-            const copyBtn = cont.querySelector('#pl-lista-compras-copiar');
-            if (navigator.clipboard) navigator.clipboard.writeText(box.value).then(() => { copyBtn.textContent = 'copiado!'; });
-            else window.prompt('Lista de compras (copie):', box.value);
-          });
-        }
         wireFoodSearch();
         cont.querySelector('#pl-add-ref').addEventListener('click', () => {
           const nome = cont.querySelector('#pl-nome').value.trim();
@@ -1764,6 +1773,52 @@ const ViewMais = (() => {
       }
 
       paint();
+    }
+
+    // Lista de compras: texto livre que a nutri escreve (ou pré-preenche a partir do
+    // plano alimentar atual, como ponto de partida) e manda pro paciente, separado da
+    // montagem refeição a refeição — pra mandar uma lista simples não precisa ter plano.
+    function montarListaCompras(uid, presc) {
+      const cont = detailEl.querySelector('#admin-lista-compras');
+      if (!cont) return;
+      cont.innerHTML = `
+        <div class="card">
+          <h3 style="font-size:0.92rem;margin:0 0 8px">🛒 Lista de compras</h3>
+          ${presc && presc.listaCompras ? `<p class="meta">Última enviada ${presc.listaComprasUpdatedAt ? Util.fmtDate(new Date(presc.listaComprasUpdatedAt).toISOString().slice(0, 10)) : ''}</p>` : ''}
+          <textarea id="lc-texto" rows="6" placeholder="Ex:&#10;1kg de peito de frango&#10;500g de quinoa&#10;6 ovos&#10;...">${Util.escapeHtml((presc && presc.listaCompras) || '')}</textarea>
+          <div class="row" style="margin-top:8px">
+            <button class="secondary" id="lc-do-plano">🪄 Preencher a partir do plano atual</button>
+            <button class="primary" id="lc-enviar">Enviar lista</button>
+          </div>
+          <p class="meta" id="lc-msg" style="margin-top:6px"></p>
+        </div>
+      `;
+      cont.querySelector('#lc-do-plano').addEventListener('click', () => {
+        const refeicoes = (presc && Array.isArray(presc.refeicoes)) ? presc.refeicoes : [];
+        if (!refeicoes.length) { cont.querySelector('#lc-msg').textContent = 'Esse paciente ainda não tem plano alimentar enviado.'; return; }
+        const biblioteca = Storage.getAll('alimentos_biblioteca');
+        const somaPorNome = {};
+        refeicoes.forEach(r => {
+          (r.itens || []).forEach(it => {
+            somaPorNome[it.foodName] = (somaPorNome[it.foodName] || 0) + (it.qty || 0);
+          });
+        });
+        const texto = Object.keys(somaPorNome).sort((a, b) => a.localeCompare(b)).map(nome => {
+          const qtyTotal = somaPorNome[nome];
+          const alimento = biblioteca.find(f => f.name === nome);
+          const gramas = alimento ? Math.round(qtyTotal * alimento.portionGrams) : null;
+          return gramas != null ? `${nome} — ${gramas}g` : `${nome} — ${qtyTotal.toFixed(2)}x`;
+        }).join('\n');
+        cont.querySelector('#lc-texto').value = texto;
+      });
+      cont.querySelector('#lc-enviar').addEventListener('click', async () => {
+        const texto = cont.querySelector('#lc-texto').value.trim();
+        const msg = cont.querySelector('#lc-msg');
+        if (!texto) { msg.textContent = 'Escreva ou preencha a lista antes de enviar.'; return; }
+        msg.textContent = 'Enviando…';
+        try { await Cloud.enviarListaCompras(uid, texto); msg.textContent = '✅ Lista enviada! O paciente já vê em Alimentação.'; }
+        catch (e) { msg.textContent = '⚠️ Falha: ' + (e.message || ''); }
+      });
     }
 
     // Construtor de plano de treino (A/B/C) pra enviar a um paciente — mesmo padrão do

@@ -86,6 +86,19 @@ const Storage = (() => {
     localStorage.setItem('refeicaoLivre_config', JSON.stringify(data));
   }
 
+  // ---- lista de compras (objeto único {texto, updatedAt}, escrita pela nutri via Cloud) ----
+  function getListaCompras() {
+    try {
+      return JSON.parse(localStorage.getItem('lista_compras') || 'null');
+    } catch {
+      return null;
+    }
+  }
+
+  function saveListaCompras(data) {
+    localStorage.setItem('lista_compras', JSON.stringify(data));
+  }
+
   // ---- bibliotecas: seed padrão + itens do usuário, mesclados e cacheados ----
   function seedIfEmpty(key, seedData) {
     const current = getAll(key);
@@ -115,6 +128,7 @@ const Storage = (() => {
     Object.keys(KEYS).forEach(k => { data[k] = getAll(k); });
     data.perfil = getPerfil();
     data.refeicaoLivre_config = getConfigRefeicaoLivre();
+    data.lista_compras = getListaCompras();
     data._exportedAt = new Date().toISOString();
     return data;
   }
@@ -125,11 +139,12 @@ const Storage = (() => {
     });
     if (data.perfil) savePerfil(data.perfil);
     if (data.refeicaoLivre_config) saveConfigRefeicaoLivre(data.refeicaoLivre_config);
+    if (data.lista_compras) saveListaCompras(data.lista_compras);
   }
 
   return {
     KEYS, uid, getAll, saveAll, getByDate, add, update, remove,
-    getPerfil, savePerfil, getConfigRefeicaoLivre, saveConfigRefeicaoLivre,
+    getPerfil, savePerfil, getConfigRefeicaoLivre, saveConfigRefeicaoLivre, getListaCompras, saveListaCompras,
     seedIfEmpty, mergeSeeds, exportAll, importAll,
   };
 })();

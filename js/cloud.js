@@ -305,24 +305,31 @@ const Cloud = (() => {
   }
 
   // ---- Prescrição de dieta (lado do paciente) ----
+  // Cada bloco (dieta/refeições/treino/lista de compras) é aplicado de forma independente —
+  // a nutri pode mandar só uma lista de compras, por exemplo, sem nunca ter enviado dieta.
   async function aplicarPrescricao() {
     try {
       const s = await db.collection('prescricoes').doc(user.uid).get();
       if (!s || !s.exists) return;
       const d = s.data();
-      if (!d || !d.nome) return;
-      const dietas = Storage.getAll('dietas_custom');
-      const dieta = {
-        nome: d.nome, kcal: d.kcal || null, protein: d.protein || null,
-        carb: d.carb || null, fat: d.fat || null, fiber: d.fiber || null, fonte: 'nutri',
-      };
-      const idx = dietas.findIndex(x => (x.nome || '').trim().toLowerCase() === d.nome.trim().toLowerCase());
-      if (idx >= 0) { dieta.id = dietas[idx].id; dietas[idx] = dieta; }
-      else { dieta.id = Storage.uid(); dietas.push(dieta); }
-      localStorage.setItem(Storage.KEYS.dietas_custom, JSON.stringify(dietas));
-      // Ativa a dieta prescrita como objetivo atual (o paciente ainda pode trocar depois).
-      const perfil = Storage.getPerfil();
-      localStorage.setItem('perfil', JSON.stringify({ ...perfil, dietaTemplate: null, metaCustom: null, dietaCustomId: dieta.id }));
+      if (!d) return;
+      let mudou = false;
+
+      if (d.nome) {
+        const dietas = Storage.getAll('dietas_custom');
+        const dieta = {
+          nome: d.nome, kcal: d.kcal || null, protein: d.protein || null,
+          carb: d.carb || null, fat: d.fat || null, fiber: d.fiber || null, fonte: 'nutri',
+        };
+        const idx = dietas.findIndex(x => (x.nome || '').trim().toLowerCase() === d.nome.trim().toLowerCase());
+        if (idx >= 0) { dieta.id = dietas[idx].id; dietas[idx] = dieta; }
+        else { dieta.id = Storage.uid(); dietas.push(dieta); }
+        localStorage.setItem(Storage.KEYS.dietas_custom, JSON.stringify(dietas));
+        // Ativa a dieta prescrita como objetivo atual (o paciente ainda pode trocar depois).
+        const perfil = Storage.getPerfil();
+        localStorage.setItem('perfil', JSON.stringify({ ...perfil, dietaTemplate: null, metaCustom: null, dietaCustomId: dieta.id }));
+        mudou = true;
+      }
 
       // Plano alimentar (refeições) prescrito → vira combos prontos do paciente.
       if (Array.isArray(d.refeicoes) && d.refeicoes.length) {
@@ -335,6 +342,7 @@ const Cloud = (() => {
           else { combo.id = Storage.uid(); combos.push(combo); }
         });
         localStorage.setItem(Storage.KEYS.combos, JSON.stringify(combos));
+        mudou = true;
       }
 
       // Planos de treino prescritos (A/B/C) → viram planos locais do paciente, mesmo
@@ -355,8 +363,16 @@ const Cloud = (() => {
           }
         });
         localStorage.setItem(Storage.KEYS.treino_planos, JSON.stringify(planosLocais));
+        mudou = true;
       }
-      emit();
+
+      // Lista de compras (texto livre escrito pela nutri) → fica salva pro paciente ver.
+      if (d.listaCompras) {
+        localStorage.setItem('lista_compras', JSON.stringify({ texto: d.listaCompras, updatedAt: d.listaComprasUpdatedAt || d.updatedAt || Date.now() }));
+        mudou = true;
+      }
+
+      if (mudou) emit();
     } catch (e) { console.error('Aplicar prescrição falhou', e); }
   }
 
@@ -386,6 +402,12 @@ const Cloud = (() => {
   async function enviarPlano(uidAlvo, refeicoes) {
     await db.collection('prescricoes').doc(uidAlvo).set(
       { refeicoes, updatedAt: Date.now(), byUid: user.uid }, { merge: true }
+    );
+  }
+
+  async function enviarListaCompras(uidAlvo, texto) {
+    await db.collection('prescricoes').doc(uidAlvo).set(
+      { listaCompras: texto, listaComprasUpdatedAt: Date.now(), updatedAt: Date.now(), byUid: user.uid }, { merge: true }
     );
   }
 
@@ -449,22 +471,20 @@ const Cloud = (() => {
     await db.collection('pendingVideos').doc(pendingId).delete();
   }
 
-  // ---- Receitas: sugestão (usuário monta ingredientes+peso final, app já calcula) e
-  // aprovação (admin) — mesmo padrão dos vídeos, mas aplicado à biblioteca de alimentos.
+  // ---- Receitas: o paciente só escreve nome + ingredientes em texto livre (não calcula
+  // nada). Vai sempre pra uma fila de revisão — quem monta a conta de verdade (ingrediente
+  // por ingrediente + peso final) e decide o que entra na biblioteca é o admin/nutri.
   async function aplicarAlimentoCompartilhado(entry) {
     const q = await db.collection('sharedFoods').where('name', '==', entry.name).limit(1).get();
     if (!q.empty) await q.docs[0].ref.set(entry, { merge: true });
     else await db.collection('sharedFoods').add({ ...entry, addedBy: user.uid });
   }
 
-  // entry: o alimento já calculado (name, portionLabel, portionGrams, kcal, protein...).
-  // ingredientes/pesoFinalGramas: guardados só pra quem for revisar conferir a conta.
-  async function sugerirReceita(entry, ingredientes, pesoFinalGramas) {
-    if (!enabled || !user || !db || !entry || !entry.name) return;
+  async function sugerirReceita(nomeReceita, ingredientesTexto) {
+    if (!enabled || !user || !db || !nomeReceita) return;
     try {
-      if (isAdminFlag) await aplicarAlimentoCompartilhado(entry);
-      else await db.collection('pendingRecipes').add({
-        entry, ingredientes, pesoFinalGramas, byUid: user.uid, byEmail: user.email || '', createdAt: Date.now(),
+      await db.collection('pendingRecipes').add({
+        nomeReceita, ingredientesTexto: ingredientesTexto || '', byUid: user.uid, byEmail: user.email || '', createdAt: Date.now(),
       });
     } catch (e) { console.error('Sugerir receita falhou', e); }
   }
@@ -486,7 +506,7 @@ const Cloud = (() => {
   return {
     init, wrapStorage, isEnabled, currentUser, getStatus, onChange,
     loginGoogle, loginEmail, signupEmail, logout, push,
-    isAdmin, isSuperAdmin, uid, listarUsuarios, dadosUsuario, prescricaoDe, enviarDieta, enviarPlano, enviarTreino,
+    isAdmin, isSuperAdmin, uid, listarUsuarios, dadosUsuario, prescricaoDe, enviarDieta, enviarPlano, enviarTreino, enviarListaCompras,
     gerarConviteLink, listarNutris, reatribuirPaciente,
     sugerirVideo, listarVideosPendentes, aprovarVideoPendente, rejeitarVideoPendente,
     sugerirReceita, listarReceitasPendentes, aprovarReceitaPendente, rejeitarReceitaPendente,
