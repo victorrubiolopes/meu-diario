@@ -1,5 +1,6 @@
 // Lista de atualizações recentes do app, mais recente primeiro. Editável manualmente a cada mudança.
 const CHANGELOG = [
+  { date: '2026-08-13', texto: 'Sugestão de alimentos (Infor. nutric.) parou de indicar itens crus e passou a respeitar o padrão de prato brasileiro: proteína sugere carnes/peixes/ovo, carboidrato sugere arroz/pão/tapioca/batata (não fruta), gordura sugere azeite/manteiga/oleaginosas, fibra sugere grãos/feijão/legumes/fruta' },
   { date: '2026-08-13', texto: 'Infor. nutric. (dentro de Alimentação): uma linha fina verde-clara agora separa os grupos de proteína/carboidrato/gordura/fibra, e quando algum macro está abaixo da meta, aparece uma sugestão discreta de alimentos ricos nele' },
   { date: '2026-08-13', texto: 'Caixas de macro (carboidrato, gordura, proteína, fibra) em Alimentação: contorno colorido forte trocado por uma borda fina verde-clara, deixando mais discreto e separando visualmente cada uma' },
   { date: '2026-08-13', texto: 'Correção: o logo da tela de login estava com pouco contraste (branco sobre um fundo quase branco). Agora fica num selo verde sólido, igual ao ícone do app. Também centralizei o texto dos campos de e-mail e senha' },

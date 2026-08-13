@@ -40,12 +40,29 @@ const ViewAlimentacao = (() => {
     `;
   }
 
+  // Categorias que fazem sentido sugerir pra cada macro, seguindo o mesmo método do
+  // prato usado na sugestão de refeições (proteína = carnes/ovo/whey, carboidrato =
+  // arroz/pão/tapioca/batata, gordura = azeite/manteiga/oleaginosas/queijo, fibra =
+  // grãos/feijão/legumes/fruta) — em vez de vasculhar a biblioteca inteira sem critério.
+  // Carboidrato fica só com 'carboidrato' (não fruta): por densidade (g/kcal), fruta
+  // quase sempre vence do arroz/pão por ter poucas calorias, mas quem tá comendo pouco
+  // carboidrato geralmente quer um prato de verdade, não uma sugestão de comer fruta.
+  const CATEGORIAS_POR_MACRO = {
+    protein: ['proteina'],
+    carbs: ['carboidrato'],
+    fat: ['outro'],
+    fiber: ['carboidrato', 'legume', 'fruta'],
+  };
+
   function sugestaoAlimentosRicosEm(macroKey, jaComidos) {
     const lib = Storage.getAll('alimentos_biblioteca');
+    const categoriasOk = CATEGORIAS_POR_MACRO[macroKey];
     // kcal mínimo pra evitar que itens quase sem caloria (refrigerante zero, temperos)
     // pareçam "ricos" só por causa da divisão por um kcal perto de zero.
     return lib
       .filter(f => (f.kcal || 0) >= 20 && (f[macroKey] || 0) > 0 && !jaComidos.has(f.name))
+      .filter(f => !/\bcrua?\b/i.test(f.name))
+      .filter(f => !categoriasOk || categoriasOk.includes(f.categoria))
       .map(f => ({ name: f.name, densidade: (f[macroKey] / f.kcal) * 100 }))
       .sort((a, b) => b.densidade - a.densidade)
       .slice(0, 3)
