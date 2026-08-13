@@ -40,6 +40,18 @@ const ViewAlimentacao = (() => {
     `;
   }
 
+  function sugestaoAlimentosRicosEm(macroKey, jaComidos) {
+    const lib = Storage.getAll('alimentos_biblioteca');
+    // kcal mínimo pra evitar que itens quase sem caloria (refrigerante zero, temperos)
+    // pareçam "ricos" só por causa da divisão por um kcal perto de zero.
+    return lib
+      .filter(f => (f.kcal || 0) >= 20 && (f[macroKey] || 0) > 0 && !jaComidos.has(f.name))
+      .map(f => ({ name: f.name, densidade: (f[macroKey] / f.kcal) * 100 }))
+      .sort((a, b) => b.densidade - a.densidade)
+      .slice(0, 3)
+      .map(f => f.name);
+  }
+
   function macroBreakdown(entries, macroKey) {
     const byFood = {};
     entries.forEach(e => {
@@ -139,17 +151,22 @@ const ViewAlimentacao = (() => {
         <div class="macro-info-detail">
           ${macrosParaDetalhe.map(m => {
             const itens = macroBreakdown(entries, m.key);
-            if (itens.length === 0) return '';
             const totalM = itens.reduce((s, i) => s + i.val, 0);
+            const alvoM = { protein: meta.protein, carbs: meta.carb, fat: meta.fat, fiber: meta.fiber }[m.key];
+            const faltando = alvoM && totalM < alvoM;
+            const jaComidos = new Set(itens.map(i => i.foodName));
+            const sugestoes = faltando ? sugestaoAlimentosRicosEm(m.key, jaComidos) : [];
+            if (itens.length === 0 && sugestoes.length === 0) return '';
             return `
               <div class="macro-info-group">
                 <div class="macro-info-group-title">${m.label}</div>
-                ${itens.map(it => `
+                ${itens.length ? itens.map(it => `
                   <div class="meta" style="display:flex;justify-content:space-between;font-size:0.75rem;padding:2px 0">
                     <span>${Util.escapeHtml(it.foodName)}</span>
                     <span>${it.val.toFixed(1)}g (${totalM ? Math.round((it.val / totalM) * 100) : 0}%)</span>
                   </div>
-                `).join('')}
+                `).join('') : '<p class="empty" style="font-size:0.72rem;margin:2px 0">Nada registrado ainda hoje</p>'}
+                ${sugestoes.length ? `<div class="macro-info-suggestion">💡 Rico em ${m.label.toLowerCase()}: ${sugestoes.join(', ')}</div>` : ''}
               </div>
             `;
           }).join('') || '<p class="empty" style="font-size:0.8rem">Nenhum alimento registrado ainda hoje.</p>'}

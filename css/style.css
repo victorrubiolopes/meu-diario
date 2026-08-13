@@ -491,10 +491,28 @@ button.danger-btn {
   padding-bottom: 6px;
 }
 
+.macro-info-group {
+  padding-bottom: 8px;
+  margin-bottom: 8px;
+  border-bottom: 1px solid var(--accent-soft);
+}
+
+.macro-info-group:last-child {
+  border-bottom: none;
+  margin-bottom: 0;
+  padding-bottom: 0;
+}
+
 .macro-info-group-title {
   font-size: 0.75rem;
   font-weight: 700;
   margin-top: 10px;
+  color: var(--text-muted);
+}
+
+.macro-info-suggestion {
+  margin-top: 4px;
+  font-size: 0.7rem;
   color: var(--text-muted);
 }
 
