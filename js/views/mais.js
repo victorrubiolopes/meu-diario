@@ -55,6 +55,7 @@ const ViewMais = (() => {
       <div class="card">
         <h2>☁️ Sincronizar na nuvem</h2>
         <p class="meta">Entre para salvar seus dados na sua conta e abrir o app em qualquer navegador/aparelho.</p>
+        ${Util.isInAppBrowser() ? '<p class="auth-warning">⚠️ Você abriu pelo navegador do WhatsApp/Instagram — o login com Google costuma falhar aqui. Toque em ⋯ → "Abrir no navegador" (Safari/Chrome), ou entre com e-mail e senha abaixo.</p>' : ''}
         <button class="primary" id="cloud-google">Entrar com Google</button>
         <div style="text-align:center;color:var(--text-muted);font-size:0.75rem;margin:10px 0">ou com e-mail</div>
         <input type="email" id="cloud-email" placeholder="seu@email.com" autocomplete="email">
@@ -81,6 +82,9 @@ const ViewMais = (() => {
         'auth/invalid-email': 'E-mail inválido.',
         'auth/popup-closed-by-user': 'Login cancelado.',
         'auth/unauthorized-domain': 'Domínio não autorizado no Firebase (configuração pendente).',
+        'auth/missing-initial-state': 'O login com Google não funciona neste navegador (ex: aberto pelo WhatsApp/Instagram). Toque em ⋯ → "Abrir no navegador", ou entre com e-mail e senha abaixo.',
+        'auth/web-storage-unsupported': 'Este navegador está bloqueando o armazenamento necessário pro login com Google. Toque em ⋯ → "Abrir no navegador" (Safari/Chrome), ou use e-mail e senha.',
+        'auth/operation-not-supported-in-this-environment': 'O login com Google não é permitido neste navegador embutido. Abra o link no Safari/Chrome, ou use e-mail e senha.',
       };
       if (erroEl) erroEl.textContent = (e && map[e.code]) || (e && e.message) || 'Falha no login.';
     };
