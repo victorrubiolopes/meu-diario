@@ -31,7 +31,16 @@ service cloud.firestore {
     }
 
     match /profiles/{userId} {
-      allow read:   if request.auth != null && podeAcessarPaciente(userId);
+      allow get:    if request.auth != null && podeAcessarPaciente(userId);
+      // Listagem é caso à parte: numa query o Firestore não avalia documento por
+      // documento, ele precisa provar pelas restrições da query que todo resultado é
+      // permitido. Por isso aqui tem que ser `resource.data.nutriId` (que casa com o
+      // where('nutriId','==',uid) do cliente) e não um get() no próprio documento —
+      // com get() a query inteira é recusada pra nutri comum.
+      allow list:   if request.auth != null && (
+        ehSuperAdmin()
+        || (ehAdmin() && resource.data.get('nutriId', '') == request.auth.uid)
+      );
       allow create: if request.auth != null && request.auth.uid == userId;
       // nutriId é travado pro próprio paciente (não pode se reatribuir sozinho);
       // super-admin pode corrigir só esse campo (reatribuir a outra nutri).
