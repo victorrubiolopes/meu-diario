@@ -231,6 +231,8 @@ const App = (() => {
 
   function initGate() {
     const erroEl = document.getElementById('gate-erro');
+    const warningEl = document.getElementById('gate-inapp-warning');
+    if (warningEl && Util.isInAppBrowser()) warningEl.style.display = '';
     const showErro = e => {
       const map = {
         'auth/invalid-credential': 'E-mail ou senha incorretos.',
@@ -241,6 +243,11 @@ const App = (() => {
         'auth/invalid-email': 'E-mail inválido.',
         'auth/popup-closed-by-user': 'Login cancelado.',
         'auth/unauthorized-domain': 'Domínio não autorizado no Firebase.',
+        // Falha típica de navegador embutido (WhatsApp/Instagram/etc.): o WebView bloqueia o
+        // storage que o login com Google precisa. E-mail/senha continua funcionando ali.
+        'auth/missing-initial-state': 'O login com Google não funciona neste navegador (ex: aberto pelo WhatsApp/Instagram). Toque em ⋯ → "Abrir no navegador", ou entre com e-mail e senha abaixo.',
+        'auth/web-storage-unsupported': 'Este navegador está bloqueando o armazenamento necessário pro login com Google. Toque em ⋯ → "Abrir no navegador" (Safari/Chrome), ou use e-mail e senha.',
+        'auth/operation-not-supported-in-this-environment': 'O login com Google não é permitido neste navegador embutido. Abra o link no Safari/Chrome, ou use e-mail e senha.',
       };
       if (erroEl) erroEl.textContent = (e && map[e.code]) || (e && e.message) || 'Falha no login.';
     };

@@ -290,7 +290,16 @@ const Util = (() => {
     return pesos.length ? Math.max(...pesos) : 0;
   }
 
+  // Navegador embutido de apps (WhatsApp, Instagram, Facebook, TikTok, Line...): o login com
+  // Google costuma falhar aí — o WebView restringe/particiona o storage que o Firebase usa
+  // pra completar o fluxo OAuth (erro "missing initial state" / sessionStorage inacessível),
+  // e o próprio Google bloqueia OAuth nesses WebViews por política de segurança.
+  function isInAppBrowser() {
+    const ua = navigator.userAgent || '';
+    return /FBAN|FBAV|Instagram|WhatsApp|Line\/|MicroMessenger|TikTok|Twitter|Snapchat/i.test(ua);
+  }
+
   return { todayISO, fmtDate, escapeHtml, daysAgo, daysFromNow, movingAverage, getPesoAtual, planoSugerido, ultimoTreinoFeito, weekdayOf, daysBetween, addDaysISO, mondayOf, fmtDatePill, historicoTreinos,
     faixaPesoSaudavel, faixaGorduraSaudavel, faixaMassaMagraSaudavel, faixaAguaSaudavel, faixaImcSaudavel, metricasComposicao, estimarGorduraCorporal, inputGroup, youtubeSearchUrl, youtubeEmbedId, fileToDataURL, compressImageToDataURL,
-    pesosExercicio, maxPesoExercicio };
+    pesosExercicio, maxPesoExercicio, isInAppBrowser };
 })();
