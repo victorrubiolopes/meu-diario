@@ -1,5 +1,7 @@
 // Lista de atualizações recentes do app, mais recente primeiro. Editável manualmente a cada mudança.
 const CHANGELOG = [
+  { date: '2026-08-14', texto: 'Histórico → Medidas: em vez de um gráfico só com um seletor pra trocar de medida, agora aparece um gráfico por medida (cintura, pescoço, quadril, etc.), um embaixo do outro — dá pra comparar tudo rolando a tela, sem precisar abrir/trocar nada' },
+  { date: '2026-08-14', texto: 'Medidas ganhou um campo opcional de pescoço, e quem não sabe o próprio % de gordura corporal agora vê uma estimativa (cintura+pescoço, ou só peso/altura/idade se não tiver essas medidas) com um botão pra usar direto no campo' },
   { date: '2026-08-13', texto: 'Nutri pode pré-configurar as regras da refeição livre de um paciente direto no painel (mesmos campos que o paciente ajusta em Mais → Refeição Livre) — ele ainda pode mudar depois' },
   { date: '2026-08-13', texto: 'Aprovar vídeos e receitas sugeridas ficou restrito ao dono da plataforma (antes qualquer nutri podia aprovar); "Últimas atualizações" no Início também' },
   { date: '2026-08-13', texto: '"Dias em foco": o check de calorias agora também exige café da manhã, almoço e jantar registrados no dia — mesma regra já usada na Refeição Livre' },

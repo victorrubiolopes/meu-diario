@@ -111,6 +111,47 @@ const Util = (() => {
     return { peso, bodyFat, massaMagra, massaGorda, agua };
   }
 
+  // Estimativa de % de gordura corporal pra quem não tem esse número medido (balança de
+  // bioimpedância, adipômetro, etc.). Dois níveis, do mais pro menos preciso:
+  //   1) Método da Marinha dos EUA (circunferências) — precisa cintura + pescoço (+ quadril
+  //      pras mulheres) + altura. Mais confiável, mas exige medir o pescoço, algo que ninguém
+  //      mede por padrão.
+  //   2) Fórmula de Deurenberg (peso + altura + idade + sexo) — menos precisa, mas não exige
+  //      nenhuma medida nova: já dá pra calcular só com o que está no Perfil.
+  // Retorna null se não der pra estimar de jeito nenhum (falta perfil básico).
+  function estimarGorduraCorporal(perfil, medida) {
+    if (!perfil || !perfil.altura || !perfil.sexo) return null;
+    const altura = perfil.altura;
+    const sexoMasc = perfil.sexo === 'masculino';
+
+    const cintura = medida && medida.waist;
+    const pescoco = medida && medida.neck;
+    const quadril = medida && medida.hip;
+
+    if (cintura && pescoco && (sexoMasc || quadril)) {
+      let bf = null;
+      if (sexoMasc && cintura > pescoco) {
+        bf = 495 / (1.0324 - 0.19077 * Math.log10(cintura - pescoco) + 0.15456 * Math.log10(altura)) - 450;
+      } else if (!sexoMasc && (cintura + quadril) > pescoco) {
+        bf = 495 / (1.29579 - 0.35004 * Math.log10(cintura + quadril - pescoco) + 0.22100 * Math.log10(altura)) - 450;
+      }
+      if (bf != null && bf > 0 && bf < 70) {
+        return { valor: Math.round(bf * 10) / 10, metodo: 'marinha' };
+      }
+    }
+
+    const peso = (medida && medida.weight) || perfil.peso || getPesoAtual();
+    if (peso && perfil.idade) {
+      const bmi = peso / ((altura / 100) * (altura / 100));
+      const bf = 1.20 * bmi + 0.23 * perfil.idade - 10.8 * (sexoMasc ? 1 : 0) - 5.4;
+      if (bf > 0 && bf < 70) {
+        return { valor: Math.round(bf * 10) / 10, metodo: 'bmi' };
+      }
+    }
+
+    return null;
+  }
+
   // Histórico combinado de treinos (musculação + corrida), mais recente primeiro.
   function historicoTreinos(limit) {
     const lista = [
@@ -250,6 +291,6 @@ const Util = (() => {
   }
 
   return { todayISO, fmtDate, escapeHtml, daysAgo, daysFromNow, movingAverage, getPesoAtual, planoSugerido, ultimoTreinoFeito, weekdayOf, daysBetween, addDaysISO, mondayOf, fmtDatePill, historicoTreinos,
-    faixaPesoSaudavel, faixaGorduraSaudavel, faixaMassaMagraSaudavel, faixaAguaSaudavel, faixaImcSaudavel, metricasComposicao, inputGroup, youtubeSearchUrl, youtubeEmbedId, fileToDataURL, compressImageToDataURL,
+    faixaPesoSaudavel, faixaGorduraSaudavel, faixaMassaMagraSaudavel, faixaAguaSaudavel, faixaImcSaudavel, metricasComposicao, estimarGorduraCorporal, inputGroup, youtubeSearchUrl, youtubeEmbedId, fileToDataURL, compressImageToDataURL,
     pesosExercicio, maxPesoExercicio };
 })();

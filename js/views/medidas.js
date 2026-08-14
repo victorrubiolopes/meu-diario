@@ -2,6 +2,7 @@ const ViewMedidas = (() => {
   const FIELDS = [
     { key: 'weight', label: 'Peso (kg)' },
     { key: 'waist', label: 'Cintura (cm)' },
+    { key: 'neck', label: 'Pescoço (cm) — opcional' },
     { key: 'abdomen', label: 'Abdômen (cm)' },
     { key: 'chest', label: 'Peito (cm)' },
     { key: 'hip', label: 'Quadril (cm)' },
@@ -94,6 +95,7 @@ const ViewMedidas = (() => {
             ${par.map(f => fieldHtml(f, existing)).join('')}
           </div>
         `).join('')}
+        <p class="meta" id="bf-estimativa" style="font-size:0.72rem"></p>
         <p class="meta" style="font-size:0.72rem">Se souber sua massa magra (balança de bioimpedância, etc.), preencha; se deixar em branco, o Início calcula automaticamente a partir do peso e % de gordura.</p>
         <label>Notas</label>
         <textarea id="medidas-notes" placeholder="Observações...">${Util.escapeHtml(existing ? existing.notes : '')}</textarea>
@@ -113,6 +115,40 @@ const ViewMedidas = (() => {
       }
       api.render();
     });
+
+    // Estimativa de % de gordura pra quem não tem esse número medido — só aparece
+    // enquanto o campo "% Gordura corporal" estiver vazio, e recalcula ao digitar.
+    function atualizarEstimativaBF() {
+      const bfInput = document.getElementById('f-bodyFat');
+      const hint = document.getElementById('bf-estimativa');
+      if (!bfInput || !hint) return;
+      if (bfInput.value !== '') { hint.innerHTML = ''; return; }
+      const perfil = Storage.getPerfil();
+      const medidaForm = {
+        weight: Number(document.getElementById('f-weight').value) || null,
+        waist: Number(document.getElementById('f-waist').value) || null,
+        neck: Number(document.getElementById('f-neck').value) || null,
+        hip: Number(document.getElementById('f-hip').value) || null,
+      };
+      const est = Util.estimarGorduraCorporal(perfil, medidaForm);
+      if (!est) { hint.innerHTML = ''; return; }
+      const baseTxt = est.metodo === 'marinha'
+        ? 'baseado na cintura e pescoço'
+        : 'baseado só em peso/altura/idade — meça cintura e pescoço pra uma estimativa mais precisa';
+      hint.innerHTML = `💡 Sem esse número? Estimativa: <strong>${est.valor}%</strong> (${baseTxt}). <button type="button" class="link" id="usar-estimativa-bf">usar essa estimativa</button>`;
+      const usarBtn = document.getElementById('usar-estimativa-bf');
+      if (usarBtn) {
+        usarBtn.addEventListener('click', () => {
+          bfInput.value = est.valor;
+          hint.innerHTML = '';
+        });
+      }
+    }
+    ['weight', 'waist', 'neck', 'hip', 'bodyFat'].forEach(key => {
+      const el = document.getElementById(`f-${key}`);
+      if (el) el.addEventListener('input', atualizarEstimativaBF);
+    });
+    atualizarEstimativaBF();
   }
 
   function fieldHtml(f, existing) {

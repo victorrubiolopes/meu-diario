@@ -35,23 +35,22 @@ const ViewHistorico = (() => {
   function renderMedidas(content) {
     const all = Storage.getAll('medidas').sort((a, b) => a.date.localeCompare(b.date));
     const fields = ViewMedidas.FIELDS.filter(f => f.key !== 'weight');
-    content.innerHTML = `
-      <div class="card">
-        <h2>Evolução das medidas</h2>
-        <select id="medida-field">${fields.map(f => `<option value="${f.key}">${f.label}</option>`).join('')}</select>
-        <canvas id="chart-canvas" style="margin-top:14px"></canvas>
-        <p class="meta" style="color:var(--text-muted);font-size:0.78rem">Linha tracejada = média móvel (tendência)</p>
-      </div>
-    `;
-    const select = document.getElementById('medida-field');
-    const draw = () => {
-      const key = select.value;
-      const points = all.filter(m => m[key] != null).map(m => ({ label: Util.fmtDate(m.date).slice(0, 5), value: m[key] }));
+    // Um gráfico por medida, empilhados — dá pra ver tudo rolando a tela, sem precisar
+    // trocar de seleção pra comparar cintura x quadril x etc.
+    const comDados = fields.filter(f => all.some(m => m[f.key] != null));
+    content.innerHTML = comDados.length
+      ? comDados.map(f => `
+        <div class="card">
+          <h2>${f.label}</h2>
+          <canvas id="chart-${f.key}"></canvas>
+        </div>
+      `).join('') + `<p class="meta" style="color:var(--text-muted);font-size:0.78rem">Linha tracejada = média móvel (tendência)</p>`
+      : `<div class="card"><p class="empty">Nenhuma medida registrada ainda.</p></div>`;
+    comDados.forEach(f => {
+      const points = all.filter(m => m[f.key] != null).map(m => ({ label: Util.fmtDate(m.date).slice(0, 5), value: m[f.key] }));
       const trend = points.length >= 3 ? Util.movingAverage(points, 5) : null;
-      drawLineChart(document.getElementById('chart-canvas'), points, { trend });
-    };
-    select.addEventListener('change', draw);
-    draw();
+      drawLineChart(document.getElementById(`chart-${f.key}`), points, { trend });
+    });
   }
 
   function renderCorrida(content) {
