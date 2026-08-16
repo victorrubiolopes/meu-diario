@@ -272,8 +272,8 @@ const ViewTreino = (() => {
       <div id="ex-cards"></div>
       <button class="secondary" id="add-exercise" style="width:100%;padding:12px;margin-bottom:14px">+ Adicionar exercício</button>
       <div class="card">
-        <label>Duração (min) — opcional, usada para estimar calorias gastas</label>
-        <input type="number" id="treino-duracao" placeholder="Ex: 50" value="${existing && existing.duracaoMin ? existing.duracaoMin : ''}">
+        <label>Duração (min) — vem do cronômetro ao finalizar; preencha só pra corrigir</label>
+        <input type="number" id="treino-duracao" placeholder="${sessao.inicioTs ? 'automático (cronômetro)' : 'Ex: 50'}" value="${existing && existing.duracaoMin ? existing.duracaoMin : ''}">
         <label>Notas do treino</label>
         <textarea id="treino-notes" placeholder="Sensação, observações...">${Util.escapeHtml(existing ? existing.notes : '')}</textarea>
         <button class="primary" id="save-treino">✅ Finalizar treino</button>
@@ -327,14 +327,24 @@ const ViewTreino = (() => {
       });
     }
 
-    function persist() {
+    // Minutos já decorridos no cronômetro do treino (null se não há cronômetro rodando).
+    function minutosCronometro() {
+      if (!sessao || !sessao.inicioTs) return null;
+      const mins = Math.round((Date.now() - sessao.inicioTs) / 60000);
+      return mins > 0 ? mins : null;
+    }
+
+    function persist({ finalizando = false } = {}) {
       const cleaned = rows
         .filter(r => r.name && r.name.trim() !== '')
         .map(r => ({ name: r.name.trim(), sets: r.sets, reps: r.reps, weight: r.weight, weights: Array.isArray(r.weights) ? r.weights : [], descanso: r.descanso || '', obs: r.obs || '', done: Array.isArray(r.done) ? r.done : [] }));
       const notesEl = document.getElementById('treino-notes');
       const notes = notesEl ? notesEl.value.trim() : (existing ? existing.notes : '');
       const durEl = document.getElementById('treino-duracao');
-      const duracaoMin = durEl ? (Number(durEl.value) || null) : (existing ? existing.duracaoMin : null);
+      let duracaoMin = durEl ? (Number(durEl.value) || null) : (existing ? existing.duracaoMin : null);
+      // Ao finalizar, o cronômetro já sabe quanto o treino durou — não faz sentido pedir pra
+      // digitar de novo. Só entra quando o campo está vazio, pra respeitar correção manual.
+      if (finalizando && !duracaoMin) duracaoMin = minutosCronometro();
       if (entryId) {
         Storage.update('treino', entryId, { exercises: cleaned, notes, planoId: planoIdAtual, duracaoMin });
       } else if (cleaned.length) {
@@ -571,10 +581,12 @@ const ViewTreino = (() => {
       syncNames();
       const cleaned = rows.filter(r => r.name && r.name.trim() !== '');
       if (cleaned.length === 0) { alert('Adicione pelo menos um exercício antes de finalizar.'); return; }
-      persist();
+      const durEl = document.getElementById('treino-duracao');
+      const duracaoFinal = (durEl && Number(durEl.value)) || minutosCronometro();
+      persist({ finalizando: true });
       atualizarGastoAuto(state.date);
       _clearSessao(state.date);
-      alert('Treino concluído! 💪');
+      alert(duracaoFinal ? `Treino concluído! 💪 ${duracaoFinal} min` : 'Treino concluído! 💪');
       api.render();
     });
 
@@ -594,6 +606,7 @@ const ViewTreino = (() => {
     // localStorage) e não é reiniciado pelos re-renders de renderCards() porque vive fora do #ex-cards.
     if (sessao.inicioTs) {
       const elCronometro = document.getElementById('treino-cronometro');
+      const elDuracao = document.getElementById('treino-duracao');
       function tickCronometro() {
         const segs = Math.max(0, Math.floor((Date.now() - sessao.inicioTs) / 1000));
         const h = Math.floor(segs / 3600);
@@ -601,6 +614,12 @@ const ViewTreino = (() => {
         const s = segs % 60;
         const txt = h > 0 ? `${h}:${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}` : `${m}:${String(s).padStart(2, '0')}`;
         if (elCronometro) elCronometro.textContent = txt;
+        // Mostra no campo de duração o valor que será gravado sozinho, pra ficar claro que
+        // não precisa digitar nada (só sobrescreve o placeholder, nunca o que o usuário digitou).
+        if (elDuracao && !elDuracao.value) {
+          const mins = Math.round(segs / 60);
+          elDuracao.placeholder = mins > 0 ? `${mins} min (do cronômetro)` : 'automático (cronômetro)';
+        }
       }
       tickCronometro();
       cronometroInterval = setInterval(tickCronometro, 1000);
