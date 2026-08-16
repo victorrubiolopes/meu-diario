@@ -2,7 +2,7 @@ const ViewMedidas = (() => {
   const FIELDS = [
     { key: 'weight', label: 'Peso (kg)' },
     { key: 'waist', label: 'Cintura (cm)' },
-    { key: 'neck', label: 'Pescoço (cm) — opcional' },
+    { key: 'neck', label: 'Pescoço (cm) — pro cálculo de %BF' },
     { key: 'abdomen', label: 'Abdômen (cm)' },
     { key: 'chest', label: 'Peito (cm)' },
     { key: 'hip', label: 'Quadril (cm)' },
@@ -132,15 +132,52 @@ const ViewMedidas = (() => {
       };
       const est = Util.estimarGorduraCorporal(perfil, medidaForm);
       if (!est) { hint.innerHTML = ''; return; }
-      const baseTxt = est.metodo === 'marinha'
-        ? 'baseado na cintura e pescoço'
-        : 'baseado só em peso/altura/idade — meça cintura e pescoço pra uma estimativa mais precisa';
-      hint.innerHTML = `💡 Sem esse número? Estimativa: <strong>${est.valor}%</strong> (${baseTxt}). <button type="button" class="link" id="usar-estimativa-bf">usar essa estimativa</button>`;
+
+      // Quando cai no método por IMC, aponta exatamente QUAIS campos deste formulário
+      // faltam pra usar o método da Marinha (bem mais preciso) — antes o texto dizia
+      // "meça cintura e pescoço", o que parecia pedir uma fita métrica em vez de
+      // apontar pros campos que já existem logo acima.
+      const precisaQuadril = perfil.sexo !== 'masculino';
+      const faltando = [
+        !medidaForm.waist ? { key: 'waist', nome: 'Cintura' } : null,
+        !medidaForm.neck ? { key: 'neck', nome: 'Pescoço' } : null,
+        precisaQuadril && !medidaForm.hip ? { key: 'hip', nome: 'Quadril' } : null,
+      ].filter(Boolean);
+
+      let baseTxt;
+      if (est.metodo === 'marinha') {
+        baseTxt = precisaQuadril
+          ? 'pela cintura, pescoço e quadril que você preencheu'
+          : 'pela cintura e pescoço que você preencheu';
+      } else if (faltando.length) {
+        const nomes = faltando.map(f => f.nome);
+        const lista = nomes.length > 1 ? `${nomes.slice(0, -1).join(', ')} e ${nomes[nomes.length - 1]}` : nomes[0];
+        baseTxt = `estimativa grosseira, só por peso/altura/idade — preencha ${lista} acima pra uma bem mais precisa`;
+      } else {
+        baseTxt = 'baseado em peso/altura/idade';
+      }
+
+      const irBtn = faltando.length
+        ? ` <button type="button" class="link" id="ir-campo-bf">preencher ${faltando[0].nome.toLowerCase()}</button>`
+        : '';
+      hint.innerHTML = `💡 Sem esse número? Estimativa: <strong>${est.valor}%</strong> (${baseTxt}). <button type="button" class="link" id="usar-estimativa-bf">usar essa estimativa</button>${irBtn}`;
+
       const usarBtn = document.getElementById('usar-estimativa-bf');
       if (usarBtn) {
         usarBtn.addEventListener('click', () => {
           bfInput.value = est.valor;
           hint.innerHTML = '';
+        });
+      }
+      const irEl = document.getElementById('ir-campo-bf');
+      if (irEl) {
+        irEl.addEventListener('click', () => {
+          const alvo = document.getElementById(`f-${faltando[0].key}`);
+          if (!alvo) return;
+          alvo.scrollIntoView({ behavior: 'smooth', block: 'center' });
+          alvo.focus({ preventScroll: true });
+          alvo.classList.add('campo-destaque');
+          setTimeout(() => alvo.classList.remove('campo-destaque'), 1600);
         });
       }
     }

@@ -1442,3 +1442,19 @@ canvas {
 .auth-box .row .secondary { flex: 1; text-align: center; padding: 10px; }
 
 .auth-erro { color: var(--danger); font-size: 0.8rem; margin: 10px 0 0; min-height: 1em; }
+
+/* Destaque temporário num campo pro qual o usuário foi levado por um link
+   (ex: "preencher pescoço" na estimativa de % de gordura em Medidas). */
+@keyframes campo-destaque-pulso {
+  0%, 100% { box-shadow: 0 0 0 0 transparent; }
+  30%, 70% { box-shadow: 0 0 0 3px var(--focus-ring); }
+}
+
+.campo-destaque {
+  border-color: var(--accent) !important;
+  animation: campo-destaque-pulso 1.6s ease-in-out;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .campo-destaque { animation: none; box-shadow: 0 0 0 3px var(--focus-ring); }
+}

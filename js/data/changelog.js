@@ -1,5 +1,6 @@
 // Lista de atualizações recentes do app, mais recente primeiro. Editável manualmente a cada mudança.
 const CHANGELOG = [
+  { date: '2026-08-15', texto: 'Medidas: o aviso da estimativa de % de gordura agora diz exatamente quais campos preencher (Cintura/Pescoço/Quadril) com um atalho que leva até eles — antes falava em "medir" e parecia que faltava campo no app' },
   { date: '2026-08-14', texto: 'Correção: login com Google falhava (erro de sessionStorage/estado inicial) ao abrir o app pelo navegador do WhatsApp/Instagram/Facebook — agora avisa antes e explica como abrir no Safari/Chrome ou usar e-mail e senha' },
   { date: '2026-08-14', texto: 'Histórico → Medidas: em vez de um gráfico só com um seletor pra trocar de medida, agora aparece um gráfico por medida (cintura, pescoço, quadril, etc.), um embaixo do outro — dá pra comparar tudo rolando a tela, sem precisar abrir/trocar nada' },
   { date: '2026-08-14', texto: 'Medidas ganhou um campo opcional de pescoço, e quem não sabe o próprio % de gordura corporal agora vê uma estimativa (cintura+pescoço, ou só peso/altura/idade se não tiver essas medidas) com um botão pra usar direto no campo' },
