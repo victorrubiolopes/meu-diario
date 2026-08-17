@@ -51,7 +51,11 @@ const DIETA_VICTOR = {
       horario: '08:00',
       itens: [
         // PDF: pão integral 2 fatias — "ou 1 pão francês ou 50g tapioca ou 100g cuscuz".
-        { foodName: 'Tapioca 50g (vaga do pão integral 2 fatias)', qty: 1, kcal: 133, carbs: 24, sugars: 1, protein: 4.5, fat: 1.3, satFat: 0.3, transFat: 0, fiber: 3.5, sodium: 120 },
+        // O Victor usa 30g de tapioca + 15g de mel no lugar dos 50g de tapioca da equivalência.
+        // Fica ~34 kcal abaixo da vaga (292 contra 326 na refeição) e, principalmente, perde as
+        // 3,5g de fibra do pão — compensável com os vegetais liberados à vontade.
+        { foodName: 'Tapioca 30g', qty: 0.6, kcal: 53, carbs: 13.2, sugars: 0.1, protein: 0.1, fat: 0, satFat: 0, transFat: 0, fiber: 0.2, sodium: 1 },
+        { foodName: 'Mel 15g', qty: 0.75, kcal: 46, carbs: 12.4, sugars: 12.3, protein: 0.1, fat: 0, satFat: 0, transFat: 0, fiber: 0, sodium: 1 },
         { foodName: 'Ovo (2 unidades)', qty: 1, kcal: 145, carbs: 1.2, sugars: 1.2, protein: 12.6, fat: 10, satFat: 3.1, transFat: 0, fiber: 0, sodium: 140 },
         { foodName: 'Mussarela 15g', qty: 1, kcal: 48, carbs: 0.5, sugars: 0.5, protein: 3.8, fat: 3.4, satFat: 2.1, transFat: 0, fiber: 0, sodium: 88 },
       ],
