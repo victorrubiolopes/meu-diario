@@ -1,5 +1,6 @@
 // Lista de atualizações recentes do app, mais recente primeiro. Editável manualmente a cada mudança.
 const CHANGELOG = [
+  { date: '2026-08-17', texto: 'Gráficos agora mostram o valor em cima de cada ponto, então dá pra ler o número sem contar as linhas da grade. Quando há muitos pontos e os números não caberiam, ele desenha só os que cabem sem se sobrepor — mantendo sempre o mais recente' },
   { date: '2026-08-17', texto: 'Agora dá pra enviar treinos de corrida separados dos de musculação: nome, tipo (leve, intervalado, longo, tiros...), distância e tempo alvo e o protocolo escrito (ex: "5x800m com 2min de trote"). O paciente vê na aba Treino → Corrida, com um botão "Usar" que já preenche distância e tempo no registro' },
   { date: '2026-08-17', texto: '"Painel do nutri" virou "Painel profissional" — quem acompanha o paciente pode ser nutricionista, treinador ou os dois, e o app agora fala assim em todas as telas' },
   { date: '2026-08-17', texto: 'Cronômetro de descanso agora fica dentro de cada exercício, não mais num card único no topo da tela. O botão "Descansar" já usa o tempo que você definiu naquele exercício (aceita 1m30s, 90s, 2m ou 1:30); se ainda não tiver definido, aparecem os atalhos de 30/60/90/120s. Um descanso por vez — começar num exercício para o do outro — e o cronômetro continua correndo enquanto você marca séries e digita cargas' },
