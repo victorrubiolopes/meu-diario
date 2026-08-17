@@ -1125,12 +1125,31 @@ const ViewMais = (() => {
     const tarefas = Storage.getAll('tarefas');
     const conclusoes = Storage.getAll('tarefas_conclusoes').filter(c => c.date >= desde);
 
-    const diasComComida = [...new Set(comidas.map(c => c.date))];
+    // Só conta como dia registrado quem tem as refeições principais lançadas — mesma
+    // regra da Refeição Livre e do Dias em Foco, pra não existirem duas definições
+    // diferentes de "dia completo de alimentação". Um dia em que só entrou um lanche
+    // não representa o que a pessoa comeu e puxaria a média pra baixo.
+    const refeicoesObrigatorias = typeof RefeicaoLivre !== 'undefined'
+      ? RefeicaoLivre.getConfig().refeicoesObrigatorias
+      : ['Café da manhã', 'Almoço', 'Jantar'];
+    const refeicoesPorData = {};
+    comidas.forEach(c => {
+      if (!refeicoesPorData[c.date]) refeicoesPorData[c.date] = new Set();
+      refeicoesPorData[c.date].add(c.mealType);
+    });
+    const todosDiasComRegistro = Object.keys(refeicoesPorData);
+    const diasComComida = todosDiasComRegistro.filter(d => refeicoesObrigatorias.every(r => refeicoesPorData[d].has(r)));
+    const diasIncompletos = todosDiasComRegistro.length - diasComComida.length;
+    // A soma também precisa ficar restrita a esses dias: manter os lançamentos dos dias
+    // incompletos no numerador enquanto eles saem do divisor inflaria todas as médias.
+    const completos = new Set(diasComComida);
+    const comidasCompletas = comidas.filter(c => completos.has(c.date));
+
     const media = (arr, campo) => arr.length ? arr.reduce((s, x) => s + (x[campo] || 0), 0) / arr.length : null;
-    const kcalMedia = diasComComida.length ? comidas.reduce((s, c) => s + (c.kcal || 0), 0) / diasComComida.length : null;
-    const proteinaMedia = diasComComida.length ? comidas.reduce((s, c) => s + (c.protein || 0), 0) / diasComComida.length : null;
-    const carbMedia = diasComComida.length ? comidas.reduce((s, c) => s + (c.carbs || 0), 0) / diasComComida.length : null;
-    const gorduraMedia = diasComComida.length ? comidas.reduce((s, c) => s + (c.fat || 0), 0) / diasComComida.length : null;
+    const kcalMedia = diasComComida.length ? comidasCompletas.reduce((s, c) => s + (c.kcal || 0), 0) / diasComComida.length : null;
+    const proteinaMedia = diasComComida.length ? comidasCompletas.reduce((s, c) => s + (c.protein || 0), 0) / diasComComida.length : null;
+    const carbMedia = diasComComida.length ? comidasCompletas.reduce((s, c) => s + (c.carbs || 0), 0) / diasComComida.length : null;
+    const gorduraMedia = diasComComida.length ? comidasCompletas.reduce((s, c) => s + (c.fat || 0), 0) / diasComComida.length : null;
     const aguaMedia = media(aguas, 'ml');
     const gastoMedio = media(gastos, 'kcal');
 
@@ -1160,7 +1179,10 @@ const ViewMais = (() => {
     linhas.push('');
 
     linhas.push('== Alimentação ==');
-    linhas.push(`Calorias: média de ${kcalMedia != null ? kcalMedia.toFixed(0) : 'sem dados'} kcal/dia (${diasComComida.length} de ${dias} dias registrados)`);
+    linhas.push(`Calorias: média de ${kcalMedia != null ? kcalMedia.toFixed(0) : 'sem dados'} kcal/dia (${diasComComida.length} de ${dias} dias com ${refeicoesObrigatorias.join(', ')} registrados)`);
+    if (diasIncompletos > 0) {
+      linhas.push(`Obs: outros ${diasIncompletos} dia(s) tiveram registro parcial (sem todas as refeições principais) e ficaram fora das médias acima.`);
+    }
     if (proteinaMedia != null) {
       linhas.push(`Macros médios: P ${proteinaMedia.toFixed(0)}g · C ${carbMedia.toFixed(0)}g · G ${gorduraMedia.toFixed(0)}g por dia`);
     }
