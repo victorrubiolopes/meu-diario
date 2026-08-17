@@ -43,10 +43,10 @@ const ViewMais = (() => {
       return `
         <div class="card">
           <h2>☁️ Conta e sincronização</h2>
-          <p class="meta">Conectado como <strong>${Util.escapeHtml(user.email || user.displayName || 'usuário')}</strong>${ehAdmin ? ' <span class="badge pr">nutri/admin</span>' : ''}</p>
+          <p class="meta">Conectado como <strong>${Util.escapeHtml(user.email || user.displayName || 'usuário')}</strong>${ehAdmin ? ' <span class="badge pr">profissional</span>' : ''}</p>
           <p class="meta">${stTxt} — seus dados abrem em qualquer navegador com este login.</p>
           ${ehAdmin ? `<p class="meta">Seu ID: <code id="cloud-uid" style="font-size:0.72rem">${Util.escapeHtml(user.uid)}</code> <button class="secondary" id="cloud-copy-uid" style="padding:3px 8px;font-size:0.7rem">copiar</button></p>` : ''}
-          ${ehAdmin ? '<button class="primary" id="cloud-admin" style="margin-top:6px">Abrir painel do nutri</button>' : ''}
+          ${ehAdmin ? '<button class="primary" id="cloud-admin" style="margin-top:6px">Abrir painel profissional</button>' : ''}
           <button class="secondary" id="cloud-logout" style="margin-top:8px">Sair</button>
         </div>
       `;
@@ -504,7 +504,7 @@ const ViewMais = (() => {
       </div>
       <div class="card">
         <h2>🍲 Sugerir uma receita</h2>
-        <p class="meta">Escreva o nome e a lista de ingredientes (com quantidade, se souber) — sua nutri revisa, monta a conta certinha e adiciona à biblioteca. Assim que atendida, ela avisa.</p>
+        <p class="meta">Escreva o nome e a lista de ingredientes (com quantidade, se souber) — seu profissional revisa, monta a conta certinha e adiciona à biblioteca. Assim que atendida, ela avisa.</p>
         <label>Nome da receita</label>
         <input type="text" id="rc-nome" placeholder="Ex: Frango com quinoa da vovó">
         <label>Ingredientes</label>
@@ -558,7 +558,7 @@ const ViewMais = (() => {
         return;
       }
       if (typeof Cloud === 'undefined' || !Cloud.isEnabled() || !Cloud.currentUser()) {
-        alert('Pra sugerir uma receita você precisa estar conectado (entre com sua conta em Mais). Assim sua nutri consegue ver e adicionar à biblioteca.');
+        alert('Pra sugerir uma receita você precisa estar conectado (entre com sua conta em Mais). Assim seu profissional consegue ver e adicionar à biblioteca.');
         return;
       }
       try {
@@ -1199,7 +1199,7 @@ const ViewMais = (() => {
   // ---------------- PAINEL DO NUTRI/ADMIN ----------------
   function renderAdmin($app, state, api) {
     if (typeof Cloud === 'undefined' || !Cloud.isEnabled() || !Cloud.isAdmin()) {
-      $app.innerHTML = '<div class="card"><p class="empty">Acesso restrito ao nutri/admin.</p></div>';
+      $app.innerHTML = '<div class="card"><p class="empty">Acesso restrito a profissionais.</p></div>';
       return;
     }
     const souSuperAdmin = typeof Cloud.isSuperAdmin === 'function' && Cloud.isSuperAdmin();
@@ -1223,14 +1223,14 @@ const ViewMais = (() => {
       </div>
       ` : ''}
       <div class="card">
-        <h2>👥 ${souSuperAdmin ? 'Todos os pacientes (todas as nutris)' : 'Seus pacientes'}</h2>
-        ${souSuperAdmin ? '<p class="meta"><span class="badge pr">super-admin</span> Você vê pacientes de todas as nutris.</p>' : ''}
+        <h2>👥 ${souSuperAdmin ? 'Todos os pacientes (todos os profissionais)' : 'Seus pacientes'}</h2>
+        ${souSuperAdmin ? '<p class="meta"><span class="badge pr">super-admin</span> Você vê pacientes de todos os profissionais.</p>' : ''}
         <p class="meta">Toque num paciente pra ver o resumo e enviar uma dieta.</p>
-        <input type="text" id="admin-users-filter" placeholder="Buscar por nome, e-mail ou nutri...">
+        <input type="text" id="admin-users-filter" placeholder="Buscar por nome, e-mail ou profissional...">
         ${souSuperAdmin ? `
           <div class="chip-group" id="admin-users-chip-filter" style="margin-top:8px">
             <button class="chip active" data-nutri-filter="todos">Todos</button>
-            <button class="chip" data-nutri-filter="sem-nutri">Sem nutri</button>
+            <button class="chip" data-nutri-filter="sem-nutri">Sem profissional</button>
           </div>
         ` : ''}
         <div id="admin-users" style="margin-top:8px"><div class="empty">Carregando…</div></div>
@@ -1571,12 +1571,14 @@ const ViewMais = (() => {
         <div id="admin-lista-compras"></div>
         <div id="admin-refeicao-livre"></div>
         <div id="admin-treino"></div>
+        <div id="admin-corrida"></div>
         <div id="admin-reatribuir"></div>
       `;
       montarPlano(uid, presc);
       montarListaCompras(uid, presc);
       montarRegrasRefeicaoLivre(uid, presc);
       montarTreino(uid, presc);
+      montarCorrida(uid, presc);
       montarReatribuir(uid, info);
       const diarioConteudo = detailEl.querySelector('#ad-diario-conteudo');
       const diarioData = detailEl.querySelector('#ad-diario-data');
@@ -1654,15 +1656,15 @@ const ViewMais = (() => {
       const cont = detailEl.querySelector('#admin-reatribuir');
       if (!cont) return;
       if (typeof Cloud.isSuperAdmin !== 'function' || !Cloud.isSuperAdmin()) return;
-      cont.innerHTML = '<div class="card"><div class="empty">Carregando nutris…</div></div>';
+      cont.innerHTML = '<div class="card"><div class="empty">Carregando profissionais…</div></div>';
       Cloud.listarNutris().then(nutris => {
         const atual = (info && info.nutriId) || '';
         const nomeDe = n => Util.escapeHtml(n.displayName || n.email || n.nome || n.uid);
         const atualNome = nutris.find(n => n.uid === atual);
         cont.innerHTML = `
           <div class="card">
-            <h3 style="font-size:0.92rem;margin:0 0 6px">🔗 Nutri responsável (super-admin)</h3>
-            <p class="meta">Atual: <strong>${atual ? (atualNome ? nomeDe(atualNome) : Util.escapeHtml(atual)) : 'nenhuma (paciente solto)'}</strong></p>
+            <h3 style="font-size:0.92rem;margin:0 0 6px">🔗 Profissional responsável (super-admin)</h3>
+            <p class="meta">Atual: <strong>${atual ? (atualNome ? nomeDe(atualNome) : Util.escapeHtml(atual)) : 'nenhum (paciente solto)'}</strong></p>
             <label>Vincular a</label>
             <select id="reat-nutri">
               ${nutris.map(n => `<option value="${Util.escapeHtml(n.uid)}" ${n.uid === atual ? 'selected' : ''}>${nomeDe(n)}</option>`).join('')}
@@ -1679,10 +1681,10 @@ const ViewMais = (() => {
           try {
             await Cloud.reatribuirPaciente(uid, nutriUid);
             if (info) info.nutriId = nutriUid;
-            msg.textContent = '✅ Paciente vinculado! Ele já aparece para essa nutri.';
+            msg.textContent = '✅ Paciente vinculado! Ele já aparece para esse profissional.';
           } catch (e) { msg.textContent = '⚠️ Falha: ' + (e.message || ''); }
         });
-      }).catch(e => { cont.innerHTML = `<div class="card"><div class="empty">Erro ao carregar nutris: ${Util.escapeHtml(e.message || '')}</div></div>`; });
+      }).catch(e => { cont.innerHTML = `<div class="card"><div class="empty">Erro ao carregar profissionais: ${Util.escapeHtml(e.message || '')}</div></div>`; });
     }
 
     // Construtor de plano alimentar (refeição a refeição) para um paciente.
@@ -2065,6 +2067,96 @@ const ViewMais = (() => {
             if (rows.length === 0) rows.push({ name: '', sets: '', reps: '', weight: '', descanso: '', obs: '' });
             pintarRows();
           });
+        });
+      }
+
+      paint();
+    }
+
+    // Treinos de corrida vão separados dos de musculação: não têm série/carga, e sim
+    // distância, tempo-alvo e o protocolo escrito (ex: "5x800m com 2min de trote").
+    function montarCorrida(uid, presc) {
+      const cont = detailEl.querySelector('#admin-corrida');
+      if (!cont) return;
+      let planosCorrida = (presc && Array.isArray(presc.planosCorrida))
+        ? presc.planosCorrida.map(p => ({ ...p })) : [];
+
+      function resumo(p) {
+        const partes = [];
+        if (p.tipo) partes.push(p.tipo);
+        if (p.distanceKm) partes.push(`${p.distanceKm} km`);
+        if (p.timeMin) partes.push(`${p.timeMin} min`);
+        return partes.join(' · ') || 'sem meta definida';
+      }
+
+      function paint() {
+        cont.innerHTML = `
+          <div class="card">
+            <h3 style="font-size:0.92rem;margin:0 0 8px">🏃 Treinos de corrida</h3>
+            ${planosCorrida.length === 0 ? '<p class="meta">Nenhum treino de corrida enviado ainda.</p>' : planosCorrida.map((p, i) => `
+              <div class="list-item">
+                <div>
+                  <strong>${Util.escapeHtml(p.nome)}</strong>
+                  <div class="meta">${Util.escapeHtml(resumo(p))}</div>
+                  ${p.descricao ? `<div class="meta">${Util.escapeHtml(p.descricao)}</div>` : ''}
+                </div>
+                <button class="link" data-del-plano-corrida="${i}">✕</button>
+              </div>
+            `).join('')}
+            <hr style="border:none;border-top:1px solid var(--border);margin:12px 0">
+            <label>Nome do treino</label>
+            <input type="text" id="pc-nome" placeholder="Ex: Corrida A — intervalado">
+            <label style="margin-top:8px">Tipo</label>
+            <select id="pc-tipo">
+              <option value="">— sem tipo —</option>
+              <option value="leve">Leve / regenerativo</option>
+              <option value="moderado">Moderado / contínuo</option>
+              <option value="intervalado">Intervalado</option>
+              <option value="longo">Longo</option>
+              <option value="tiro">Tiros / velocidade</option>
+            </select>
+            <div class="row" style="margin-top:8px">
+              <div>
+                <label>Distância alvo (km)</label>
+                <input type="number" step="0.1" id="pc-dist" placeholder="5">
+              </div>
+              <div>
+                <label>Tempo alvo (min)</label>
+                <input type="number" step="1" id="pc-tempo" placeholder="30">
+              </div>
+            </div>
+            <label style="margin-top:8px">Protocolo / observações</label>
+            <textarea id="pc-desc" placeholder="Ex: 10min aquecimento + 5x800m forte com 2min de trote entre + 10min soltura"></textarea>
+            <button class="secondary" id="pc-add" style="width:100%;margin-top:10px">+ Adicionar treino de corrida</button>
+            <button class="primary" id="pc-enviar" style="margin-top:8px">Enviar treinos de corrida</button>
+            <p class="meta" id="pc-msg" style="margin-top:6px"></p>
+          </div>
+        `;
+
+        cont.querySelectorAll('[data-del-plano-corrida]').forEach(b => {
+          b.addEventListener('click', () => { planosCorrida.splice(Number(b.dataset.delPlanoCorrida), 1); paint(); });
+        });
+
+        cont.querySelector('#pc-add').addEventListener('click', () => {
+          const nome = cont.querySelector('#pc-nome').value.trim();
+          const msg = cont.querySelector('#pc-msg');
+          if (!nome) { msg.textContent = 'Dê um nome ao treino de corrida.'; return; }
+          planosCorrida.push({
+            nome,
+            tipo: cont.querySelector('#pc-tipo').value,
+            distanceKm: Number(cont.querySelector('#pc-dist').value) || null,
+            timeMin: Number(cont.querySelector('#pc-tempo').value) || null,
+            descricao: cont.querySelector('#pc-desc').value.trim(),
+          });
+          paint();
+        });
+
+        cont.querySelector('#pc-enviar').addEventListener('click', async () => {
+          const msg = cont.querySelector('#pc-msg');
+          if (planosCorrida.length === 0) { msg.textContent = 'Adicione ao menos um treino de corrida.'; return; }
+          msg.textContent = 'Enviando…';
+          try { await Cloud.enviarCorrida(uid, planosCorrida); msg.textContent = '✅ Treinos de corrida enviados! O paciente vê na aba Treino → Corrida.'; }
+          catch (e) { msg.textContent = '⚠️ Falha: ' + (e.message || ''); }
         });
       }
 

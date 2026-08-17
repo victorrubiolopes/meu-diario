@@ -11,6 +11,7 @@ const Storage = (() => {
     exercicios_biblioteca: 'exercicios_biblioteca',
     dietas_custom: 'dietas_custom',
     treino_planos: 'treino_planos',
+    corrida_planos: 'corrida_planos',
     combos: 'combos_alimentos',
     agua: 'agua_entries',
     gastos: 'gastos_entries',

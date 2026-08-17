@@ -6,6 +6,31 @@ const ViewTreino = (() => {
   // não travar/reiniciar a cada edição de série; só são limpos quando a tela de treino remonta.
   let cronometroInterval = null;
   let restTimerInterval = null;
+  // Qual exercício está descansando e quanto falta: { i, restante }. Fica FORA do DOM porque
+  // renderCards() reconstrói os cards a cada série marcada — justo quando o descanso começa.
+  // Assim o cronômetro sobrevive ao re-render, e cardHtml pinta o estado certo ao remontar.
+  let restState = null;
+
+  // "1m30s", "90s", "2m", "1:30" ou "60" → segundos. O campo de descanso é texto livre,
+  // então aceita os formatos que dá pra alguém digitar sem pensar. 0 = não deu pra ler.
+  function segundosDoDescanso(txt) {
+    if (!txt) return 0;
+    const s = String(txt).trim().toLowerCase();
+    if (!s) return 0;
+    const mmss = s.match(/^(\d+)\s*:\s*([0-5]?\d)$/);
+    if (mmss) return Number(mmss[1]) * 60 + Number(mmss[2]);
+    let total = 0;
+    let achou = false;
+    const min = s.match(/(\d+)\s*m/);
+    if (min) { total += Number(min[1]) * 60; achou = true; }
+    const seg = s.match(/(\d+)\s*s/);
+    if (seg) { total += Number(seg[1]); achou = true; }
+    if (achou) return total;
+    return /^\d+$/.test(s) ? Number(s) : 0;
+  }
+  function fmtRestante(seg) {
+    return `${Math.floor(seg / 60)}:${String(seg % 60).padStart(2, '0')}`;
+  }
   // O Map acima é só memória — se o app recarregar no meio de um treino (celular mata a
   // aba em segundo plano, comum em economia de bateria), ele some e a tela volta pra
   // "escolher treino" mesmo com os exercícios já marcados até ali intactos no Storage.
@@ -143,6 +168,7 @@ const ViewTreino = (() => {
     // (renderCards()), então é seguro limpar aqui: não interrompe o cronômetro a cada série marcada.
     if (cronometroInterval) { clearInterval(cronometroInterval); cronometroInterval = null; }
     if (restTimerInterval) { clearInterval(restTimerInterval); restTimerInterval = null; }
+    restState = null;
     const todosHoje = Storage.getByDate('treino', state.date);
     const biblioteca = Storage.getAll('exercicios_biblioteca');
     const planos = Storage.getAll('treino_planos').sort((a, b) => a.ordem - b.ordem);
@@ -237,17 +263,6 @@ const ViewTreino = (() => {
           <p class="meta" style="margin:2px 0 0;text-align:center">⏱ treino em andamento</p>
         </div>
       ` : ''}
-      <div class="card rest-timer-card">
-        <h2>😮‍💨 Descanso</h2>
-        <div class="rest-timer-display" id="rest-timer-display">Pronto</div>
-        <div class="rest-timer-buttons">
-          <button type="button" class="rest-timer-btn" data-rest="30">30s</button>
-          <button type="button" class="rest-timer-btn" data-rest="60">60s</button>
-          <button type="button" class="rest-timer-btn" data-rest="90">90s</button>
-          <button type="button" class="rest-timer-btn" data-rest="120">120s</button>
-          <button type="button" class="secondary rest-timer-stop" id="rest-timer-stop" style="display:none">Parar</button>
-        </div>
-      </div>
       ${planos.length > 0 ? `
         <div class="card">
           <h2>Treino sugerido hoje</h2>
@@ -422,6 +437,27 @@ const ViewTreino = (() => {
         </div>
       `;
 
+      // Descanso do próprio exercício: usa o tempo já definido no card (r.descanso). Sem tempo
+      // definido, cai nos presets — assim quem não configurou nada não fica sem cronômetro.
+      // Os dois estados (parado/rodando) são sempre renderizados e alternados por display, então
+      // um renderCards() disparado por outra coisa não perde o cronômetro em andamento.
+      const restSegs = segundosDoDescanso(r.descanso);
+      const restAtivo = !!(restState && restState.i === i);
+      const restLabel = restAtivo
+        ? fmtRestante(restState.restante)
+        : (restSegs > 0 ? `⏱ ${Util.escapeHtml(r.descanso)}` : '⏱ descanso');
+      const restBlock = `
+        <div class="ex-rest-timer${restAtivo ? ' ativo' : ''}" data-rest-wrap="${i}">
+          <span class="ex-rest-display" data-rest-display="${i}">${restLabel}</span>
+          <span class="ex-rest-controls" data-rest-controls="${i}"${restAtivo ? ' style="display:none"' : ''}>
+            ${restSegs > 0
+              ? `<button type="button" class="ex-rest-start" data-rest-start="${i}" data-rest-segs="${restSegs}">Descansar</button>`
+              : [30, 60, 90, 120].map(s => `<button type="button" class="ex-rest-preset" data-rest-start="${i}" data-rest-segs="${s}">${s}s</button>`).join('')}
+          </span>
+          <button type="button" class="ex-rest-stop" data-rest-stop="${i}"${restAtivo ? '' : ' style="display:none"'}>Parar</button>
+        </div>
+      `;
+
       const musculoImg = GRUPO_ICONE_PATH[grupo];
       const thumbConteudo = musculoImg
         ? `<img src="${musculoImg}" alt="${Util.escapeHtml(grupo)}" class="ex-thumb-img">`
@@ -439,6 +475,7 @@ const ViewTreino = (() => {
           </div>
           ${schemeBlock}
           ${setsBlock}
+          ${restBlock}
           ${weightSummaryBlock}
           ${r.obs ? `<div class="ex-obs">📝 ${Util.escapeHtml(r.obs)}</div>` : ''}
           ${nameFilled ? videoBlock(r, i) : ''}
@@ -523,6 +560,15 @@ const ViewTreino = (() => {
           persist();
           renderCards();
         });
+      });
+      cardsEl.querySelectorAll('[data-rest-start]').forEach(btn => {
+        btn.addEventListener('click', () => {
+          syncNames();
+          iniciarRest(Number(btn.dataset.restStart), Number(btn.dataset.restSegs));
+        });
+      });
+      cardsEl.querySelectorAll('[data-rest-stop]').forEach(btn => {
+        btn.addEventListener('click', () => { syncNames(); pararRest(); });
       });
       cardsEl.querySelectorAll('[data-serie-weight]').forEach(inp => {
         inp.addEventListener('change', () => {
@@ -625,46 +671,81 @@ const ViewTreino = (() => {
       cronometroInterval = setInterval(tickCronometro, 1000);
     }
 
-    // Cronômetro de descanso: manual, com presets — não precisa sobreviver a refresh.
-    function pararRestTimer(mensagemFinal) {
+    // Cronômetro de descanso por exercício. Um só roda de cada vez — descanso é físico, não dá
+    // pra descansar de dois exercícios ao mesmo tempo; começar num card cancela o outro.
+    // Só quem dispara por toque (iniciar/parar) chama renderCards(); quando o tempo zera sozinho
+    // a troca é feita direto no DOM, pra não apagar um peso que esteja sendo digitado na hora.
+    function limparRestInterval() {
       if (restTimerInterval) { clearInterval(restTimerInterval); restTimerInterval = null; }
-      const display = document.getElementById('rest-timer-display');
-      const stopBtn = document.getElementById('rest-timer-stop');
-      if (display) display.textContent = mensagemFinal || 'Pronto';
-      if (stopBtn) stopBtn.style.display = 'none';
     }
-    function iniciarRestTimer(segundosTotal) {
-      pararRestTimer();
-      let restante = segundosTotal;
-      const display = document.getElementById('rest-timer-display');
-      const stopBtn = document.getElementById('rest-timer-stop');
-      if (stopBtn) stopBtn.style.display = '';
-      function tick() {
-        const m = Math.floor(restante / 60);
-        const s = restante % 60;
-        if (display) display.textContent = `${m}:${String(s).padStart(2, '0')}`;
-        if (restante === 0) {
-          pararRestTimer('🔔 Descanso acabou!');
-          if (navigator.vibrate) navigator.vibrate([200, 100, 200]);
-          return;
+    function tickRest() {
+      if (!restState) return;
+      const disp = cardsEl.querySelector(`[data-rest-display="${restState.i}"]`);
+      if (disp) disp.textContent = fmtRestante(restState.restante);
+      if (restState.restante === 0) {
+        const i = restState.i;
+        limparRestInterval();
+        restState = null;
+        if (navigator.vibrate) navigator.vibrate([200, 100, 200]);
+        const wrap = cardsEl.querySelector(`[data-rest-wrap="${i}"]`);
+        if (wrap) {
+          wrap.classList.remove('ativo');
+          const d = wrap.querySelector('[data-rest-display]');
+          const ctr = wrap.querySelector('[data-rest-controls]');
+          const stop = wrap.querySelector('[data-rest-stop]');
+          if (d) d.textContent = '🔔 acabou!';
+          if (ctr) ctr.style.display = '';
+          if (stop) stop.style.display = 'none';
         }
-        restante--;
+        return;
       }
-      tick();
-      restTimerInterval = setInterval(tick, 1000);
+      restState.restante--;
     }
-    content.querySelectorAll('[data-rest]').forEach(btn => {
-      btn.addEventListener('click', () => iniciarRestTimer(Number(btn.dataset.rest)));
-    });
-    const restStopBtn = document.getElementById('rest-timer-stop');
-    if (restStopBtn) restStopBtn.addEventListener('click', () => pararRestTimer());
+    function iniciarRest(i, segundos) {
+      limparRestInterval();
+      restState = { i, restante: segundos };
+      renderCards();
+      tickRest();
+      restTimerInterval = setInterval(tickRest, 1000);
+    }
+    function pararRest() {
+      limparRestInterval();
+      restState = null;
+      renderCards();
+    }
 
     renderCards();
   }
 
   function renderCorrida(content, state, api) {
     const runs = Storage.getByDate('corridas', state.date).sort((a, b) => (a.order || 0) - (b.order || 0));
+    const planosCorrida = Storage.getAll('corrida_planos').sort((a, b) => (a.ordem || 0) - (b.ordem || 0));
+
+    function resumoPlano(p) {
+      const partes = [];
+      if (p.tipo) partes.push(p.tipo);
+      if (p.distanceKm) partes.push(`${p.distanceKm} km`);
+      if (p.timeMin) partes.push(`${p.timeMin} min`);
+      return partes.join(' · ');
+    }
+
     content.innerHTML = `
+      ${planosCorrida.length > 0 ? `
+        <div class="card">
+          <h2>🏃 Seus treinos de corrida</h2>
+          ${planosCorrida.map(p => `
+            <div class="list-item">
+              <div>
+                <strong>${Util.escapeHtml(p.nome)}</strong>
+                ${resumoPlano(p) ? `<div class="meta">${Util.escapeHtml(resumoPlano(p))}</div>` : ''}
+                ${p.descricao ? `<div class="meta">${Util.escapeHtml(p.descricao)}</div>` : ''}
+              </div>
+              ${(p.distanceKm || p.timeMin) ? `<button class="secondary" data-usar-corrida="${p.id}" style="font-size:0.75rem;padding:6px 10px">Usar</button>` : ''}
+            </div>
+          `).join('')}
+          <p class="meta" style="font-size:0.72rem">"Usar" preenche a distância e o tempo abaixo — ajuste pro que você realmente fez antes de registrar.</p>
+        </div>
+      ` : ''}
       <div class="card">
         <h2>Registrar corrida</h2>
         <div class="row">
@@ -696,6 +777,19 @@ const ViewTreino = (() => {
       Storage.add('corridas', { date: state.date, distanceKm, timeMin, notes, order: Date.now() });
       atualizarGastoAuto(state.date);
       api.render();
+    });
+    content.querySelectorAll('[data-usar-corrida]').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const p = planosCorrida.find(x => x.id === btn.dataset.usarCorrida);
+        if (!p) return;
+        // Sempre atribui os dois campos (vazio quando o plano não define): senão sobra o
+        // número do plano usado antes, e você registra a meta do treino errado sem perceber.
+        document.getElementById('run-distance').value = p.distanceKm || '';
+        document.getElementById('run-time').value = p.timeMin || '';
+        const notas = document.getElementById('run-notes');
+        if (notas && !notas.value.trim()) notas.value = p.nome;
+        document.getElementById('run-distance').focus();
+      });
     });
     content.querySelectorAll('[data-remove]').forEach(btn => {
       btn.addEventListener('click', () => {

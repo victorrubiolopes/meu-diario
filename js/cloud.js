@@ -11,7 +11,7 @@ const Cloud = (() => {
   // deixava a sincronização lenta, principalmente depois que a biblioteca de alimentos cresceu.
   const SYNC_KEYS = [
     'treino', 'corridas', 'alimentacao', 'medidas', 'tarefas', 'tarefas_conclusoes',
-    'dietas_custom', 'treino_planos', 'combos', 'agua', 'gastos', 'refeicao_fotos', 'refeicoes_livres',
+    'dietas_custom', 'treino_planos', 'corrida_planos', 'combos', 'agua', 'gastos', 'refeicao_fotos', 'refeicoes_livres',
   ];
 
   let enabled = false;
@@ -366,6 +366,29 @@ const Cloud = (() => {
         mudou = true;
       }
 
+      // Planos de corrida prescritos — mesmo upsert-por-nome dos planos de musculação, mas
+      // em chave própria: corrida não tem série/carga, e sim distância/tempo/protocolo.
+      if (Array.isArray(d.planosCorrida) && d.planosCorrida.length) {
+        const corridaLocais = Storage.getAll('corrida_planos');
+        const maxOrdem = corridaLocais.reduce((m, p) => Math.max(m, p.ordem || 0), 0);
+        d.planosCorrida.forEach((cp, i) => {
+          if (!cp || !cp.nome) return;
+          const plano = {
+            nome: cp.nome,
+            tipo: cp.tipo || '',
+            distanceKm: cp.distanceKm != null ? cp.distanceKm : null,
+            timeMin: cp.timeMin != null ? cp.timeMin : null,
+            descricao: cp.descricao || '',
+            fonte: 'nutri',
+          };
+          const j = corridaLocais.findIndex(x => (x.nome || '').trim().toLowerCase() === cp.nome.trim().toLowerCase());
+          if (j >= 0) { plano.id = corridaLocais[j].id; plano.ordem = corridaLocais[j].ordem; corridaLocais[j] = plano; }
+          else { plano.id = Storage.uid(); plano.ordem = maxOrdem + i + 1; corridaLocais.push(plano); }
+        });
+        localStorage.setItem(Storage.KEYS.corrida_planos, JSON.stringify(corridaLocais));
+        mudou = true;
+      }
+
       // Lista de compras (texto livre escrito pela nutri) → fica salva pro paciente ver.
       if (d.listaCompras) {
         localStorage.setItem('lista_compras', JSON.stringify({ texto: d.listaCompras, updatedAt: d.listaComprasUpdatedAt || d.updatedAt || Date.now() }));
@@ -421,6 +444,12 @@ const Cloud = (() => {
   async function enviarTreino(uidAlvo, planosTreino) {
     await db.collection('prescricoes').doc(uidAlvo).set(
       { planosTreino, updatedAt: Date.now(), byUid: user.uid }, { merge: true }
+    );
+  }
+
+  async function enviarCorrida(uidAlvo, planosCorrida) {
+    await db.collection('prescricoes').doc(uidAlvo).set(
+      { planosCorrida, updatedAt: Date.now(), byUid: user.uid }, { merge: true }
     );
   }
 
@@ -519,7 +548,7 @@ const Cloud = (() => {
   return {
     init, wrapStorage, isEnabled, currentUser, getStatus, onChange,
     loginGoogle, loginEmail, signupEmail, logout, push,
-    isAdmin, isSuperAdmin, uid, listarUsuarios, dadosUsuario, prescricaoDe, enviarDieta, enviarPlano, enviarTreino, enviarListaCompras, enviarRegrasRefeicaoLivre,
+    isAdmin, isSuperAdmin, uid, listarUsuarios, dadosUsuario, prescricaoDe, enviarDieta, enviarPlano, enviarTreino, enviarCorrida, enviarListaCompras, enviarRegrasRefeicaoLivre,
     gerarConviteLink, listarNutris, reatribuirPaciente,
     sugerirVideo, listarVideosPendentes, aprovarVideoPendente, rejeitarVideoPendente,
     sugerirReceita, listarReceitasPendentes, aprovarReceitaPendente, rejeitarReceitaPendente,
