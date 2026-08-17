@@ -408,7 +408,31 @@ const ViewMais = (() => {
     const dietas = Storage.getAll('dietas_custom');
     const perfil = Storage.getPerfil();
 
+    // Pacote pessoal do dono do app (mesma regra de visibilidade da ficha do Bronyer em
+    // Planos de Treino): carrega metas + as refeições como combos de uma vez.
+    const souDono = typeof Cloud === 'undefined' || !Cloud.isEnabled()
+      || (typeof Cloud.isSuperAdmin === 'function' && Cloud.isSuperAdmin());
+    const temPacote = typeof DIETA_VICTOR !== 'undefined';
+    const pacoteJaCarregado = temPacote && dietas.some(d => d.fonte === DIETA_VICTOR.fonte);
+
     $app.innerHTML = `
+      ${souDono && temPacote ? `
+        <div class="card">
+          <h2>📋 ${Util.escapeHtml(DIETA_VICTOR.dieta.nome)}</h2>
+          <p class="meta">${DIETA_VICTOR.dieta.kcal} kcal · P ${DIETA_VICTOR.dieta.protein}g · C ${DIETA_VICTOR.dieta.carb}g · G ${DIETA_VICTOR.dieta.fat}g · ${DIETA_VICTOR.aguaMetaMl / 1000}L de água</p>
+          <p class="meta">Carrega a dieta como objetivo e cria as ${DIETA_VICTOR.combos.length} refeições como combos, prontos pra lançar em um toque.</p>
+          <button class="${pacoteJaCarregado ? 'secondary' : 'primary'}" id="carregar-dieta-victor" style="margin-top:8px">
+            ${pacoteJaCarregado ? 'Recarregar (atualiza o que já existe)' : 'Carregar minha dieta'}
+          </button>
+          <p class="meta" id="dieta-victor-msg" style="margin-top:6px"></p>
+          <details style="margin-top:10px">
+            <summary class="meta">Substituições autorizadas</summary>
+            <ul class="meta" style="margin:6px 0 0;padding-left:18px;line-height:1.5">
+              ${DIETA_VICTOR.observacoes.map(o => `<li>${Util.escapeHtml(o)}</li>`).join('')}
+            </ul>
+          </details>
+        </div>
+      ` : ''}
       <div class="card">
         <h2>Nova dieta</h2>
         <p class="meta">Salve um plano recebido de nutricionista (ou outra meta fixa) com um nome, pra escolher depois no Objetivo do seu Perfil.</p>
@@ -444,6 +468,39 @@ const ViewMais = (() => {
         </div>
       </div>
     `;
+
+    const btnPacote = document.getElementById('carregar-dieta-victor');
+    if (btnPacote) {
+      btnPacote.addEventListener('click', () => {
+        // Upsert por nome nos dois lados: recarregar atualiza o que já existe em vez de
+        // criar uma segunda cópia de tudo.
+        const existente = Storage.getAll('dietas_custom').find(d => d.fonte === DIETA_VICTOR.fonte);
+        let dietaId;
+        if (existente) {
+          Storage.update('dietas_custom', existente.id, { ...DIETA_VICTOR.dieta, fonte: DIETA_VICTOR.fonte });
+          dietaId = existente.id;
+        } else {
+          dietaId = Storage.add('dietas_custom', { ...DIETA_VICTOR.dieta, fonte: DIETA_VICTOR.fonte }).id;
+        }
+
+        const combos = Storage.getAll('combos');
+        DIETA_VICTOR.combos.forEach(c => {
+          const novo = { nome: c.nome, horario: c.horario, itens: c.itens.map(i => ({ ...i })), fonte: DIETA_VICTOR.fonte };
+          const j = combos.findIndex(x => (x.nome || '').trim().toLowerCase() === c.nome.trim().toLowerCase());
+          if (j >= 0) { novo.id = combos[j].id; combos[j] = novo; }
+          else { novo.id = Storage.uid(); combos.push(novo); }
+        });
+        Storage.saveAll('combos', combos);
+
+        // Seleciona como objetivo atual e aplica a meta de água prescrita.
+        const p = Storage.getPerfil();
+        Storage.savePerfil({ ...p, dietaTemplate: null, metaCustom: null, dietaCustomId: dietaId, aguaMetaCustom: DIETA_VICTOR.aguaMetaMl });
+
+        const msg = document.getElementById('dieta-victor-msg');
+        if (msg) msg.textContent = `✅ Dieta aplicada como objetivo, ${DIETA_VICTOR.combos.length} combos criados e meta de água em ${DIETA_VICTOR.aguaMetaMl / 1000}L.`;
+        api.render();
+      });
+    }
 
     document.getElementById('save-dieta-custom').addEventListener('click', () => {
       const nome = document.getElementById('dc-nome').value.trim();

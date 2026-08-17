@@ -1,5 +1,6 @@
 // Lista de atualizações recentes do app, mais recente primeiro. Editável manualmente a cada mudança.
 const CHANGELOG = [
+  { date: '2026-08-17', texto: 'Biblioteca de alimentos ganhou paçoca, tilápia grelhada e albumina em pó' },
   { date: '2026-08-17', texto: 'Relatório para IA/treinador: a média de calorias e macros agora considera só os dias com as refeições principais registradas — mesma regra do "Dias em foco" e da Refeição Livre. Antes, um dia em que entrou só um lanche contava como dia registrado e puxava a média pra baixo. O relatório também informa quantos dias ficaram de fora por registro parcial' },
   { date: '2026-08-17', texto: 'Gráficos agora mostram o valor em cima de cada ponto, então dá pra ler o número sem contar as linhas da grade. Quando há muitos pontos e os números não caberiam, ele desenha só os que cabem sem se sobrepor — mantendo sempre o mais recente' },
   { date: '2026-08-17', texto: 'Agora dá pra enviar treinos de corrida separados dos de musculação: nome, tipo (leve, intervalado, longo, tiros...), distância e tempo alvo e o protocolo escrito (ex: "5x800m com 2min de trote"). O paciente vê na aba Treino → Corrida, com um botão "Usar" que já preenche distância e tempo no registro' },
