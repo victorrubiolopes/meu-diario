@@ -719,7 +719,33 @@ const ViewTreino = (() => {
 
   function renderCorrida(content, state, api) {
     const runs = Storage.getByDate('corridas', state.date).sort((a, b) => (a.order || 0) - (b.order || 0));
+    const planosCorrida = Storage.getAll('corrida_planos').sort((a, b) => (a.ordem || 0) - (b.ordem || 0));
+
+    function resumoPlano(p) {
+      const partes = [];
+      if (p.tipo) partes.push(p.tipo);
+      if (p.distanceKm) partes.push(`${p.distanceKm} km`);
+      if (p.timeMin) partes.push(`${p.timeMin} min`);
+      return partes.join(' · ');
+    }
+
     content.innerHTML = `
+      ${planosCorrida.length > 0 ? `
+        <div class="card">
+          <h2>🏃 Seus treinos de corrida</h2>
+          ${planosCorrida.map(p => `
+            <div class="list-item">
+              <div>
+                <strong>${Util.escapeHtml(p.nome)}</strong>
+                ${resumoPlano(p) ? `<div class="meta">${Util.escapeHtml(resumoPlano(p))}</div>` : ''}
+                ${p.descricao ? `<div class="meta">${Util.escapeHtml(p.descricao)}</div>` : ''}
+              </div>
+              ${(p.distanceKm || p.timeMin) ? `<button class="secondary" data-usar-corrida="${p.id}" style="font-size:0.75rem;padding:6px 10px">Usar</button>` : ''}
+            </div>
+          `).join('')}
+          <p class="meta" style="font-size:0.72rem">"Usar" preenche a distância e o tempo abaixo — ajuste pro que você realmente fez antes de registrar.</p>
+        </div>
+      ` : ''}
       <div class="card">
         <h2>Registrar corrida</h2>
         <div class="row">
@@ -751,6 +777,19 @@ const ViewTreino = (() => {
       Storage.add('corridas', { date: state.date, distanceKm, timeMin, notes, order: Date.now() });
       atualizarGastoAuto(state.date);
       api.render();
+    });
+    content.querySelectorAll('[data-usar-corrida]').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const p = planosCorrida.find(x => x.id === btn.dataset.usarCorrida);
+        if (!p) return;
+        // Sempre atribui os dois campos (vazio quando o plano não define): senão sobra o
+        // número do plano usado antes, e você registra a meta do treino errado sem perceber.
+        document.getElementById('run-distance').value = p.distanceKm || '';
+        document.getElementById('run-time').value = p.timeMin || '';
+        const notas = document.getElementById('run-notes');
+        if (notas && !notas.value.trim()) notas.value = p.nome;
+        document.getElementById('run-distance').focus();
+      });
     });
     content.querySelectorAll('[data-remove]').forEach(btn => {
       btn.addEventListener('click', () => {

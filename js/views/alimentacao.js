@@ -252,7 +252,7 @@ const ViewAlimentacao = (() => {
       ${listaCompras && listaCompras.texto ? `
         <div class="card">
           <h2>🛒 Lista de compras</h2>
-          <p class="meta">Enviada pela sua nutri.</p>
+          <p class="meta">Enviada pelo seu profissional.</p>
           <p style="white-space:pre-wrap">${Util.escapeHtml(listaCompras.texto)}</p>
         </div>
       ` : ''}
