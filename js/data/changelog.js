@@ -1,5 +1,6 @@
 // Lista de atualizações recentes do app, mais recente primeiro. Editável manualmente a cada mudança.
 const CHANGELOG = [
+  { date: '2026-08-17', texto: 'Dieta do dono: macros agora transcritos direto do PDF do nutricionista, alimento por alimento, em vez de calculados pela tabela do app — o acompanhamento passa a bater com a prescrição. O card mostra que a meta de 1665 kcal é média semanal (as 5 refeições somam 1515; a refeição livre entra diluída por 7 dias) e traz suplementação e substituições autorizadas' },
   { date: '2026-08-17', texto: 'Biblioteca de alimentos ganhou paçoca, tilápia grelhada e albumina em pó' },
   { date: '2026-08-17', texto: 'Relatório para IA/treinador: a média de calorias e macros agora considera só os dias com as refeições principais registradas — mesma regra do "Dias em foco" e da Refeição Livre. Antes, um dia em que entrou só um lanche contava como dia registrado e puxava a média pra baixo. O relatório também informa quantos dias ficaram de fora por registro parcial' },
   { date: '2026-08-17', texto: 'Gráficos agora mostram o valor em cima de cada ponto, então dá pra ler o número sem contar as linhas da grade. Quando há muitos pontos e os números não caberiam, ele desenha só os que cabem sem se sobrepor — mantendo sempre o mais recente' },

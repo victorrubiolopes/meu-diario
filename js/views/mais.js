@@ -419,14 +419,27 @@ const ViewMais = (() => {
       ${souDono && temPacote ? `
         <div class="card">
           <h2>📋 ${Util.escapeHtml(DIETA_VICTOR.dieta.nome)}</h2>
-          <p class="meta">${DIETA_VICTOR.dieta.kcal} kcal · P ${DIETA_VICTOR.dieta.protein}g · C ${DIETA_VICTOR.dieta.carb}g · G ${DIETA_VICTOR.dieta.fat}g · ${DIETA_VICTOR.aguaMetaMl / 1000}L de água</p>
+          <p class="meta">${DIETA_VICTOR.dieta.kcal} kcal · P ${DIETA_VICTOR.dieta.protein}g · C ${DIETA_VICTOR.dieta.carb}g · G ${DIETA_VICTOR.dieta.fat}g · F ${DIETA_VICTOR.dieta.fiber}g · ${DIETA_VICTOR.aguaMetaMl / 1000}L de água</p>
+          <p class="meta">Por ${Util.escapeHtml(DIETA_VICTOR.profissional)}. Macros transcritos do PDF, alimento por alimento.</p>
+          <p class="meta" style="border-left:3px solid var(--accent);padding-left:8px">
+            A meta de ${DIETA_VICTOR.dieta.kcal} kcal é a <strong>média semanal</strong>: as 5 refeições somam
+            <strong>${DIETA_VICTOR.kcalDiaNormal} kcal</strong> e a refeição livre (${DIETA_VICTOR.refeicaoLivre.kcal} kcal, ${DIETA_VICTOR.refeicaoLivre.porSemana}x/semana)
+            entra diluída por 7 dias. Em dia normal você fecha em ${DIETA_VICTOR.kcalDiaNormal} kcal.
+            A livre <strong>substitui</strong> uma das 5 refeições, não se soma a elas.
+          </p>
           <p class="meta">Carrega a dieta como objetivo e cria as ${DIETA_VICTOR.combos.length} refeições como combos, prontos pra lançar em um toque.</p>
           <button class="${pacoteJaCarregado ? 'secondary' : 'primary'}" id="carregar-dieta-victor" style="margin-top:8px">
             ${pacoteJaCarregado ? 'Recarregar (atualiza o que já existe)' : 'Carregar minha dieta'}
           </button>
           <p class="meta" id="dieta-victor-msg" style="margin-top:6px"></p>
           <details style="margin-top:10px">
-            <summary class="meta">Substituições autorizadas</summary>
+            <summary class="meta">Suplementação</summary>
+            <ul class="meta" style="margin:6px 0 0;padding-left:18px;line-height:1.5">
+              ${DIETA_VICTOR.suplementos.map(s => `<li>${Util.escapeHtml(s)}</li>`).join('')}
+            </ul>
+          </details>
+          <details style="margin-top:6px">
+            <summary class="meta">Substituições e observações do plano</summary>
             <ul class="meta" style="margin:6px 0 0;padding-left:18px;line-height:1.5">
               ${DIETA_VICTOR.observacoes.map(o => `<li>${Util.escapeHtml(o)}</li>`).join('')}
             </ul>
