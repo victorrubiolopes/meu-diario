@@ -85,7 +85,46 @@ function drawLineChart(canvas, points, opts = {}) {
     ctx.fill();
   });
 
+  // Valor em cima de cada ponto. Com muitos pontos os rótulos se sobrepõem, então
+  // só desenha os que cabem: percorre da esquerda pra direita pulando quem colidiria
+  // com o anterior. O último ponto é reservado antes de tudo — é o número mais
+  // recente, o que mais interessa, então ele nunca é o pulado.
+  const surface = styles.getPropertyValue('--surface').trim() || '#ffffff';
+  ctx.font = '600 10px sans-serif';
+  ctx.textAlign = 'center';
+  ctx.lineJoin = 'round';
+  const fmtValor = v => String(Math.round(v * 10) / 10);
+  const ultimo = points.length - 1;
+  const larguraDe = i => ctx.measureText(fmtValor(points[i].value)).width;
+  // Encosta no limite do canvas em vez de vazar quando o ponto está na borda.
+  const posX = i => Math.max(
+    padding.left + larguraDe(i) / 2,
+    Math.min(cssW - padding.right - larguraDe(i) / 2, x(i))
+  );
+  const bordaEsqUltimo = posX(ultimo) - larguraDe(ultimo) / 2;
+  let bordaDir = -Infinity;
+  points.forEach((p, i) => {
+    const tw = larguraDe(i);
+    const px = posX(i);
+    if (i !== ultimo) {
+      if (px - tw / 2 < bordaDir + 6) return;
+      if (px + tw / 2 > bordaEsqUltimo - 6) return;
+    }
+    const py = y(p.value);
+    // Acima do ponto por padrão; abaixo só quando o texto vazaria pra fora do canvas
+    // (fonte de 10px sobe ~8px acima da linha de base, que fica 9px acima do ponto).
+    const ly = py - 9 - 8 >= 0 ? py - 9 : py + 17;
+    const texto = fmtValor(p.value);
+    ctx.strokeStyle = surface;
+    ctx.lineWidth = 3;
+    ctx.strokeText(texto, px, ly);
+    ctx.fillStyle = accent;
+    ctx.fillText(texto, px, ly);
+    bordaDir = px + tw / 2;
+  });
+
   // x labels (first, middle, last)
+  ctx.font = '11px sans-serif';
   ctx.fillStyle = textMuted;
   ctx.textAlign = 'center';
   const labelIdxs = points.length > 1 ? [0, points.length - 1] : [0];
