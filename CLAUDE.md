@@ -8,7 +8,11 @@ Tudo em **português (pt-BR)**: interface, comentários, mensagens de commit e c
 - Estado em **localStorage** (módulo `Storage`) + **IndexedDB** (`PhotoDB`, só fotos).
 - **Firebase opcional** (Auth + Firestore, SDK compat via CDN) para login e sincronização na nuvem.
   Se o Firebase não carregar/não estiver configurado, o app roda 100% local (degrada sem quebrar).
-- **Deploy**: GitHub Pages a partir da branch `main` → `victorrubiolopes.github.io`.
+- **Deploy**: automático via GitHub Actions ao dar push na `main`. Sai em dois lugares:
+  - **Firebase Hosting — `https://diariorubiofitness.web.app` (principal, é onde os usuários entram)**
+  - GitHub Pages → `victorrubiolopes.github.io` (espelho)
+  Depois do push, acompanhar o run em `/actions` e conferir a versão no ar com
+  `curl -s "https://diariorubiofitness.web.app/index.html?cachebust=$(date +%s)" | grep -o '?v=[0-9]*' | sort -u`.
 
 ## Mapa de arquivos
 - `index.html` — shell + inclusão dos scripts com cache-bust `?v=N`.

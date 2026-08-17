@@ -1162,26 +1162,41 @@ canvas {
 .treino-timer-card { text-align: center; padding: 14px; }
 .treino-timer-elapsed { font-size: 2rem; font-weight: 700; font-variant-numeric: tabular-nums; color: var(--accent); line-height: 1; }
 
-.rest-timer-card { text-align: center; }
-.rest-timer-display {
-  font-size: 1.8rem;
-  font-weight: 700;
-  font-variant-numeric: tabular-nums;
-  color: var(--water);
-  margin: 4px 0 12px;
-}
-.rest-timer-buttons { display: flex; gap: 8px; flex-wrap: wrap; justify-content: center; }
-.rest-timer-btn {
-  flex: 1 1 60px;
-  padding: 10px 0;
+/* Descanso dentro de cada card de exercício (substituiu o card único no topo da tela). */
+.ex-rest-timer {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 10px;
+  padding: 8px 10px;
   border-radius: 10px;
-  border: 1px solid var(--border);
   background: var(--water-soft);
-  color: var(--water);
+  border: 1px solid transparent;
+}
+.ex-rest-timer.ativo { border-color: var(--water); }
+.ex-rest-display {
+  flex: 1 1 auto;
+  min-width: 0;
   font-weight: 700;
   font-size: 0.9rem;
+  font-variant-numeric: tabular-nums;
+  color: var(--water);
 }
-.rest-timer-stop { flex: 1 1 100%; margin-top: 8px; }
+.ex-rest-timer.ativo .ex-rest-display { font-size: 1.25rem; }
+.ex-rest-controls { display: flex; gap: 6px; flex: 0 0 auto; }
+.ex-rest-start, .ex-rest-preset, .ex-rest-stop {
+  padding: 7px 12px;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  background: var(--card);
+  color: var(--water);
+  font-weight: 700;
+  font-size: 0.8rem;
+  font-family: inherit;
+  flex: 0 0 auto;
+}
+.ex-rest-preset { padding: 7px 9px; }
+.ex-rest-stop { color: var(--text-muted); }
 
 .ex-series {
   display: flex;
