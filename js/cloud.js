@@ -333,12 +333,16 @@ const Cloud = (() => {
       // já visto. Só vira notificação quando o carimbo do servidor é mais recente que o local.
       const vistos = JSON.parse(localStorage.getItem('prescricao_vistos') || '{}');
       const novosVistos = { ...vistos };
+      const primeiraSync = Object.keys(vistos).length === 0;
+      // Aparelho novo (ou navegador limpo) não tem histórico do que já foi visto. Silenciar
+      // tudo nesse caso é fácil e errado: um login novo perderia uma dieta enviada minutos
+      // atrás. O critério é a idade do conteúdo — avisa do que é recente, e do que é antigo
+      // só marca como visto, porque o paciente já conhece.
+      const JANELA_AVISO_MS = 3 * 24 * 60 * 60 * 1000;
       function avisar(chave, carimbo, tipo, titulo, texto, extra) {
         if (!carimbo || carimbo <= (vistos[chave] || 0)) return false;
         novosVistos[chave] = carimbo;
-        // Primeira sincronização de um paciente que já tinha prescrição: aplica o conteúdo mas
-        // não enche a tela de aviso de coisa antiga — só marca como visto.
-        if (Object.keys(vistos).length === 0) return false;
+        if (primeiraSync && (Date.now() - carimbo) > JANELA_AVISO_MS) return false;
         Storage.add('notificacoes', { tipo, titulo, texto: texto || '', criadoEm: carimbo, lida: false, ...(extra || {}) });
         return true;
       }
