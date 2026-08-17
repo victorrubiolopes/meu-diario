@@ -12,6 +12,7 @@ const Storage = (() => {
     dietas_custom: 'dietas_custom',
     treino_planos: 'treino_planos',
     corrida_planos: 'corrida_planos',
+    notificacoes: 'notificacoes',
     combos: 'combos_alimentos',
     agua: 'agua_entries',
     gastos: 'gastos_entries',

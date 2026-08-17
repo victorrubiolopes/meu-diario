@@ -29,7 +29,7 @@ try {
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Meu Diário">
-<link rel="stylesheet" href="css/style.css?v=71">
+<link rel="stylesheet" href="css/style.css?v=72">
 </head>
 <body>
 
@@ -92,6 +92,10 @@ try {
 <header class="topbar">
   <button class="back-btn" id="back-btn" style="display:none">←</button>
   <h1 id="page-title">Hoje</h1>
+  <button class="sino-btn" id="sino-btn" aria-label="Notificações">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.7 21a2 2 0 0 1-3.4 0"/></svg>
+    <span class="sino-badge" id="sino-badge" hidden></span>
+  </button>
 </header>
 <div class="date-nav" id="date-nav">
   <button type="button" class="date-nav-arrow" id="date-prev" aria-label="Dia anterior">‹</button>
@@ -147,29 +151,29 @@ try {
 <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore-compat.js"></script>
 <script src="js/firebase-config.js"></script>
 
-<script src="js/util.js?v=71"></script>
-<script src="js/storage.js?v=71"></script>
-<script src="js/cloud.js?v=71"></script>
-<script src="js/db.js?v=71"></script>
-<script src="js/chart.js?v=71"></script>
-<script src="js/data/exercicios.js?v=71"></script>
-<script src="js/data/alimentos.js?v=71"></script>
-<script src="js/data/dietas.js?v=71"></script>
-<script src="js/data/refeicaoLivre.js?v=71"></script>
-<script src="js/data/treinosPredefinidos.js?v=71"></script>
-<script src="js/data/planoVictor.js?v=71"></script>
-<script src="js/data/dietaVictor.js?v=71"></script>
-<script src="js/data/combos.js?v=71"></script>
-<script src="js/data/changelog.js?v=71"></script>
-<script src="js/views/inicio.js?v=71"></script>
-<script src="js/views/treino.js?v=71"></script>
-<script src="js/views/alimentacao.js?v=71"></script>
-<script src="js/views/medidas.js?v=71"></script>
-<script src="js/views/fotos.js?v=71"></script>
-<script src="js/views/exames.js?v=71"></script>
-<script src="js/views/tarefas.js?v=71"></script>
-<script src="js/views/historico.js?v=71"></script>
-<script src="js/views/mais.js?v=71"></script>
-<script src="js/app.js?v=71"></script>
+<script src="js/util.js?v=72"></script>
+<script src="js/storage.js?v=72"></script>
+<script src="js/cloud.js?v=72"></script>
+<script src="js/db.js?v=72"></script>
+<script src="js/chart.js?v=72"></script>
+<script src="js/data/exercicios.js?v=72"></script>
+<script src="js/data/alimentos.js?v=72"></script>
+<script src="js/data/dietas.js?v=72"></script>
+<script src="js/data/refeicaoLivre.js?v=72"></script>
+<script src="js/data/treinosPredefinidos.js?v=72"></script>
+<script src="js/data/planoVictor.js?v=72"></script>
+<script src="js/data/dietaVictor.js?v=72"></script>
+<script src="js/data/combos.js?v=72"></script>
+<script src="js/data/changelog.js?v=72"></script>
+<script src="js/views/inicio.js?v=72"></script>
+<script src="js/views/treino.js?v=72"></script>
+<script src="js/views/alimentacao.js?v=72"></script>
+<script src="js/views/medidas.js?v=72"></script>
+<script src="js/views/fotos.js?v=72"></script>
+<script src="js/views/exames.js?v=72"></script>
+<script src="js/views/tarefas.js?v=72"></script>
+<script src="js/views/historico.js?v=72"></script>
+<script src="js/views/mais.js?v=72"></script>
+<script src="js/app.js?v=72"></script>
 </body>
 </html>

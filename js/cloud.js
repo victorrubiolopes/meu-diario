@@ -12,6 +12,7 @@ const Cloud = (() => {
   const SYNC_KEYS = [
     'treino', 'corridas', 'alimentacao', 'medidas', 'tarefas', 'tarefas_conclusoes',
     'dietas_custom', 'treino_planos', 'corrida_planos', 'combos', 'agua', 'gastos', 'refeicao_fotos', 'refeicoes_livres',
+    'notificacoes',
   ];
 
   let enabled = false;
@@ -307,6 +308,17 @@ const Cloud = (() => {
   // ---- Prescrição de dieta (lado do paciente) ----
   // Cada bloco (dieta/refeições/treino/lista de compras) é aplicado de forma independente —
   // a nutri pode mandar só uma lista de compras, por exemplo, sem nunca ter enviado dieta.
+  const TITULOS_SOLICITACAO = {
+    medidas: 'Seu profissional pediu novas medidas',
+    peso: 'Seu profissional pediu uma pesagem',
+    fotos: 'Seu profissional pediu fotos de progresso',
+    exames: 'Seu profissional pediu seus exames',
+    outro: 'Recado do seu profissional',
+  };
+  function tituloSolicitacao(tipo) {
+    return TITULOS_SOLICITACAO[tipo] || TITULOS_SOLICITACAO.outro;
+  }
+
   async function aplicarPrescricao() {
     try {
       const s = await db.collection('prescricoes').doc(user.uid).get();
@@ -314,6 +326,22 @@ const Cloud = (() => {
       const d = s.data();
       if (!d) return;
       let mudou = false;
+
+      // Notificações: aplicarPrescricao roda a cada login, e o upsert por nome é idempotente —
+      // então "aplicou" não significa "é novo". Pra não renotificar a mesma dieta toda vez que
+      // o app abre, cada bloco tem seu próprio carimbo no documento e a gente guarda o último
+      // já visto. Só vira notificação quando o carimbo do servidor é mais recente que o local.
+      const vistos = JSON.parse(localStorage.getItem('prescricao_vistos') || '{}');
+      const novosVistos = { ...vistos };
+      function avisar(chave, carimbo, tipo, titulo, texto, extra) {
+        if (!carimbo || carimbo <= (vistos[chave] || 0)) return false;
+        novosVistos[chave] = carimbo;
+        // Primeira sincronização de um paciente que já tinha prescrição: aplica o conteúdo mas
+        // não enche a tela de aviso de coisa antiga — só marca como visto.
+        if (Object.keys(vistos).length === 0) return false;
+        Storage.add('notificacoes', { tipo, titulo, texto: texto || '', criadoEm: carimbo, lida: false, ...(extra || {}) });
+        return true;
+      }
 
       if (d.nome) {
         const dietas = Storage.getAll('dietas_custom');
@@ -402,6 +430,33 @@ const Cloud = (() => {
         mudou = true;
       }
 
+      // Um aviso por tipo de conteúdo, só quando o carimbo daquele bloco avançou.
+      const avisos = [
+        ['dieta', d.dietaUpdatedAt, 'dieta', 'Nova dieta recebida', d.nome ? `Meta: ${d.nome}` : ''],
+        ['refeicoes', d.refeicoesUpdatedAt, 'plano', 'Novo plano alimentar recebido',
+          Array.isArray(d.refeicoes) ? `${d.refeicoes.length} refeição(ões) — veja em Comida → Combos salvos` : ''],
+        ['planosTreino', d.planosTreinoUpdatedAt, 'treino', 'Novo plano de treino recebido',
+          Array.isArray(d.planosTreino) ? `${d.planosTreino.length} treino(s) — veja em Treino` : ''],
+        ['planosCorrida', d.planosCorridaUpdatedAt, 'corrida', 'Novos treinos de corrida recebidos',
+          Array.isArray(d.planosCorrida) ? `${d.planosCorrida.length} treino(s) — veja em Treino → Corrida` : ''],
+        ['listaCompras', d.listaComprasUpdatedAt, 'lista', 'Nova lista de compras', 'Veja na aba Comida'],
+        ['refeicaoLivre', d.refeicaoLivreUpdatedAt, 'refeicaoLivre', 'Regras da refeição livre atualizadas', 'Veja em Mais → Refeição Livre'],
+      ];
+      avisos.forEach(([chave, carimbo, tipo, titulo, texto]) => {
+        if (avisar(chave, carimbo, tipo, titulo, texto)) mudou = true;
+      });
+
+      // Pedidos do profissional (atualizar medidas, mandar foto...). Cada um vira uma
+      // notificação própria, identificada pelo id — assim vários pedidos convivem e um
+      // pedido antigo não reaparece quando chega um novo.
+      if (Array.isArray(d.solicitacoes)) {
+        d.solicitacoes.forEach(sol => {
+          if (!sol || !sol.id) return;
+          if (avisar(`solicitacao:${sol.id}`, sol.criadoEm, 'solicitacao', tituloSolicitacao(sol.tipo), sol.texto, { tipoSolicitacao: sol.tipo })) mudou = true;
+        });
+      }
+      localStorage.setItem('prescricao_vistos', JSON.stringify(novosVistos));
+
       if (mudou) emit();
     } catch (e) { console.error('Aplicar prescrição falhou', e); }
   }
@@ -425,13 +480,13 @@ const Cloud = (() => {
   }
   async function enviarDieta(uidAlvo, dieta) {
     await db.collection('prescricoes').doc(uidAlvo).set(
-      { ...dieta, updatedAt: Date.now(), byUid: user.uid }, { merge: true }
+      { ...dieta, dietaUpdatedAt: Date.now(), updatedAt: Date.now(), byUid: user.uid }, { merge: true }
     );
   }
 
   async function enviarPlano(uidAlvo, refeicoes) {
     await db.collection('prescricoes').doc(uidAlvo).set(
-      { refeicoes, updatedAt: Date.now(), byUid: user.uid }, { merge: true }
+      { refeicoes, refeicoesUpdatedAt: Date.now(), updatedAt: Date.now(), byUid: user.uid }, { merge: true }
     );
   }
 
@@ -443,20 +498,36 @@ const Cloud = (() => {
 
   async function enviarTreino(uidAlvo, planosTreino) {
     await db.collection('prescricoes').doc(uidAlvo).set(
-      { planosTreino, updatedAt: Date.now(), byUid: user.uid }, { merge: true }
+      { planosTreino, planosTreinoUpdatedAt: Date.now(), updatedAt: Date.now(), byUid: user.uid }, { merge: true }
     );
   }
 
   async function enviarCorrida(uidAlvo, planosCorrida) {
     await db.collection('prescricoes').doc(uidAlvo).set(
-      { planosCorrida, updatedAt: Date.now(), byUid: user.uid }, { merge: true }
+      { planosCorrida, planosCorridaUpdatedAt: Date.now(), updatedAt: Date.now(), byUid: user.uid }, { merge: true }
     );
   }
 
   async function enviarRegrasRefeicaoLivre(uidAlvo, config) {
     await db.collection('prescricoes').doc(uidAlvo).set(
-      { refeicaoLivreConfig: config, updatedAt: Date.now(), byUid: user.uid }, { merge: true }
+      { refeicaoLivreConfig: config, refeicaoLivreUpdatedAt: Date.now(), updatedAt: Date.now(), byUid: user.uid }, { merge: true }
     );
+  }
+
+  // ---- Pedido do profissional ao paciente ----
+  // Até aqui o painel só empurrava conteúdo (dieta, treino, lista). Isto é o inverso: pedir
+  // algo de volta — atualizar medidas, mandar fotos, marcar o peso. Vai como lista pra o
+  // paciente poder ter mais de um pedido em aberto; o app dele vira cada um em notificação.
+  async function enviarSolicitacao(uidAlvo, tipo, texto) {
+    const doc = db.collection('prescricoes').doc(uidAlvo);
+    const s = await doc.get();
+    const atuais = (s.exists && Array.isArray(s.data().solicitacoes)) ? s.data().solicitacoes : [];
+    const nova = { id: Storage.uid(), tipo, texto: texto || '', criadoEm: Date.now(), byUid: user.uid };
+    await doc.set(
+      { solicitacoes: atuais.concat([nova]), solicitacoesUpdatedAt: Date.now(), updatedAt: Date.now(), byUid: user.uid },
+      { merge: true }
+    );
+    return nova;
   }
 
   // ---- Reatribuição de paciente a uma nutri (só super-admin, permitido nas regras) ----
@@ -548,7 +619,7 @@ const Cloud = (() => {
   return {
     init, wrapStorage, isEnabled, currentUser, getStatus, onChange,
     loginGoogle, loginEmail, signupEmail, logout, push,
-    isAdmin, isSuperAdmin, uid, listarUsuarios, dadosUsuario, prescricaoDe, enviarDieta, enviarPlano, enviarTreino, enviarCorrida, enviarListaCompras, enviarRegrasRefeicaoLivre,
+    isAdmin, isSuperAdmin, uid, listarUsuarios, dadosUsuario, prescricaoDe, enviarDieta, enviarPlano, enviarTreino, enviarCorrida, enviarListaCompras, enviarSolicitacao, enviarRegrasRefeicaoLivre,
     gerarConviteLink, listarNutris, reatribuirPaciente,
     sugerirVideo, listarVideosPendentes, aprovarVideoPendente, rejeitarVideoPendente,
     sugerirReceita, listarReceitasPendentes, aprovarReceitaPendente, rejeitarReceitaPendente,

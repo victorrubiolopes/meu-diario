@@ -29,7 +29,99 @@ const ViewMais = (() => {
       case 'refeicao-livre': return renderRegrasRefeicaoLivre($app, state, api);
       case 'backup': return renderBackup($app, state, api);
       case 'admin': return renderAdmin($app, state, api);
+      case 'notificacoes': return renderNotificacoes($app, state, api);
       default: return renderMenu($app, state, api);
+    }
+  }
+
+  // ---------------- NOTIFICAÇÕES (avisos do profissional pro paciente) ----------------
+  const NOTIF_ICONES = {
+    dieta: '🥗', plano: '🍽️', treino: '🏋️', corrida: '🏃',
+    lista: '🛒', refeicaoLivre: '🍔', solicitacao: '📣',
+  };
+  // Pedidos levam o paciente direto pra tela onde ele resolve — um aviso que não leva
+  // a lugar nenhum vira só barulho.
+  const NOTIF_DESTINO = {
+    medidas: { tab: 'medidas', rotulo: 'Registrar medidas' },
+    peso: { tab: 'medidas', rotulo: 'Registrar peso' },
+    fotos: { tab: 'mais', maisView: 'fotos', rotulo: 'Abrir Fotos' },
+    exames: { tab: 'mais', maisView: 'exames', rotulo: 'Abrir Exames' },
+  };
+
+  // "há 2h" é mais útil que a data crua pra um aviso recente; acima de um dia, mostra a data.
+  function quandoTexto(ms) {
+    if (!ms) return '';
+    const d = new Date(ms);
+    const min = Math.floor((Date.now() - ms) / 60000);
+    if (min < 1) return 'agora';
+    if (min < 60) return `há ${min} min`;
+    if (min < 60 * 24) return `há ${Math.floor(min / 60)}h`;
+    const dia = String(d.getDate()).padStart(2, '0');
+    const mes = String(d.getMonth() + 1).padStart(2, '0');
+    return `${dia}/${mes} às ${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`;
+  }
+
+  function renderNotificacoes($app, state, api) {
+    const lista = Storage.getAll('notificacoes').sort((a, b) => (b.criadoEm || 0) - (a.criadoEm || 0));
+    const naoLidas = lista.filter(n => !n.lida).length;
+
+    $app.innerHTML = `
+      <div class="card">
+        <div class="row" style="align-items:center;justify-content:space-between">
+          <h2 style="margin:0">Notificações</h2>
+          ${naoLidas > 0 ? '<button class="link" id="marcar-todas" style="font-size:0.8rem">marcar todas como lidas</button>' : ''}
+        </div>
+        ${lista.length === 0 ? `
+          <div class="empty" style="margin-top:10px">Nenhuma notificação ainda.<br>
+            <span style="font-size:0.8rem">Quando seu profissional enviar uma dieta, um treino ou pedir alguma coisa, aparece aqui.</span>
+          </div>
+        ` : lista.map(n => {
+          const destino = n.tipoSolicitacao ? NOTIF_DESTINO[n.tipoSolicitacao] : null;
+          return `
+            <div class="notif-item ${n.lida ? '' : 'nao-lida'}">
+              <div class="notif-icone">${NOTIF_ICONES[n.tipo] || '🔔'}</div>
+              <div class="notif-corpo">
+                <div class="notif-titulo">${Util.escapeHtml(n.titulo || '')}</div>
+                ${n.texto ? `<div class="notif-texto">${Util.escapeHtml(n.texto)}</div>` : ''}
+                <div class="notif-quando">${quandoTexto(n.criadoEm)}</div>
+                ${destino ? `<button class="secondary" data-ir="${Util.escapeHtml(n.id)}" style="margin-top:8px;font-size:0.78rem;padding:6px 12px">${destino.rotulo}</button>` : ''}
+              </div>
+              <button class="link" data-del-notif="${Util.escapeHtml(n.id)}" aria-label="Remover">✕</button>
+            </div>
+          `;
+        }).join('')}
+      </div>
+    `;
+
+    const btnTodas = document.getElementById('marcar-todas');
+    if (btnTodas) {
+      btnTodas.addEventListener('click', () => {
+        Storage.saveAll('notificacoes', Storage.getAll('notificacoes').map(n => ({ ...n, lida: true })));
+        api.render();
+      });
+    }
+    $app.querySelectorAll('[data-del-notif]').forEach(b => {
+      b.addEventListener('click', () => { Storage.remove('notificacoes', b.dataset.delNotif); api.render(); });
+    });
+    $app.querySelectorAll('[data-ir]').forEach(b => {
+      b.addEventListener('click', () => {
+        const n = Storage.getAll('notificacoes').find(x => x.id === b.dataset.ir);
+        const destino = n && n.tipoSolicitacao ? NOTIF_DESTINO[n.tipoSolicitacao] : null;
+        if (!destino) return;
+        Storage.update('notificacoes', n.id, { lida: true });
+        state.tab = destino.tab;
+        state.maisView = destino.maisView || null;
+        api.render();
+      });
+    });
+
+    // Abrir a tela já conta como ler. Marca depois de pintar, pra o destaque das novas
+    // ainda aparecer nesta visita — se marcasse antes, o paciente nunca veria o realce.
+    if (naoLidas > 0) {
+      setTimeout(() => {
+        Storage.saveAll('notificacoes', Storage.getAll('notificacoes').map(n => ({ ...n, lida: true })));
+        if (typeof atualizarSino === 'function') atualizarSino();
+      }, 1200);
     }
   }
 
@@ -1664,6 +1756,7 @@ const ViewMais = (() => {
         <div id="admin-refeicao-livre"></div>
         <div id="admin-treino"></div>
         <div id="admin-corrida"></div>
+        <div id="admin-solicitar"></div>
         <div id="admin-reatribuir"></div>
       `;
       montarPlano(uid, presc);
@@ -1671,6 +1764,7 @@ const ViewMais = (() => {
       montarRegrasRefeicaoLivre(uid, presc);
       montarTreino(uid, presc);
       montarCorrida(uid, presc);
+      montarSolicitacao(uid, presc);
       montarReatribuir(uid, info);
       const diarioConteudo = detailEl.querySelector('#ad-diario-conteudo');
       const diarioData = detailEl.querySelector('#ad-diario-data');
@@ -1817,7 +1911,8 @@ const ViewMais = (() => {
             <button class="secondary" id="pl-add-item" style="width:100%;margin-top:8px" disabled>+ Adicionar item à refeição</button>
             <div id="pl-itens" style="margin-top:8px"></div>
             <button class="secondary" id="pl-add-ref" style="width:100%;margin-top:10px">+ Adicionar refeição ao plano</button>
-            <button class="primary" id="pl-enviar" style="margin-top:8px">Enviar plano alimentar</button>
+            ${refeicoes.length ? `<p class="meta" style="margin-top:10px;border-left:3px solid var(--accent);padding-left:8px"><strong>${refeicoes.length} refeição(ões) montada(s) e ainda não enviada(s).</strong> Só chega no paciente depois do botão abaixo.</p>` : ''}
+            <button class="primary" id="pl-enviar" style="margin-top:8px">Enviar plano alimentar${refeicoes.length ? ` (${refeicoes.length})` : ''}</button>
             <p class="meta" id="pl-msg" style="margin-top:6px"></p>
           </div>
         `;
@@ -2077,7 +2172,8 @@ const ViewMais = (() => {
             <div id="pt-exercicios" style="margin-top:8px"></div>
             <button class="secondary" id="pt-add-exercicio">+ Adicionar exercício</button>
             <button class="secondary" id="pt-add-plano" style="width:100%;margin-top:10px">+ Adicionar plano ao pacote</button>
-            <button class="primary" id="pt-enviar" style="margin-top:8px">Enviar treino</button>
+            ${planosTreino.length ? `<p class="meta" style="margin-top:10px;border-left:3px solid var(--accent);padding-left:8px"><strong>${planosTreino.length} plano(s) montado(s) e ainda não enviado(s).</strong> Só chega no paciente depois do botão abaixo.</p>` : ''}
+            <button class="primary" id="pt-enviar" style="margin-top:8px">Enviar treino${planosTreino.length ? ` (${planosTreino.length})` : ''}</button>
             <p class="meta" id="pt-msg" style="margin-top:6px"></p>
           </div>
         `;
@@ -2165,6 +2261,57 @@ const ViewMais = (() => {
       paint();
     }
 
+    // Pedir algo ao paciente. Todo o resto do painel empurra conteúdo pra ele; isto é o
+    // caminho inverso, e chega como notificação com atalho pra tela onde ele resolve.
+    const TIPOS_SOLICITACAO = [
+      { valor: 'medidas', rotulo: '📏 Atualizar medidas' },
+      { valor: 'peso', rotulo: '⚖️ Registrar peso' },
+      { valor: 'fotos', rotulo: '📸 Mandar fotos de progresso' },
+      { valor: 'exames', rotulo: '🩺 Enviar exames' },
+      { valor: 'outro', rotulo: '💬 Outro recado' },
+    ];
+
+    function montarSolicitacao(uid, presc) {
+      const cont = detailEl.querySelector('#admin-solicitar');
+      if (!cont) return;
+      const jaFeitas = (presc && Array.isArray(presc.solicitacoes)) ? presc.solicitacoes.slice().reverse().slice(0, 3) : [];
+
+      cont.innerHTML = `
+        <div class="card">
+          <h3 style="font-size:0.92rem;margin:0 0 8px">📣 Pedir algo ao paciente</h3>
+          <p class="meta">Chega como notificação no app dele, com um atalho direto pra tela certa.</p>
+          <label style="margin-top:8px">O que você precisa</label>
+          <select id="sol-tipo">
+            ${TIPOS_SOLICITACAO.map(t => `<option value="${t.valor}">${t.rotulo}</option>`).join('')}
+          </select>
+          <label style="margin-top:8px">Mensagem (opcional)</label>
+          <textarea id="sol-texto" placeholder="Ex: Preciso das medidas até sexta pra ajustar o plano."></textarea>
+          <button class="primary" id="sol-enviar" style="margin-top:10px">Enviar pedido</button>
+          <p class="meta" id="sol-msg" style="margin-top:6px"></p>
+          ${jaFeitas.length ? `
+            <p class="meta" style="margin-top:10px;font-weight:600">Últimos pedidos</p>
+            ${jaFeitas.map(s => {
+              const t = TIPOS_SOLICITACAO.find(x => x.valor === s.tipo);
+              const d = new Date(s.criadoEm);
+              return `<div class="meta">${Util.escapeHtml(t ? t.rotulo : s.tipo)} · ${String(d.getDate()).padStart(2,'0')}/${String(d.getMonth()+1).padStart(2,'0')}${s.texto ? ` — "${Util.escapeHtml(s.texto)}"` : ''}</div>`;
+            }).join('')}
+          ` : ''}
+        </div>
+      `;
+
+      cont.querySelector('#sol-enviar').addEventListener('click', async () => {
+        const msg = cont.querySelector('#sol-msg');
+        const tipo = cont.querySelector('#sol-tipo').value;
+        const texto = cont.querySelector('#sol-texto').value.trim();
+        msg.textContent = 'Enviando…';
+        try {
+          await Cloud.enviarSolicitacao(uid, tipo, texto);
+          msg.textContent = '✅ Pedido enviado! Ele aparece como notificação no app do paciente.';
+          cont.querySelector('#sol-texto').value = '';
+        } catch (e) { msg.textContent = '⚠️ Falha: ' + (e.message || ''); }
+      });
+    }
+
     // Treinos de corrida vão separados dos de musculação: não têm série/carga, e sim
     // distância, tempo-alvo e o protocolo escrito (ex: "5x800m com 2min de trote").
     function montarCorrida(uid, presc) {
@@ -2220,7 +2367,8 @@ const ViewMais = (() => {
             <label style="margin-top:8px">Protocolo / observações</label>
             <textarea id="pc-desc" placeholder="Ex: 10min aquecimento + 5x800m forte com 2min de trote entre + 10min soltura"></textarea>
             <button class="secondary" id="pc-add" style="width:100%;margin-top:10px">+ Adicionar treino de corrida</button>
-            <button class="primary" id="pc-enviar" style="margin-top:8px">Enviar treinos de corrida</button>
+            ${planosCorrida.length ? `<p class="meta" style="margin-top:10px;border-left:3px solid var(--accent);padding-left:8px"><strong>${planosCorrida.length} treino(s) montado(s) e ainda não enviado(s).</strong> Só chega no paciente depois do botão abaixo.</p>` : ''}
+            <button class="primary" id="pc-enviar" style="margin-top:8px">Enviar treinos de corrida${planosCorrida.length ? ` (${planosCorrida.length})` : ''}</button>
             <p class="meta" id="pc-msg" style="margin-top:6px"></p>
           </div>
         `;

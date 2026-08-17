@@ -43,6 +43,7 @@ const App = (() => {
   }
 
   function render() {
+    atualizarSino();
     const showDate = DATE_TABS.includes(state.tab) || (state.tab === 'mais' && MAIS_DATE_VIEWS.includes(state.maisView));
     $dateNav.style.display = showDate ? '' : 'none';
     $datePillLabel.textContent = Util.fmtDatePill(state.date);
@@ -77,9 +78,36 @@ const App = (() => {
     combos: 'Combos de Refeição',
     'dietas-custom': 'Minhas Dietas',
     backup: 'Backup',
+    notificacoes: 'Notificações',
+    admin: 'Painel profissional',
   };
 
   const api = { goTo, goToMais, back, render, get state() { return state; } };
+
+  // Sino: badge com o número de não lidas. Vive no topbar, fora do ciclo de render das views,
+  // então é atualizado junto do render() e sempre que a nuvem emitir mudança (a prescrição
+  // chega depois do login, quando a tela já foi pintada uma vez).
+  function atualizarSino() {
+    const btn = document.getElementById('sino-btn');
+    const badge = document.getElementById('sino-badge');
+    if (!btn || !badge) return;
+    const naoLidas = Storage.getAll('notificacoes').filter(n => !n.lida).length;
+    btn.classList.toggle('tem-nova', naoLidas > 0);
+    badge.hidden = naoLidas === 0;
+    badge.textContent = naoLidas > 9 ? '9+' : String(naoLidas);
+  }
+
+  function initSino() {
+    const btn = document.getElementById('sino-btn');
+    if (!btn) return;
+    btn.addEventListener('click', () => {
+      state.tab = 'mais';
+      state.maisView = 'notificacoes';
+      render();
+    });
+    atualizarSino();
+    if (typeof Cloud !== 'undefined' && Cloud.onChange) Cloud.onChange(atualizarSino);
+  }
 
   function initFab() {
     const fabBtn = document.getElementById('fab-btn');
@@ -371,6 +399,7 @@ const App = (() => {
       btn.addEventListener('click', () => goTo(btn.dataset.tab));
     });
     initFab();
+    initSino();
     render();
   }
 
