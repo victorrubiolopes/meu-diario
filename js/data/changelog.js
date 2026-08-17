@@ -1,5 +1,6 @@
 // Lista de atualizações recentes do app, mais recente primeiro. Editável manualmente a cada mudança.
 const CHANGELOG = [
+  { date: '2026-08-17', texto: 'Refeições do dia: cada refeição agora mostra o próprio total de calorias ao lado do nome (ex: "Café da manhã · 326 kcal") e os macros logo abaixo. Antes dava pra ver o valor de cada alimento e o total do dia, mas não quanto pesou cada refeição' },
   { date: '2026-08-17', texto: 'Sininho de notificações no topo do app: avisa quando o profissional envia dieta, plano alimentar, treino, corrida, lista de compras ou muda as regras da refeição livre. Antes tudo chegava em silêncio e você só descobria se abrisse a tela certa por acaso' },
   { date: '2026-08-17', texto: 'O profissional agora pode PEDIR coisas, não só enviar: atualizar medidas, registrar peso, mandar fotos de progresso ou exames, com uma mensagem opcional. O pedido chega como notificação com um atalho que leva direto pra tela certa' },
   { date: '2026-08-17', texto: 'Painel profissional: os botões de enviar agora mostram quanto está montado (ex: "Enviar plano alimentar (2)") e aparece um aviso quando há conteúdo pronto e não enviado. Era fácil montar o plano e sair da tela achando que tinha enviado' },

@@ -681,10 +681,22 @@ const ViewAlimentacao = (() => {
     });
     return Object.keys(groups).map(type => {
       const fotoRef = fotoRefeicaoDe(date, type);
+      // Total da refeição: sem isso dá pra ver o valor de cada alimento e o total do dia,
+      // mas não quanto pesou o café da manhã — que é a pergunta que se faz na hora de ajustar.
+      const tot = groups[type].reduce((a, e) => ({
+        kcal: a.kcal + (e.kcal || 0), protein: a.protein + (e.protein || 0),
+        carbs: a.carbs + (e.carbs || 0), fat: a.fat + (e.fat || 0),
+      }), { kcal: 0, protein: 0, carbs: 0, fat: 0 });
+      const r = n => Math.round(n);
+      const r1 = n => Math.round(n * 10) / 10;
       return `
       <div style="margin-bottom:10px">
         <div class="row" style="align-items:center;justify-content:space-between">
-          <strong>${Util.escapeHtml(type)}</strong>
+          <div style="min-width:0">
+            <strong>${Util.escapeHtml(type)}</strong>
+            <span class="meal-total">${r(tot.kcal)} kcal</span>
+            <div class="meta" style="font-size:0.75rem">P ${r1(tot.protein)}g · C ${r1(tot.carbs)}g · G ${r1(tot.fat)}g</div>
+          </div>
           <button class="secondary" data-savecombo="${Util.escapeHtml(type)}" style="flex:0 0 auto;font-size:0.75rem;padding:6px 10px">💾 Salvar como combo</button>
         </div>
         <div class="row" style="align-items:center;margin:6px 0">

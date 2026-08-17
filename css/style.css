@@ -99,6 +99,19 @@ body {
   text-align: center;
 }
 
+/* Total de calorias ao lado do nome da refeição, em Comida → Refeições do dia. */
+.meal-total {
+  display: inline-block;
+  margin-left: 8px;
+  padding: 1px 8px;
+  border-radius: 999px;
+  background: var(--accent-soft, rgba(63, 138, 90, 0.12));
+  color: var(--accent);
+  font-size: 0.78rem;
+  font-weight: 700;
+  vertical-align: middle;
+}
+
 .notif-item {
   display: flex;
   gap: 10px;
