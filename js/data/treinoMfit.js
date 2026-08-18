@@ -14,7 +14,7 @@ const PLANO_MFIT = {
   planos: [
     { nome: 'MFIT · Quarta', exercises: [
       { name: 'Mobilidade de Corpo Inteiro II', sets: '1', reps: '5 cada lado', weight: '', descanso: '10s', obs: 'combinado A · aquecimento' },
-      { name: 'Levantamento Terra', sets: '4', reps: '15', weight: '', descanso: '35s', obs: 'barra grande 20/20kg OU MAIS' },
+      { name: 'Levantamento Terra', sets: '4', reps: '15', weight: '', descanso: '35s', obs: 'barra grande 20/20kg OU MAIS · ~60kg com barra olimpica de 20kg' },
       { name: 'Crucifixo Inclinado com Halteres', sets: '4', reps: '15', weight: '', descanso: '35s', obs: '12/12kg' },
       { name: 'Crucifixo Máquina', sets: '4', reps: '15', weight: '', descanso: '35s', obs: '8 ou 9 placas' },
       { name: 'Puxada Articulada Aberta', sets: '4', reps: '15', weight: '', descanso: '35s', obs: '10 placas' },
@@ -25,9 +25,9 @@ const PLANO_MFIT = {
       { name: 'Alongamento Dorsal Espaldar II', sets: '1', reps: '15 segundos', weight: '', descanso: '10s', obs: 'combinado A · aquecimento · sem carga' },
       { name: 'Barra Fixa Gráviton (Pegada Aberta)', sets: '4', reps: '15', weight: '', descanso: '35s', obs: '6 placas · ATENÇÃO: assistência invertida, quanto MENOS placa mais difícil' },
       { name: 'Remada Baixa Supinada', sets: '4', reps: '15', weight: '', descanso: '35s', obs: '9 a 10 placas' },
-      { name: 'Banco Supino Reto', sets: '4', reps: '15', weight: '', descanso: '35s', obs: 'combinado A · barra grande 15/15kg' },
+      { name: 'Banco Supino Reto', sets: '4', reps: '15', weight: '', descanso: '35s', obs: 'combinado A · barra grande 15/15kg · ~50kg com barra olimpica de 20kg' },
       { name: 'Flexão de Braço', sets: '4', reps: '15', weight: '', descanso: '35s', obs: 'combinado B · sem carga · nome cortado na imagem, confirmar na ficha' },
-      { name: 'Stiff pés afastados com Barra Livre', sets: '4', reps: '15', weight: '', descanso: '35s', obs: 'barra grande 15/15kg' },
+      { name: 'Stiff pés afastados com Barra Livre', sets: '4', reps: '15', weight: '', descanso: '35s', obs: 'barra grande 15/15kg · ~50kg com barra olimpica de 20kg' },
       { name: 'Rosca Direta 21 Barra W', sets: '4', reps: '21', weight: '', descanso: '35s', obs: '8/8kg · método 21 (7 embaixo + 7 em cima + 7 completas)' },
       { name: 'Abdominal Infra Paralelas com Pernas Flexionadas', sets: '4', reps: '15', weight: '', descanso: '35s', obs: 'sem carga' },
     ] },
