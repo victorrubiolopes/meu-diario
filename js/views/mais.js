@@ -881,12 +881,11 @@ const ViewMais = (() => {
     const perfil = Storage.getPerfil();
     const objetivoAtual = perfil.dietaTemplate || 'manutencao';
 
-    // A ficha do personal do Victor (Bronyer) só aparece pra ele — não é um pacote
-    // genérico do app, é a ficha pessoal dele. Some do dropdown pra todo mundo mais.
+    // As fichas pessoais do Victor (Bronyer, MFIT) só aparecem pra ele — não são pacotes
+    // genéricos do app. Somem do dropdown pra todo mundo mais (flag pessoal: true).
     const souDono = typeof Cloud === 'undefined' || !Cloud.isEnabled()
       || (typeof Cloud.isSuperAdmin === 'function' && Cloud.isSuperAdmin());
-    const fontePessoal = typeof PLANO_VICTOR !== 'undefined' ? PLANO_VICTOR.fonte : null;
-    const pacotesVisiveis = Object.keys(TREINOS_PREDEFINIDOS).filter(id => souDono || id !== fontePessoal);
+    const pacotesVisiveis = Object.keys(TREINOS_PREDEFINIDOS).filter(id => souDono || !TREINOS_PREDEFINIDOS[id].pessoal);
 
     $app.innerHTML = `
       <datalist id="exercicios-datalist-planos">
@@ -2135,12 +2134,11 @@ const ViewMais = (() => {
         ? presc.planosTreino.map(p => ({ ...p, exercises: (p.exercises || []).map(e => ({ ...e })) })) : [];
       let rows = [{ name: '', sets: '', reps: '', weight: '', descanso: '', obs: '' }];
 
-      // Mesma regra de visibilidade do pacote pessoal (Bronyer) usada em Planos de Treino:
-      // só o dono do app vê a própria ficha do personal no seletor.
+      // Mesma regra de visibilidade dos pacotes pessoais usada em Planos de Treino:
+      // só o dono do app vê as próprias fichas de personal no seletor.
       const souDono = typeof Cloud === 'undefined' || !Cloud.isEnabled()
         || (typeof Cloud.isSuperAdmin === 'function' && Cloud.isSuperAdmin());
-      const fontePessoal = typeof PLANO_VICTOR !== 'undefined' ? PLANO_VICTOR.fonte : null;
-      const pacotesVisiveis = Object.keys(TREINOS_PREDEFINIDOS).filter(id => souDono || id !== fontePessoal);
+      const pacotesVisiveis = Object.keys(TREINOS_PREDEFINIDOS).filter(id => souDono || !TREINOS_PREDEFINIDOS[id].pessoal);
 
       function paint() {
         cont.innerHTML = `

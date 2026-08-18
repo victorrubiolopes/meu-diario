@@ -39,5 +39,6 @@ if (typeof TREINOS_PREDEFINIDOS !== 'undefined') {
     label: 'Bronyer — Full Body (A/B/C)',
     descricao: 'Ficha profissional do Bronyer (CREF MG049695) para cutting: Full Body A/B/C, descanso 1m30s, 1ª série de aquecimento nos compostos pesados e último exercício até a falha.',
     planos: PLANO_VICTOR.planos,
+    pessoal: true,
   };
 }
