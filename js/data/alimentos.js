@@ -410,6 +410,8 @@ const ALIMENTOS_PADRAO = [
   { name: 'Vinho tinto seco', categoria: 'outro', portionLabel: '1 taça (150ml)', portionGrams: 150, kcal: 125, carbs: 4, sugars: 1, protein: 0.1, fat: 0, satFat: 0, transFat: 0, fiber: 0, sodium: 6 },
   { name: 'Energético (lata)', categoria: 'outro', portionLabel: '1 lata (250ml)', portionGrams: 250, kcal: 115, carbs: 28, sugars: 27, protein: 0, fat: 0, satFat: 0, transFat: 0, fiber: 0, sodium: 105 },
   { name: 'Isotônico', categoria: 'outro', portionLabel: '1 garrafa (500ml)', portionGrams: 500, kcal: 130, carbs: 32, sugars: 30, protein: 0, fat: 0, satFat: 0, transFat: 0, fiber: 0, sodium: 230 },
+  // Fonte: tabela nutricional oficial do fabricante (peccin.com.br/produto/trento-dark), unidade de 29g.
+  { name: 'Chocolate Trento Dark', categoria: 'outro', portionLabel: '1 unidade (29g)', portionGrams: 29, kcal: 137, carbs: 18, sugars: 12, protein: 1.8, fat: 6.4, satFat: 4.4, transFat: 0, fiber: 1.3, sodium: 46 },
 ];
 
 // Categoria de cada alimento é uma propriedade de código (não persistida em Storage),
