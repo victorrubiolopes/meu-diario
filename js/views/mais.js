@@ -538,6 +538,24 @@ const ViewMais = (() => {
           </details>
         </div>
       ` : ''}
+      ${souDono && typeof META_VICTOR !== 'undefined' ? `
+        <div class="card">
+          <h2>🧮 ${Util.escapeHtml(META_VICTOR.meta.nome)}</h2>
+          <p class="meta">${META_VICTOR.meta.kcal} kcal · P ${META_VICTOR.meta.protein}g · C ${META_VICTOR.meta.carb}g · G ${META_VICTOR.meta.fat}g</p>
+          <p class="meta" style="border-left:3px solid var(--accent);padding-left:8px">${Util.escapeHtml(META_VICTOR.disclaimer)}</p>
+          <p class="meta">Carrega a meta como objetivo e atualiza as 5 refeições (mesmos horários da dieta do Matheus, porções ajustadas) como combos.</p>
+          <button class="${dietas.some(d => d.fonte === META_VICTOR.fonte) ? 'secondary' : 'primary'}" id="carregar-meta-victor" style="margin-top:8px">
+            ${dietas.some(d => d.fonte === META_VICTOR.fonte) ? 'Recarregar (atualiza o que já existe)' : 'Carregar minha meta'}
+          </button>
+          <p class="meta" id="meta-victor-msg" style="margin-top:6px"></p>
+          <details style="margin-top:10px">
+            <summary class="meta">Como cheguei nesses números</summary>
+            <ul class="meta" style="margin:6px 0 0;padding-left:18px;line-height:1.5">
+              ${META_VICTOR.baseCalculo.map(o => `<li>${Util.escapeHtml(o)}</li>`).join('')}
+            </ul>
+          </details>
+        </div>
+      ` : ''}
       <div class="card">
         <h2>Nova dieta</h2>
         <p class="meta">Salve um plano recebido de nutricionista (ou outra meta fixa) com um nome, pra escolher depois no Objetivo do seu Perfil.</p>
@@ -603,6 +621,41 @@ const ViewMais = (() => {
 
         const msg = document.getElementById('dieta-victor-msg');
         if (msg) msg.textContent = `✅ Dieta aplicada como objetivo, ${DIETA_VICTOR.combos.length} combos criados e meta de água em ${DIETA_VICTOR.aguaMetaMl / 1000}L.`;
+        api.render();
+      });
+    }
+
+    const btnMeta = document.getElementById('carregar-meta-victor');
+    if (btnMeta) {
+      btnMeta.addEventListener('click', () => {
+        const existente = Storage.getAll('dietas_custom').find(d => d.fonte === META_VICTOR.fonte);
+        let dietaId;
+        if (existente) {
+          Storage.update('dietas_custom', existente.id, { ...META_VICTOR.meta, fonte: META_VICTOR.fonte });
+          dietaId = existente.id;
+        } else {
+          dietaId = Storage.add('dietas_custom', { ...META_VICTOR.meta, fonte: META_VICTOR.fonte }).id;
+        }
+
+        // As 5 refeições evoluem os mesmos horários da dieta do Matheus (fonte antiga) em vez
+        // de duplicar — casa por horário pra migrar o combo existente pro novo nome/porções.
+        const combos = Storage.getAll('combos');
+        META_VICTOR.combos.forEach(c => {
+          const novo = { nome: c.nome, horario: c.horario, itens: c.itens.map(i => ({ ...i })), fonte: META_VICTOR.fonte };
+          let j = combos.findIndex(x => x.fonte === META_VICTOR.fonte && (x.horario || '') === c.horario);
+          if (j < 0) j = combos.findIndex(x => typeof DIETA_VICTOR !== 'undefined' && x.fonte === DIETA_VICTOR.fonte && (x.horario || '') === c.horario);
+          if (j < 0) j = combos.findIndex(x => (x.nome || '').trim().toLowerCase() === c.nome.trim().toLowerCase());
+          if (j >= 0) { novo.id = combos[j].id; combos[j] = novo; }
+          else { novo.id = Storage.uid(); combos.push(novo); }
+        });
+        Storage.saveAll('combos', combos);
+
+        // Não mexe na meta de água — essa decisão é independente da meta calórica.
+        const p = Storage.getPerfil();
+        Storage.savePerfil({ ...p, dietaTemplate: null, metaCustom: null, dietaCustomId: dietaId });
+
+        const msg = document.getElementById('meta-victor-msg');
+        if (msg) msg.textContent = `✅ Meta aplicada como objetivo e ${META_VICTOR.combos.length} refeições atualizadas como combos.`;
         api.render();
       });
     }

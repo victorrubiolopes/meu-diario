@@ -1,5 +1,6 @@
 // Lista de atualizações recentes do app, mais recente primeiro. Editável manualmente a cada mudança.
 const CHANGELOG = [
+  { date: '2026-08-18', texto: 'Nova meta calórica própria disponível em Mais → Minhas Dietas: "Meta própria — disponibilidade energética", calculada a partir do TDEE reconstruído dos seus dados de treino/corrida/peso (em vez do gasto estimado pelo nutricionista). 2210 kcal, 177g de proteína, com as 5 refeições do cardápio atualizadas em porção para bater a meta. Só aparece pro dono do app' },
   { date: '2026-08-18', texto: 'Ficha MFIT: os exercícios de barra livre agora mostram também o peso total (ex: "20/20kg · ~60kg com barra olímpica de 20kg"), pra não ter que somar a barra de cabeça na academia' },
   { date: '2026-08-18', texto: 'Nova ficha de treino pessoal disponível em Mais → Planos de Treino → Treino pré-definido: "MFIT Personal — Quarta / Sexta / Domingo", com as três sessões, as cargas da ficha e os pares combinados (biséries) anotados em cada exercício. Como a ficha do Bronyer, só aparece pro dono do app' },
   { date: '2026-08-17', texto: 'Refeições do dia: cada refeição agora mostra o próprio total de calorias ao lado do nome (ex: "Café da manhã · 326 kcal") e os macros logo abaixo. Antes dava pra ver o valor de cada alimento e o total do dia, mas não quanto pesou cada refeição' },
