@@ -1331,28 +1331,35 @@ const ViewMais = (() => {
     });
   }
 
-  function gerarRelatorio(dias) {
+  // dadosExternos é opcional — snapshot no formato { treino, alimentacao, medidas, ...,
+  // perfil, dietas_custom } (mesmo shape de Cloud.dadosUsuario()). Sem isso, lê do usuário
+  // logado (comportamento de sempre, usado em Mais → Backup). O painel profissional passa
+  // o snapshot do PACIENTE, pra gerar o relatório dele sem misturar com os dados de quem
+  // está logado (o profissional). RefeicaoLivre.getConfig() também é pulado nesse caso —
+  // ela lê a config do usuário logado, que não é a do paciente.
+  function gerarRelatorio(dias, dadosExternos) {
     dias = dias || 15;
     const desde = Util.daysAgo(dias);
     const hoje = Util.todayISO();
-    const perfil = Storage.getPerfil();
-    const meta = calcularMetas(perfil);
+    const ler = key => dadosExternos ? (dadosExternos[key] || []) : Storage.getAll(key);
+    const perfil = dadosExternos ? (dadosExternos.perfil || {}) : Storage.getPerfil();
+    const meta = calcularMetas(perfil, dadosExternos ? dadosExternos.dietas_custom : undefined);
 
-    const medidas = Storage.getAll('medidas').filter(m => m.date >= desde).sort((a, b) => a.date.localeCompare(b.date));
+    const medidas = ler('medidas').filter(m => m.date >= desde).sort((a, b) => a.date.localeCompare(b.date));
     const pesos = medidas.filter(m => m.weight != null);
-    const comidas = Storage.getAll('alimentacao').filter(a => a.date >= desde);
-    const treinos = Storage.getAll('treino').filter(t => t.date >= desde);
-    const corridas = Storage.getAll('corridas').filter(c => c.date >= desde);
-    const aguas = Storage.getAll('agua').filter(a => a.date >= desde);
-    const gastos = Storage.getAll('gastos').filter(g => g.date >= desde);
-    const tarefas = Storage.getAll('tarefas');
-    const conclusoes = Storage.getAll('tarefas_conclusoes').filter(c => c.date >= desde);
+    const comidas = ler('alimentacao').filter(a => a.date >= desde);
+    const treinos = ler('treino').filter(t => t.date >= desde);
+    const corridas = ler('corridas').filter(c => c.date >= desde);
+    const aguas = ler('agua').filter(a => a.date >= desde);
+    const gastos = ler('gastos').filter(g => g.date >= desde);
+    const tarefas = ler('tarefas');
+    const conclusoes = ler('tarefas_conclusoes').filter(c => c.date >= desde);
 
     // Só conta como dia registrado quem tem as refeições principais lançadas — mesma
     // regra da Refeição Livre e do Dias em Foco, pra não existirem duas definições
     // diferentes de "dia completo de alimentação". Um dia em que só entrou um lanche
     // não representa o que a pessoa comeu e puxaria a média pra baixo.
-    const refeicoesObrigatorias = typeof RefeicaoLivre !== 'undefined'
+    const refeicoesObrigatorias = (!dadosExternos && typeof RefeicaoLivre !== 'undefined')
       ? RefeicaoLivre.getConfig().refeicoesObrigatorias
       : ['Café da manhã', 'Almoço', 'Jantar'];
     const refeicoesPorData = {};
@@ -1376,7 +1383,9 @@ const ViewMais = (() => {
     const aguaMedia = media(aguas, 'ml');
     const gastoMedio = media(gastos, 'kcal');
 
-    const tendencia = typeof calcularTendenciaPeso === 'function' ? calcularTendenciaPeso() : null;
+    const tendencia = typeof calcularTendenciaPeso === 'function'
+      ? calcularTendenciaPeso(dadosExternos ? { perfil, medidas: ler('medidas'), dietasCustomList: dadosExternos.dietas_custom } : undefined)
+      : null;
 
     let linhas = [`Relatório dos últimos ${dias} dias (${Util.fmtDate(desde)} a ${Util.fmtDate(hoje)})`, ''];
 
@@ -1795,6 +1804,20 @@ const ViewMais = (() => {
           <div id="ad-diario-conteudo" style="margin-top:10px"></div>
         </div>
         <div class="card">
+          <h3 style="font-size:0.92rem;margin:0 0 8px">📄 Relatório do paciente</h3>
+          <p class="meta">Mesmo relatório que o paciente pode gerar em Mais → Backup — resumo em texto pronto pra colar numa IA ou pra sua própria análise.</p>
+          <label>Período</label>
+          <select id="ad-report-periodo">
+            <option value="15" selected>Últimos 15 dias</option>
+            <option value="30">Últimos 30 dias</option>
+            <option value="60">Últimos 60 dias</option>
+            <option value="90">Últimos 90 dias</option>
+          </select>
+          <button class="secondary" id="ad-gen-report" style="margin-top:10px">Gerar relatório</button>
+          <textarea id="ad-report-box" readonly style="min-height:280px;margin-top:10px;display:none;font-family:monospace;font-size:0.8rem"></textarea>
+          <button class="secondary" id="ad-copy-report" style="display:none;margin-top:8px">Copiar</button>
+        </div>
+        <div class="card">
           <h3 style="font-size:0.92rem;margin:0 0 8px">Enviar / atualizar dieta</h3>
           ${presc ? `<p class="meta">Dieta atual: <strong>${Util.escapeHtml(p.nome || '')}</strong> · ${p.kcal || '—'} kcal</p>` : '<p class="meta">Nenhuma dieta enviada ainda.</p>'}
           <label>Nome da dieta</label>
@@ -1832,6 +1855,17 @@ const ViewMais = (() => {
       const pintarDiario = () => { diarioConteudo.innerHTML = renderDiarioDia(dados || {}, diarioData.value); };
       diarioData.addEventListener('change', pintarDiario);
       pintarDiario();
+      detailEl.querySelector('#ad-gen-report').addEventListener('click', () => {
+        const diasRel = Number(detailEl.querySelector('#ad-report-periodo').value) || 15;
+        const report = gerarRelatorio(diasRel, dados || {});
+        const box = detailEl.querySelector('#ad-report-box');
+        box.value = report;
+        box.style.display = '';
+        detailEl.querySelector('#ad-copy-report').style.display = '';
+      });
+      detailEl.querySelector('#ad-copy-report').addEventListener('click', () => {
+        navigator.clipboard.writeText(detailEl.querySelector('#ad-report-box').value);
+      });
       detailEl.querySelector('#ad-enviar').addEventListener('click', async () => {
         const msg = detailEl.querySelector('#ad-msg');
         const nome = detailEl.querySelector('#ad-nome').value.trim();

@@ -57,10 +57,14 @@ function calcularMetaAgua(perfil) {
   return peso ? Math.round(peso * 35) : null;
 }
 
-function calcularMetas(perfil) {
+// dietasCustomList é opcional — default lê a lista do usuário logado. O painel profissional
+// passa a lista do PACIENTE (vinda do snapshot sincronizado), senão calcularMetas resolveria
+// perfil.dietaCustomId contra as dietas salvas do profissional, não do paciente.
+function calcularMetas(perfil, dietasCustomList) {
   const bmr = calcularBMR(perfil);
 
-  const dietaCustom = perfil.dietaCustomId && Storage.getAll('dietas_custom').find(d => d.id === perfil.dietaCustomId);
+  const listaDietas = dietasCustomList || Storage.getAll('dietas_custom');
+  const dietaCustom = perfil.dietaCustomId && listaDietas.find(d => d.id === perfil.dietaCustomId);
   const metaFixa = dietaCustom || (perfil.metaCustom && perfil.metaCustom.kcal ? perfil.metaCustom : null);
 
   if (metaFixa) {
@@ -97,12 +101,14 @@ const KCAL_POR_KG = 7700;
 // recentemente (fica "ao viva" conforme registra peso), em vez de ficar diluída por meses de dados.
 const JANELA_TENDENCIA_DIAS = 21;
 
-function calcularTendenciaPeso() {
-  const perfil = Storage.getPerfil();
-  const meta = calcularMetas(perfil);
+// overrides é opcional — { perfil, medidas, dietasCustomList }. Sem isso, lê do usuário
+// logado (comportamento de sempre). O painel profissional passa os dados do PACIENTE.
+function calcularTendenciaPeso(overrides) {
+  const perfil = (overrides && overrides.perfil) || Storage.getPerfil();
+  const meta = calcularMetas(perfil, overrides && overrides.dietasCustomList);
   if (!meta || meta.tdee == null) return null;
 
-  const todas = Storage.getAll('medidas').filter(m => m.weight != null).sort((a, b) => a.date.localeCompare(b.date));
+  const todas = ((overrides && overrides.medidas) || Storage.getAll('medidas')).filter(m => m.weight != null).sort((a, b) => a.date.localeCompare(b.date));
   if (todas.length < 2) return null;
 
   const hojeISO = Util.todayISO();
