@@ -37,9 +37,9 @@ const META_VICTOR = {
   fonte: 'meta-victor-ea-2026-08-18',
   meta: {
     nome: 'Meta própria — disponibilidade energética (18/08/2026)',
-    kcal: 1830,
-    protein: 170,
-    carb: 197,
+    kcal: 1940,
+    protein: 171,
+    carb: 225,
     fat: 42,
   },
   baseCalculo: [
@@ -88,6 +88,9 @@ const META_VICTOR = {
       itens: [
         { foodName: 'Whey concentrado 30g', qty: 1, kcal: 114, carbs: 4.5, sugars: 2, protein: 24, fat: 0, satFat: 0, transFat: 0, fiber: 0, sodium: 50 },
         { foodName: 'Leite desnatado 200ml', qty: 1, kcal: 64, carbs: 10, sugars: 10, protein: 6, fat: 0, satFat: 0, transFat: 0, fiber: 0, sodium: 80 },
+        // Já é hábito do Victor e recupera parte da gordura/calorias que saíram com o azeite,
+        // de um jeito fácil de controlar (1 unidade, sem pesar nada).
+        { foodName: 'Banana nanica', qty: 1, kcal: 110, carbs: 28.6, sugars: 20, protein: 1.7, fat: 0.1, satFat: 0, transFat: 0, fiber: 2.3, sodium: 1 },
       ],
     },
     {
