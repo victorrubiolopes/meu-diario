@@ -1,5 +1,6 @@
 // Lista de atualizações recentes do app, mais recente primeiro. Editável manualmente a cada mudança.
 const CHANGELOG = [
+  { date: '2026-08-18', texto: 'Correção: Chocolate Trento Dark estava cadastrado com o valor de 2 bastões (o rótulo declara a porção como "29g, 2 unidades"). Ajustado para 1 bastão de verdade (14,5g / 68,5 kcal)' },
   { date: '2026-08-18', texto: 'Biblioteca de alimentos ganhou o Chocolate Trento Dark (dados oficiais do fabricante)' },
   { date: '2026-08-18', texto: 'Meta própria: pré-treino simplificado pra um tipo só de paçoca (Paçoquita, a que o Victor já registra comendo). Almoço e janta agora têm 3 opções intercambiáveis (batata assada / arroz / arroz com feijão) com totais bem próximos — escolhe qualquer uma no dia sem afetar a meta' },
   { date: '2026-08-18', texto: 'Meta própria: adicionada 1 banana nanica ao lanche das 16h (whey + leite) — hábito que o Victor já tinha, e forma fácil de recuperar parte da gordura/calorias que saíram com a remoção do azeite, sem precisar medir nada. Meta ajustada para 1940 kcal / 171g proteína / 225g carboidrato / 42g gordura' },
