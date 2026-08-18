@@ -25,14 +25,19 @@
 // regra do vídeo do Leandro Twin (168g). Esse é o número mais assentado da conta toda.
 //
 // Cardápio: mesma estrutura de 5 refeições/horários do plano do Matheus (facilita manter o
-// hábito já formado). Ajustado em 18/08/2026 a pedido do Victor: sem tapioca às 5h30
-// (impraticável nesse horário) e sem azeite (difícil de controlar a colher). Isso tira a
-// principal fonte de gordura adicionada do cardápio — a meta abaixo foi baixada pra bater
-// com o que essas refeições realmente entregam (1830 kcal / 170P / 197C / 42G), em vez de
-// manter uma meta de 2210/71g de gordura que a comida sugerida não alcança mais. Resultado:
-// um déficit maior que o originalmente calculado (~920 kcal/dia vs TDEE de ~2750, mais perto
-// de 1%/semana do peso do que os 0,4-0,5%/semana visados) — vale reavaliar se um lanche fixo
-// de gordura fácil de contar (ex: um sachê de castanhas) entra pra fechar a conta original.
+// hábito já formado). Ajustes de 18/08/2026 a pedido do Victor:
+// - Sem tapioca às 5h30 (impraticável nesse horário) e sem azeite (difícil de controlar a
+//   colher) — isso tirou a principal fonte de gordura adicionada do cardápio, e a meta foi
+//   baixada de 2210/71g gordura pra bater com o que sobrou.
+// - R1 simplificado pra um tipo só de paçoca — Paçoquita, a que ele já registra comendo no
+//   histórico (não a "Paçoca" genérica, que ele nunca logou).
+// - Almoço/janta ganharam 3 variantes intercambiáveis (batata assada / arroz / arroz com
+//   feijão), todas calibradas pra ficarem perto do mesmo total — ele escolhe qual é mais
+//   prático no dia, sem precisar recalcular nada.
+// Resultado: ~1940 kcal / 171P / 225C / 42G, um déficit maior que o originalmente calculado
+// (~920 kcal/dia vs TDEE de ~2750, mais perto de 1%/semana do peso do que os 0,4-0,5% visados)
+// — vale reavaliar se um lanche fixo de gordura fácil de contar (ex: castanhas em sachê) entra
+// pra fechar a conta original, caso o ritmo mais rápido pese na recuperação.
 const META_VICTOR = {
   fonte: 'meta-victor-ea-2026-08-18',
   meta: {
@@ -48,7 +53,7 @@ const META_VICTOR = {
     'Ingestão real implícita pelo peso (85,3→83,7kg em 162 dias, déficit real de ~76 kcal/dia): ~2670 kcal/dia — a maior parte disso nos dias que saem da dieta.',
     'Meta original pensada pra ser o piso dos dias "fora da linha" (2210 kcal / 71g gordura), sem apertar os 4 dias que já funcionam: ~0,4-0,5% do peso/semana, faixa que preserva massa magra em déficit (Garthe et al. 2011).',
     'Proteína 1,8-2,2 g/kg (Helms et al. 2014) — 170-177g bate perto da prescrição do Matheus (172,9g) e da regra do vídeo do Leandro Twin (168g).',
-    'Ajuste de 18/08: sem tapioca às 5h30 e sem azeite (difícil de controlar a colher) — o cardápio ficou com bem menos gordura, e a meta foi baixada pra 1830 kcal / 42g de gordura pra bater com o que ele realmente entrega. Isso é um déficit mais acentuado que o originalmente calculado (~1%/semana em vez de 0,4-0,5%) — considerar um lanche de gordura fácil de contar (castanhas em sachê, por ex.) se quiser voltar pro ritmo mais lento.',
+    'Ajustes de 18/08: sem tapioca às 5h30, sem azeite, paçoca única (Paçoquita) e 3 opções de carbo no almoço/janta (batata assada / arroz / arroz com feijão) — todas calibradas pra ficarem perto do mesmo total. O cardápio ficou com bem menos gordura que o original, e a meta foi baixada pra 1940 kcal / 42g de gordura pra bater com o que ele realmente entrega. Isso é um déficit mais acentuado que o originalmente calculado (~1%/semana em vez de 0,4-0,5%) — considerar um lanche de gordura fácil de contar (castanhas em sachê, por ex.) se quiser voltar pro ritmo mais lento.',
   ],
   disclaimer: 'Estimativa própria a partir dos dados registrados no app, feita em conversa com IA — não é prescrição de nutricionista nem substitui avaliação profissional. Recalibrar depois dos 14 dias de registro completo.',
   combos: [
@@ -56,9 +61,9 @@ const META_VICTOR = {
       nome: 'R1 · Pré-treino (05:30)',
       horario: '05:30',
       itens: [
-        { foodName: 'Paçoca (vaga da pasta de amendoim 25g)', qty: 1, kcal: 153, carbs: 5, sugars: 4.2, protein: 6.8, fat: 11.8, satFat: 2.2, transFat: 0, fiber: 1.8, sodium: 45 },
-        // Sem tapioca às 5h30 (pedido do Victor, 18/08) — só a paçoquita como adição.
-        { foodName: 'Paçoquita', qty: 2, kcal: 160, carbs: 15, sugars: 14.4, protein: 5.4, fat: 8.4, satFat: 1.2, transFat: 0, fiber: 1.2, sodium: 56 },
+        // Um tipo só de paçoca — Paçoquita, a que o Victor já registra comendo (pedido 18/08).
+        // 4 unidades pra manter perto do total anterior (paçoca grande + 2 paçoquitas).
+        { foodName: 'Paçoquita', qty: 4, kcal: 320, carbs: 30, sugars: 28.8, protein: 10.8, fat: 16.8, satFat: 2.4, transFat: 0, fiber: 2.4, sodium: 112 },
       ],
     },
     {
@@ -72,13 +77,32 @@ const META_VICTOR = {
         { foodName: 'Mussarela 15g', qty: 1, kcal: 48, carbs: 0.5, sugars: 0.5, protein: 3.8, fat: 3.4, satFat: 2.1, transFat: 0, fiber: 0, sodium: 88 },
       ],
     },
+    // Almoço em 3 variantes intercambiáveis — usar qualquer uma no dia, os totais ficam
+    // bem próximos (kcal 505-532, P 53,5-59, C 61,6-63, G 4,1-4,85). Air fryer conta como
+    // "assada": é calor seco, igual forno — não é fritura com óleo, então usa os mesmos
+    // macros de batata assada (93 kcal/100g), não os de batata cozida (52 kcal/100g).
     {
-      nome: 'R3 · Almoço (12:30)',
+      nome: 'R3 · Almoço — Batata assada (12:30)',
       horario: '12:30',
       itens: [
-        // Pedido do Victor (18/08): batata inglesa ASSADA de verdade, peso já assado — sem
-        // a equivalência arroz+feijão que exigia conversão. 300g é o ponto de partida.
         { foodName: 'Batata inglesa assada 300g', qty: 1, kcal: 279, carbs: 63, sugars: 3.6, protein: 7.5, fat: 0.3, satFat: 0, transFat: 0, fiber: 6.6, sodium: 15 },
+        { foodName: 'Frango 150g (peso cozido)', qty: 1, kcal: 226, carbs: 0, sugars: 0, protein: 48, fat: 3.8, satFat: 1.1, transFat: 0, fiber: 0, sodium: 98 },
+      ],
+    },
+    {
+      nome: 'R3 · Almoço — Arroz (12:30)',
+      horario: '12:30',
+      itens: [
+        { foodName: 'Arroz branco cozido 220g', qty: 1, kcal: 282, carbs: 61.6, sugars: 0, protein: 5.5, fat: 0.44, satFat: 0, transFat: 0, fiber: 0.88, sodium: 2.2 },
+        { foodName: 'Frango 150g (peso cozido)', qty: 1, kcal: 226, carbs: 0, sugars: 0, protein: 48, fat: 3.8, satFat: 1.1, transFat: 0, fiber: 0, sodium: 98 },
+      ],
+    },
+    {
+      nome: 'R3 · Almoço — Arroz com feijão (12:30)',
+      horario: '12:30',
+      itens: [
+        { foodName: 'Arroz branco cozido 150g', qty: 1, kcal: 192, carbs: 42, sugars: 0, protein: 3.75, fat: 0.3, satFat: 0, transFat: 0, fiber: 0.6, sodium: 1.5 },
+        { foodName: 'Feijão carioca cozido 150g', qty: 1, kcal: 114, carbs: 20.4, sugars: 0.45, protein: 7.2, fat: 0.75, satFat: 0.15, transFat: 0, fiber: 12.75, sodium: 3 },
         { foodName: 'Frango 150g (peso cozido)', qty: 1, kcal: 226, carbs: 0, sugars: 0, protein: 48, fat: 3.8, satFat: 1.1, transFat: 0, fiber: 0, sodium: 98 },
       ],
     },
@@ -93,11 +117,29 @@ const META_VICTOR = {
         { foodName: 'Banana nanica', qty: 1, kcal: 110, carbs: 28.6, sugars: 20, protein: 1.7, fat: 0.1, satFat: 0, transFat: 0, fiber: 2.3, sodium: 1 },
       ],
     },
+    // Janta em 3 variantes intercambiáveis — mesma lógica do almoço, com tilápia.
     {
-      nome: 'R5 · Jantar (20:00)',
+      nome: 'R5 · Jantar — Batata assada (20:00)',
       horario: '20:00',
       itens: [
         { foodName: 'Batata inglesa assada 300g', qty: 1, kcal: 279, carbs: 63, sugars: 3.6, protein: 7.5, fat: 0.3, satFat: 0, transFat: 0, fiber: 6.6, sodium: 15 },
+        { foodName: 'Tilápia 150g (peso cozido)', qty: 1, kcal: 226, carbs: 0, sugars: 0, protein: 48, fat: 3.8, satFat: 1.1, transFat: 0, fiber: 0, sodium: 84 },
+      ],
+    },
+    {
+      nome: 'R5 · Jantar — Arroz (20:00)',
+      horario: '20:00',
+      itens: [
+        { foodName: 'Arroz branco cozido 220g', qty: 1, kcal: 282, carbs: 61.6, sugars: 0, protein: 5.5, fat: 0.44, satFat: 0, transFat: 0, fiber: 0.88, sodium: 2.2 },
+        { foodName: 'Tilápia 150g (peso cozido)', qty: 1, kcal: 226, carbs: 0, sugars: 0, protein: 48, fat: 3.8, satFat: 1.1, transFat: 0, fiber: 0, sodium: 84 },
+      ],
+    },
+    {
+      nome: 'R5 · Jantar — Arroz com feijão (20:00)',
+      horario: '20:00',
+      itens: [
+        { foodName: 'Arroz branco cozido 150g', qty: 1, kcal: 192, carbs: 42, sugars: 0, protein: 3.75, fat: 0.3, satFat: 0, transFat: 0, fiber: 0.6, sodium: 1.5 },
+        { foodName: 'Feijão carioca cozido 150g', qty: 1, kcal: 114, carbs: 20.4, sugars: 0.45, protein: 7.2, fat: 0.75, satFat: 0.15, transFat: 0, fiber: 12.75, sodium: 3 },
         { foodName: 'Tilápia 150g (peso cozido)', qty: 1, kcal: 226, carbs: 0, sugars: 0, protein: 48, fat: 3.8, satFat: 1.1, transFat: 0, fiber: 0, sodium: 84 },
       ],
     },

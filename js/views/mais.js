@@ -637,16 +637,25 @@ const ViewMais = (() => {
           dietaId = Storage.add('dietas_custom', { ...META_VICTOR.meta, fonte: META_VICTOR.fonte }).id;
         }
 
-        // As 5 refeições evoluem os mesmos horários da dieta do Matheus (fonte antiga) em vez
-        // de duplicar — casa por horário pra migrar o combo existente pro novo nome/porções.
+        // Casa primeiro por nome dentro da própria fonte (recarregar é idempotente, mesmo
+        // havendo várias variantes no mesmo horário — batata/arroz/arroz+feijão). Só na
+        // primeira migração (vindo da fonte antiga do Matheus) casa por horário — e cada
+        // combo antigo só pode ser reaproveitado por UMA variante nova, pra três variantes
+        // do mesmo horário não brigarem pelo mesmo id.
         const combos = Storage.getAll('combos');
+        const idsUsadosNesteCarregamento = new Set();
         META_VICTOR.combos.forEach(c => {
           const novo = { nome: c.nome, horario: c.horario, itens: c.itens.map(i => ({ ...i })), fonte: META_VICTOR.fonte };
-          let j = combos.findIndex(x => x.fonte === META_VICTOR.fonte && (x.horario || '') === c.horario);
-          if (j < 0) j = combos.findIndex(x => typeof DIETA_VICTOR !== 'undefined' && x.fonte === DIETA_VICTOR.fonte && (x.horario || '') === c.horario);
+          let j = combos.findIndex(x => x.fonte === META_VICTOR.fonte && (x.nome || '').trim().toLowerCase() === c.nome.trim().toLowerCase());
+          if (j < 0) j = combos.findIndex(x => x.fonte === META_VICTOR.fonte && (x.horario || '') === c.horario && !idsUsadosNesteCarregamento.has(x.id));
+          if (j < 0) j = combos.findIndex(x => typeof DIETA_VICTOR !== 'undefined' && x.fonte === DIETA_VICTOR.fonte && (x.horario || '') === c.horario && !idsUsadosNesteCarregamento.has(x.id));
           if (j < 0) j = combos.findIndex(x => (x.nome || '').trim().toLowerCase() === c.nome.trim().toLowerCase());
           if (j >= 0) { novo.id = combos[j].id; combos[j] = novo; }
           else { novo.id = Storage.uid(); combos.push(novo); }
+          // Marca como usado nos dois casos — senão uma variante recém-criada neste mesmo
+          // carregamento (ex: R3 Batata) fica "livre" e a próxima do mesmo horário (R3 Arroz)
+          // rouba o id dela em vez de criar a sua própria.
+          idsUsadosNesteCarregamento.add(novo.id);
         });
         Storage.saveAll('combos', combos);
 
