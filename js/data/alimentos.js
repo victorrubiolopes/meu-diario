@@ -407,6 +407,12 @@ const ALIMENTOS_PADRAO = [
   // Sem rótulo (pizza de pizzaria): estimativa por ingredientes — massa + mussarela + catupiry
   // + frango desfiado. O catupiry puxa a gordura pra cima em relação à de mussarela.
   { name: 'Pizza de frango com catupiry (fatia)', categoria: 'outro', portionLabel: '1 fatia (100g)', portionGrams: 100, kcal: 285, carbs: 28, sugars: 2.5, protein: 14, fat: 13, satFat: 6, transFat: 0.2, fiber: 1.6, sodium: 600 },
+  // Sabor "Tutti" da rede Tutti Pizza (SP). A rede NÃO publica tabela nutricional (nenhuma
+  // pizzaria de rodízio/balcão publica — só as industrializadas e algumas redes tipo Super
+  // Pizza Pan/Patroni). Estimado por ingredientes e calibrado por referências de fatia de
+  // pizzaria brasileira (~260kcal/fatia). Sem catupiry, fica menos gordurosa que a de frango;
+  // cebola e champignon quase não somam caloria, mas o lombo puxa sódio e proteína pra cima.
+  { name: 'Pizza Tutti (lombo, mussarela, cebola e champignon)', categoria: 'outro', portionLabel: '1 fatia (100g)', portionGrams: 100, kcal: 270, carbs: 29, sugars: 2.5, protein: 15, fat: 10.5, satFat: 4.8, transFat: 0.2, fiber: 1.8, sodium: 640 },
   { name: 'Massa Leve Pizza de Frigideira', categoria: 'carboidrato', portionLabel: '1 unidade (25g)', portionGrams: 25, kcal: 63, carbs: 11.8, sugars: 0, protein: 1.6, fat: 1, satFat: 0.3, transFat: 0, fiber: 0.5, sodium: 77 },
   { name: 'Hambúrguer completo (fast food)', categoria: 'outro', portionLabel: '1 unidade (150g)', portionGrams: 150, kcal: 420, carbs: 35, sugars: 6, protein: 20, fat: 22, satFat: 8, transFat: 0.5, fiber: 2, sodium: 780 },
   { name: 'Cerveja pilsen', categoria: 'outro', portionLabel: '1 lata (350ml)', portionGrams: 350, kcal: 150, carbs: 12, sugars: 0, protein: 1.5, fat: 0, satFat: 0, transFat: 0, fiber: 0, sodium: 15 },
