@@ -74,15 +74,29 @@ const ViewHistorico = (() => {
     }));
     const namesList = [...exerciseByKey.entries()].sort((a, b) => a[1].localeCompare(b[1]));
 
+    // Maior peso de cada dia, por exercício. Calculado antes do HTML porque o gráfico de cada
+    // um é montado depois que os canvas existem no DOM.
+    const pontosPorExercicio = namesList.map(([key, label]) => {
+      const byDate = {};
+      all.forEach(t => (t.exercises || []).forEach(e => {
+        if (!e.name || e.name.trim().toLowerCase() !== key) return;
+        const w = Util.maxPesoExercicio(e);
+        if (w > 0 && (!byDate[t.date] || w > byDate[t.date])) byDate[t.date] = w;
+      }));
+      const points = Object.keys(byDate).sort().map(d => ({ label: Util.fmtDate(d).slice(0, 5), value: byDate[d] }));
+      return { key, label, points };
+    });
+
     content.innerHTML = `
-      <div class="card">
-        <h2>Evolução de carga por exercício</h2>
-        ${namesList.length === 0 ? '<p class="empty">Registre pesos nos exercícios para ver a evolução aqui</p>' : `
-          <select id="exercicio-hist">${namesList.map(([key, label]) => `<option value="${Util.escapeHtml(key)}">${Util.escapeHtml(label)}</option>`).join('')}</select>
-          <canvas id="chart-canvas-ex" style="margin-top:14px"></canvas>
-          <p class="meta" style="color:var(--text-muted);font-size:0.78rem">Maior peso registrado por dia · linha tracejada = tendência</p>
-        `}
-      </div>
+      ${namesList.length === 0
+        ? '<div class="card"><h2>Evolução de carga por exercício</h2><p class="empty">Registre pesos nos exercícios para ver a evolução aqui</p></div>'
+        : pontosPorExercicio.map((ex, idx) => `
+            <div class="card">
+              <h2>${Util.escapeHtml(ex.label)}</h2>
+              <canvas id="chart-ex-${idx}"></canvas>
+            </div>
+          `).join('') + '<p class="meta" style="color:var(--text-muted);font-size:0.78rem">Maior peso registrado por dia · linha tracejada = média móvel (tendência)</p>'
+      }
       <div class="card">
         <h2>Treinos anteriores</h2>
         ${all.length === 0 ? '<div class="empty">Nenhum treino ainda</div>' : all.map(t => {
@@ -99,27 +113,10 @@ const ViewHistorico = (() => {
       </div>
     `;
 
-    if (namesList.length > 0) {
-      const select = document.getElementById('exercicio-hist');
-      const draw = () => {
-        const key = select.value;
-        const byDate = {};
-        all.forEach(t => {
-          (t.exercises || []).forEach(e => {
-            if (e.name && e.name.trim().toLowerCase() === key) {
-              const w = Util.maxPesoExercicio(e);
-              if (w > 0 && (!byDate[t.date] || w > byDate[t.date])) byDate[t.date] = w;
-            }
-          });
-        });
-        const dates = Object.keys(byDate).sort();
-        const points = dates.map(d => ({ label: Util.fmtDate(d).slice(0, 5), value: byDate[d] }));
-        const trend = points.length >= 3 ? Util.movingAverage(points, 5) : null;
-        drawLineChart(document.getElementById('chart-canvas-ex'), points, { trend });
-      };
-      select.addEventListener('change', draw);
-      draw();
-    }
+    pontosPorExercicio.forEach((ex, idx) => {
+      const trend = ex.points.length >= 3 ? Util.movingAverage(ex.points, 5) : null;
+      drawLineChart(document.getElementById(`chart-ex-${idx}`), ex.points, { trend });
+    });
   }
 
   return { render };
