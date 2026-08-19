@@ -1275,6 +1275,22 @@ canvas {
   flex: 0 0 72px;
 }
 
+/* Reps realmente feitas na série, ao lado do peso. Um pouco mais estreito que o campo de
+   peso porque o valor tem no máximo 2 dígitos. */
+.ex-serie-reps {
+  width: 62px;
+  flex: 0 0 62px;
+  text-align: center;
+}
+
+/* Em telas estreitas o botão da série + peso + reps não cabem lado a lado sem espremer o
+   rótulo "Série N": os dois campos passam a dividir a largura embaixo do botão. */
+@media (max-width: 380px) {
+  .ex-serie-row { flex-wrap: wrap; }
+  .ex-serie-row .ex-serie { flex: 1 1 100%; }
+  .ex-serie-weight, .ex-serie-reps { flex: 1 1 0; width: auto; }
+}
+
 .ex-serie {
   padding: 14px 8px;
   border-radius: 12px;

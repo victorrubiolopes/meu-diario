@@ -327,6 +327,17 @@ const ViewTreino = (() => {
       return r.weights;
     }
 
+    // Repetições realmente feitas em cada série (o plano diz "8 a 10", mas você pode ter feito 8
+    // na primeira e 6 na última). Fica vazio por padrão: o placeholder mostra o que foi planejado,
+    // então só quem quiser registrar a diferença precisa digitar.
+    function ensureRepsFeitas(r) {
+      const n = setsCount(r);
+      if (!Array.isArray(r.repsFeitas)) r.repsFeitas = [];
+      while (r.repsFeitas.length < n) r.repsFeitas.push('');
+      if (r.repsFeitas.length > n) r.repsFeitas = r.repsFeitas.slice(0, n);
+      return r.repsFeitas;
+    }
+
     // Pré-preenche a carga de cada série com o que foi usado da última vez nesse exercício —
     // só entra em linhas que ainda não têm peso nenhum (não pisa em cima do que o usuário já digitou).
     function seedCargasHistorico(alvoRows) {
@@ -352,7 +363,7 @@ const ViewTreino = (() => {
     function persist({ finalizando = false } = {}) {
       const cleaned = rows
         .filter(r => r.name && r.name.trim() !== '')
-        .map(r => ({ name: r.name.trim(), sets: r.sets, reps: r.reps, weight: r.weight, weights: Array.isArray(r.weights) ? r.weights : [], descanso: r.descanso || '', obs: r.obs || '', done: Array.isArray(r.done) ? r.done : [] }));
+        .map(r => ({ name: r.name.trim(), sets: r.sets, reps: r.reps, weight: r.weight, weights: Array.isArray(r.weights) ? r.weights : [], repsFeitas: Array.isArray(r.repsFeitas) ? r.repsFeitas : [], descanso: r.descanso || '', obs: r.obs || '', done: Array.isArray(r.done) ? r.done : [] }));
       const notesEl = document.getElementById('treino-notes');
       const notes = notesEl ? notesEl.value.trim() : (existing ? existing.notes : '');
       const durEl = document.getElementById('treino-duracao');
@@ -392,6 +403,7 @@ const ViewTreino = (() => {
     function cardHtml(r, i) {
       ensureDone(r);
       ensureWeights(r);
+      ensureRepsFeitas(r);
       const grupo = grupoDe(r.name);
       const n = setsCount(r);
       const nameFilled = r.name && r.name.trim() !== '';
@@ -423,6 +435,7 @@ const ViewTreino = (() => {
                <div class="ex-serie-row">
                  <button class="ex-serie ${r.done[j] ? 'done' : ''}" data-serie="${i}-${j}">${r.done[j] ? '✓ ' : ''}Série ${j + 1}</button>
                  <input type="number" step="0.5" class="ex-serie-weight" placeholder="kg" data-serie-weight="${i}-${j}" value="${Util.escapeHtml(r.weights[j] || '')}">
+                 <input type="number" class="ex-serie-reps" placeholder="${r.reps ? Util.escapeHtml(r.reps) : 'reps'}" data-serie-reps="${i}-${j}" value="${Util.escapeHtml(r.repsFeitas[j] || '')}">
                </div>
              `).join('')}
            </div>`
@@ -514,7 +527,10 @@ const ViewTreino = (() => {
 
     function bindCards() {
       cardsEl.querySelectorAll('.ex-name-input').forEach(inp => {
-        inp.addEventListener('change', () => { syncNames(); persist(); renderCards(); });
+        // Ao digitar/trocar o nome, já traz a carga da última vez que esse exercício foi feito
+        // (por nome, independente do plano) — antes isso só acontecia ao carregar um plano,
+        // então exercício adicionado na mão vinha sempre sem peso.
+        inp.addEventListener('change', () => { syncNames(); seedCargasHistorico(rows); persist(); renderCards(); });
       });
       cardsEl.querySelectorAll('[data-remove]').forEach(btn => {
         btn.addEventListener('click', () => {
@@ -581,6 +597,16 @@ const ViewTreino = (() => {
           renderCards();
         });
       });
+      cardsEl.querySelectorAll('[data-serie-reps]').forEach(inp => {
+        inp.addEventListener('change', () => {
+          syncNames();
+          const [i, j] = inp.dataset.serieReps.split('-').map(Number);
+          ensureRepsFeitas(rows[i]);
+          rows[i].repsFeitas[j] = inp.value;
+          persist();
+          renderCards();
+        });
+      });
       cardsEl.querySelectorAll('[data-togglevideo]').forEach(btn => {
         btn.addEventListener('click', () => {
           syncNames();
@@ -594,7 +620,7 @@ const ViewTreino = (() => {
     function aplicarPlano(plano) {
       if (!plano) return;
       planoIdAtual = plano.id;
-      rows = (plano.exercises || []).map(e => ({ ...e, done: [], weights: [] }));
+      rows = (plano.exercises || []).map(e => ({ ...e, done: [], weights: [], repsFeitas: [] }));
       if (rows.length === 0) rows.push({ name: '', sets: '', reps: '', weight: '', done: [] });
       seedCargasHistorico(rows);
       persist();
