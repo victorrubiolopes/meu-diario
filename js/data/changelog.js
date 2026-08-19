@@ -1,5 +1,6 @@
 // Lista de atualizações recentes do app, mais recente primeiro. Editável manualmente a cada mudança.
 const CHANGELOG = [
+  { date: '2026-08-18', texto: 'Novo alimento: Bala de banana (bananinha)' },
   { date: '2026-08-18', texto: 'Painel profissional: agora dá pra gerar o mesmo relatório em texto (15/30/60/90 dias) direto no perfil do paciente, sem precisar pedir pra ele exportar e mandar. Fica em Meus pacientes → abrir o paciente → Relatório do paciente' },
   { date: '2026-08-18', texto: 'Correção: Chocolate Trento Dark estava cadastrado com o valor de 2 bastões (o rótulo declara a porção como "29g, 2 unidades"). Ajustado para 1 bastão de verdade (14,5g / 68,5 kcal)' },
   { date: '2026-08-18', texto: 'Biblioteca de alimentos ganhou o Chocolate Trento Dark (dados oficiais do fabricante)' },
