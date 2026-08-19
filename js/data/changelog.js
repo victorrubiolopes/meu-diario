@@ -1,5 +1,6 @@
 // Lista de atualizações recentes do app, mais recente primeiro. Editável manualmente a cada mudança.
 const CHANGELOG = [
+  { date: '2026-08-19', texto: 'Novo alimento: Pizza de frango com catupiry (fatia)' },
   { date: '2026-08-19', texto: 'Histórico → Treino: em vez de um gráfico só com seletor pra trocar de exercício, agora aparece um gráfico por exercício (só os que já têm carga registrada), um embaixo do outro — igual aos gráficos de Medidas' },
   { date: '2026-08-19', texto: 'Treino: cada série ganhou um campo de repetições feitas ao lado do peso — dá pra anotar que planejou 10 e fez 8, sem mexer no plano' },
   { date: '2026-08-19', texto: 'Treino: exercício digitado na mão agora também já vem com a carga da última vez que você fez ele (antes só acontecia ao carregar um plano)' },

@@ -404,6 +404,9 @@ const ALIMENTOS_PADRAO = [
   { name: 'Strogonoff de frango', categoria: 'outro', portionLabel: '100g', portionGrams: 100, kcal: 155, carbs: 6, sugars: 2, protein: 13, fat: 9, satFat: 3, transFat: 0, fiber: 0.5, sodium: 340 },
   { name: 'Pizza de mussarela (fatia)', categoria: 'outro', portionLabel: '1 fatia (100g)', portionGrams: 100, kcal: 266, carbs: 33, sugars: 3, protein: 11, fat: 10, satFat: 4.5, transFat: 0.2, fiber: 2, sodium: 550 },
   { name: 'Pizza de calabresa (fatia)', categoria: 'outro', portionLabel: '1 fatia (100g)', portionGrams: 100, kcal: 280, carbs: 30, sugars: 2.5, protein: 13, fat: 12, satFat: 5, transFat: 0.3, fiber: 1.8, sodium: 620 },
+  // Sem rótulo (pizza de pizzaria): estimativa por ingredientes — massa + mussarela + catupiry
+  // + frango desfiado. O catupiry puxa a gordura pra cima em relação à de mussarela.
+  { name: 'Pizza de frango com catupiry (fatia)', categoria: 'outro', portionLabel: '1 fatia (100g)', portionGrams: 100, kcal: 285, carbs: 28, sugars: 2.5, protein: 14, fat: 13, satFat: 6, transFat: 0.2, fiber: 1.6, sodium: 600 },
   { name: 'Massa Leve Pizza de Frigideira', categoria: 'carboidrato', portionLabel: '1 unidade (25g)', portionGrams: 25, kcal: 63, carbs: 11.8, sugars: 0, protein: 1.6, fat: 1, satFat: 0.3, transFat: 0, fiber: 0.5, sodium: 77 },
   { name: 'Hambúrguer completo (fast food)', categoria: 'outro', portionLabel: '1 unidade (150g)', portionGrams: 150, kcal: 420, carbs: 35, sugars: 6, protein: 20, fat: 22, satFat: 8, transFat: 0.5, fiber: 2, sodium: 780 },
   { name: 'Cerveja pilsen', categoria: 'outro', portionLabel: '1 lata (350ml)', portionGrams: 350, kcal: 150, carbs: 12, sugars: 0, protein: 1.5, fat: 0, satFat: 0, transFat: 0, fiber: 0, sodium: 15 },
