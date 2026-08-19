@@ -413,6 +413,10 @@ const ALIMENTOS_PADRAO = [
   // Fonte: foto da embalagem real (Peccin). O rótulo declara a porção como "29g (2 unidades)"
   // — os valores abaixo são a METADE disso, pra representar 1 bastão só.
   { name: 'Chocolate Trento Dark', categoria: 'outro', portionLabel: '1 bastão (14,5g)', portionGrams: 14.5, kcal: 68.5, carbs: 9, sugars: 6, protein: 0.9, fat: 3.2, satFat: 2.2, transFat: 0, fiber: 0.65, sodium: 23 },
+  // Fonte: foto da embalagem real (Doces Confirma, pote de 1,3kg / 50 unidades).
+  // O rótulo traz porção de 26g = 1 unidade. Tem 183mg de potássio por 100g (48mg na
+  // unidade), mas o app não guarda potássio — só os campos abaixo.
+  { name: 'Bala de banana (bananinha)', categoria: 'outro', portionLabel: '1 unidade (26g)', portionGrams: 26, kcal: 54, carbs: 13, sugars: 11, protein: 0, fat: 0, satFat: 0, transFat: 0, fiber: 0, sodium: 0 },
 ];
 
 // Categoria de cada alimento é uma propriedade de código (não persistida em Storage),
