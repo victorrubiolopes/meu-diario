@@ -102,6 +102,10 @@ const ALIMENTOS_PADRAO = [
   { name: 'Picanha grelhada', categoria: 'proteina', portionLabel: '100g', portionGrams: 100, kcal: 289, carbs: 0, sugars: 0, protein: 26.4, fat: 19.5, satFat: 5.9, transFat: 0, fiber: 0, sodium: 60 },
   { name: 'Lombo suíno grelhado', categoria: 'proteina', portionLabel: '100g', portionGrams: 100, kcal: 210, carbs: 0, sugars: 0, protein: 27, fat: 11, satFat: 4, transFat: 0, fiber: 0, sodium: 55 },
   { name: 'Bacon frito', categoria: 'outro', portionLabel: '100g', portionGrams: 100, kcal: 541, carbs: 1.4, sugars: 0, protein: 37, fat: 42, satFat: 14, transFat: 0, fiber: 0, sodium: 1500 },
+  // Barriga de porco assada. Categoria 'outro' (não 'proteina') pelo mesmo motivo do bacon:
+  // é majoritariamente gordura, então sugerir como fonte de proteína no método do prato
+  // seria enganoso. Menos sódio que o bacon por não ser curada — só temperada.
+  { name: 'Panceta assada', categoria: 'outro', portionLabel: '100g', portionGrams: 100, kcal: 490, carbs: 0, sugars: 0, protein: 20, fat: 45, satFat: 16, transFat: 0, fiber: 0, sodium: 380 },
 
   // Peixes e frutos do mar
   { name: 'Cação frito', categoria: 'proteina', portionLabel: '100g', portionGrams: 100, kcal: 140, carbs: 0, sugars: 0, protein: 24, fat: 3.6, satFat: 1.1, transFat: 0, fiber: 0, sodium: 1256 },
@@ -245,6 +249,9 @@ const ALIMENTOS_PADRAO = [
   // Mais proteínas
   { name: 'Peito de peru fatiado', categoria: 'proteina', portionLabel: '1 fatia (30g)', portionGrams: 30, kcal: 30, carbs: 0.5, sugars: 0.3, protein: 6, fat: 0.4, satFat: 0.1, transFat: 0, fiber: 0, sodium: 280 },
   { name: 'Atum fresco grelhado', categoria: 'proteina', portionLabel: '100g', portionGrams: 100, kcal: 130, carbs: 0, sugars: 0, protein: 28, fat: 1, satFat: 0.3, transFat: 0, fiber: 0, sodium: 45 },
+  // Peixe branco cru "cozido" no limão, com cebola e coentro. O carboidrato/açúcar vem da
+  // cebola e do suco de limão; o sódio, do sal do preparo.
+  { name: 'Ceviche', categoria: 'proteina', portionLabel: '100g', portionGrams: 100, kcal: 95, carbs: 4.5, sugars: 1.5, protein: 15, fat: 1.8, satFat: 0.4, transFat: 0, fiber: 0.6, sodium: 350 },
   { name: 'Lombo defumado (bacon canadense)', categoria: 'proteina', portionLabel: '1 fatia (30g)', portionGrams: 30, kcal: 55, carbs: 0.5, sugars: 0.2, protein: 8, fat: 2.2, satFat: 0.7, transFat: 0, fiber: 0, sodium: 380 },
 
   // Laticínios vegetais e bebidas
