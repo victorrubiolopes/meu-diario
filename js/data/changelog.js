@@ -1,5 +1,6 @@
 // Lista de atualizações recentes do app, mais recente primeiro. Editável manualmente a cada mudança.
 const CHANGELOG = [
+  { date: '2026-08-21', texto: 'Correção: "Tilápia grelhada" aparecia duas vezes na biblioteca de alimentos — a cópia extra some sozinha ao abrir o app' },
   { date: '2026-08-20', texto: 'Linha completa de donuts Krispy Kreme (12 sabores) com os valores da tabela nutricional oficial — busque por "donut" ou "krispy"' },
   { date: '2026-08-19', texto: 'Novos alimentos: Panceta assada e Ceviche' },
   { date: '2026-08-19', texto: 'Novo alimento: Pizza Tutti (lombo, mussarela, cebola e champignon)' },
