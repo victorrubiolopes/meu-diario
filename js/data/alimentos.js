@@ -433,6 +433,23 @@ const ALIMENTOS_PADRAO = [
   // O rótulo traz porção de 26g = 1 unidade. Tem 183mg de potássio por 100g (48mg na
   // unidade), mas o app não guarda potássio — só os campos abaixo.
   { name: 'Bala de banana (bananinha)', categoria: 'outro', portionLabel: '1 unidade (26g)', portionGrams: 26, kcal: 54, carbs: 13, sugars: 11, protein: 0, fat: 0, satFat: 0, transFat: 0, fiber: 0, sodium: 0 },
+
+  // Donuts Krispy Kreme Brasil — valores da tabela nutricional oficial (agosto/2026),
+  // coluna "por porção" de cada sabor (a porção é 1 unidade, e o peso muda por sabor).
+  // 'Açucares totais' do rótulo vira `sugars`; o rótulo também traz açúcares adicionados,
+  // que o app não guarda (na prática são quase iguais nesses produtos).
+  { name: 'Donut Krispy Kreme Original Glazed', categoria: 'outro', portionLabel: '1 unidade (50g)', portionGrams: 50, kcal: 160, carbs: 29, sugars: 12, protein: 3.7, fat: 3, satFat: 1.3, transFat: 0, fiber: 1.3, sodium: 111 },
+  { name: 'Donut Krispy Kreme Chocolate', categoria: 'outro', portionLabel: '1 unidade (68g)', portionGrams: 68, kcal: 227, carbs: 44, sugars: 24, protein: 4.1, fat: 3.4, satFat: 1.7, transFat: 0, fiber: 1.5, sodium: 119 },
+  { name: 'Donut Krispy Kreme Cinnamon Sugar', categoria: 'outro', portionLabel: '1 unidade (44g)', portionGrams: 44, kcal: 143, carbs: 26, sugars: 8.8, protein: 3.5, fat: 2.7, satFat: 1.1, transFat: 0, fiber: 1.3, sodium: 105 },
+  { name: 'Donut Krispy Kreme Doce de Leite', categoria: 'outro', portionLabel: '1 unidade (66g)', portionGrams: 66, kcal: 237, carbs: 44, sugars: 20, protein: 4.7, fat: 4.4, satFat: 2.4, transFat: 0, fiber: 1.3, sodium: 129 },
+  { name: 'Donut Krispy Kreme Strawberry Jam Sweetie', categoria: 'outro', portionLabel: '1 unidade (82g)', portionGrams: 82, kcal: 231, carbs: 41, sugars: 13, protein: 5.7, fat: 4.4, satFat: 1.9, transFat: 0, fiber: 2.1, sodium: 174 },
+  { name: 'Donut Krispy Kreme Chocolate Hazelnut', categoria: 'outro', portionLabel: '1 unidade (79g)', portionGrams: 79, kcal: 310, carbs: 44, sugars: 24, protein: 5.4, fat: 12, satFat: 4.3, transFat: 0.1, fiber: 2.3, sodium: 127 },
+  { name: 'Donut Krispy Kreme Salted Caramel Cheesecake', categoria: 'outro', portionLabel: '1 unidade (98g)', portionGrams: 98, kcal: 309, carbs: 52, sugars: 23, protein: 6.2, fat: 8, satFat: 4.1, transFat: 0.1, fiber: 2.1, sodium: 234 },
+  { name: 'Donut Krispy Kreme Chocolate with Sprinkles', categoria: 'outro', portionLabel: '1 unidade (71g)', portionGrams: 71, kcal: 239, carbs: 46, sugars: 27, protein: 4.1, fat: 3.8, satFat: 1.8, transFat: 0, fiber: 1.5, sodium: 120 },
+  { name: 'Donut Krispy Kreme Strawberry with Sprinkles', categoria: 'outro', portionLabel: '1 unidade (71g)', portionGrams: 71, kcal: 238, carbs: 46, sugars: 26, protein: 4, fat: 3.8, satFat: 1.8, transFat: 0, fiber: 1.3, sodium: 120 },
+  { name: 'Donut Krispy Kreme Chocolate Vanilla Cream', categoria: 'outro', portionLabel: '1 unidade (92g)', portionGrams: 92, kcal: 279, carbs: 52, sugars: 24, protein: 5.9, fat: 5, satFat: 2.1, transFat: 0, fiber: 2.1, sodium: 180 },
+  { name: 'Donut Krispy Kreme Chocolate Dreamcake', categoria: 'outro', portionLabel: '1 unidade (98g)', portionGrams: 98, kcal: 355, carbs: 57, sugars: 29, protein: 6.3, fat: 11, satFat: 4.8, transFat: 0, fiber: 2.6, sodium: 188 },
+  { name: 'Donut Krispy Kreme Cookies\'n Cream', categoria: 'outro', portionLabel: '1 unidade (100g)', portionGrams: 100, kcal: 376, carbs: 61, sugars: 30, protein: 6.3, fat: 11, satFat: 5.1, transFat: 0, fiber: 2.2, sodium: 207 },
 ];
 
 // Categoria de cada alimento é uma propriedade de código (não persistida em Storage),
