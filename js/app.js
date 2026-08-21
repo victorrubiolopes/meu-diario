@@ -157,6 +157,27 @@ const App = (() => {
     // eram específicos do Victor (dieta/refeições do nutri dele) e vazavam pra todo usuário
     // multi-conta. Quem já tinha esses itens continua com eles (mergeSeeds nunca removia nada).
 
+    // Migração: remove alimentos duplicados que entraram na biblioteca por um bug do catálogo
+    // semente (havia duas linhas de "Tilápia grelhada", e o mergeSeeds antigo adicionava as
+    // duas). Só mexe em nomes cujas cópias são TODAS do catálogo padrão (custom !== true) —
+    // se o usuário criou um alimento com nome repetido, o dele fica intacto.
+    const bibliotecaDedup = Storage.getAll('alimentos_biblioteca');
+    const porNome = new Map();
+    bibliotecaDedup.forEach(f => {
+      const k = (f.name || '').trim().toLowerCase();
+      if (!porNome.has(k)) porNome.set(k, []);
+      porNome.get(k).push(f);
+    });
+    const idsRemover = new Set();
+    porNome.forEach(itens => {
+      if (itens.length < 2) return;
+      if (itens.some(f => f.custom === true)) return; // tem cópia do usuário: não mexe
+      itens.slice(1).forEach(f => idsRemover.add(f.id));
+    });
+    if (idsRemover.size > 0) {
+      Storage.saveAll('alimentos_biblioteca', bibliotecaDedup.filter(f => !idsRemover.has(f.id)));
+    }
+
     // Migração: preenche o horário em combos seedados antes dessa funcionalidade existir.
     const combosAtuais = Storage.getAll('combos');
     let precisaSalvar = false;

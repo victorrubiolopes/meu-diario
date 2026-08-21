@@ -117,7 +117,15 @@ const Storage = (() => {
   function mergeSeeds(key, seedData, nameField = 'name') {
     const current = getAll(key);
     const existingNames = new Set(current.map(i => i[nameField].toLowerCase()));
-    const toAdd = seedData.filter(item => !existingNames.has(item[nameField].toLowerCase()));
+    // Filtra contra o MESMO Set que vai crescendo: se o próprio catálogo semente tiver dois
+    // itens com o mesmo nome (já aconteceu com "Tilápia grelhada"), sem isso os dois entravam,
+    // porque o Set era montado só com o que já existia antes.
+    const toAdd = seedData.filter(item => {
+      const nome = item[nameField].toLowerCase();
+      if (existingNames.has(nome)) return false;
+      existingNames.add(nome);
+      return true;
+    });
     if (toAdd.length > 0) {
       const seeded = toAdd.map(item => ({ ...item, id: uid(), custom: false }));
       saveAll(key, [...current, ...seeded]);
