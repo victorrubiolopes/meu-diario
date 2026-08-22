@@ -93,10 +93,15 @@ const ALIMENTOS_PADRAO = [
   { name: 'Patinho assado', categoria: 'proteina', portionLabel: '100g', portionGrams: 100, kcal: 199, carbs: 0, sugars: 0, protein: 36.1, fat: 5, satFat: 1.5, transFat: 0, fiber: 0, sodium: 60 },
   // Hambúrguer caseiro de patinho moído puro, sem gordura adicionada. Macros = 'Patinho
   // grelhado' escalado pra 90g, que é o que sobra de um disco de 150g cru (a carne perde
-  // ~40% do peso na chapa). O sódio é o único valor que não vem da carne: assume ~1g de sal
-  // no tempero, senão seriam só 54mg. Hambúrguer de hamburgueria NÃO serve aqui — blend
-  // artesanal leva acém/costela e chega a 15-20% de gordura, quase o dobro de calorias.
-  { name: 'Hambúrguer de patinho grelhado', categoria: 'proteina', portionLabel: '1 unidade (90g grelhado / 150g cru)', portionGrams: 90, kcal: 197, carbs: 0, sugars: 0, protein: 32.3, fat: 6.6, satFat: 2, transFat: 0, fiber: 0, sodium: 350 },
+  // ~40% do peso na chapa).
+  // O rótulo declara SÓ o peso grelhado de propósito: o app tem um único campo de gramas
+  // por alimento, então citar "90g grelhado / 150g cru" fazia os dois pesos caírem no mesmo
+  // campo — quem pesasse a carne crua e digitasse 150 receberia 328 kcal em vez de 200.
+  // Pra registrar pelo peso cru existe 'Carne bovina crua (patinho)', que já é por 100g.
+  // O sódio é o único valor que não vem da carne: assume ~1g de sal no tempero, senão
+  // seriam só 54mg. Hambúrguer de hamburgueria NÃO serve aqui — blend artesanal leva
+  // acém/costela e chega a 15-20% de gordura, quase o dobro de calorias.
+  { name: 'Hambúrguer de patinho grelhado', categoria: 'proteina', portionLabel: '1 unidade grelhada (90g)', portionGrams: 90, kcal: 197, carbs: 0, sugars: 0, protein: 32.3, fat: 6.6, satFat: 2, transFat: 0, fiber: 0, sodium: 350 },
   { name: 'Coxão mole cru', categoria: 'proteina', portionLabel: '100g', portionGrams: 100, kcal: 169, carbs: 0, sugars: 0, protein: 21.2, fat: 8.7, satFat: 2.6, transFat: 0, fiber: 0, sodium: 61 },
   { name: 'Coxão mole assado', categoria: 'proteina', portionLabel: '100g', portionGrams: 100, kcal: 232, carbs: 0, sugars: 0, protein: 32.7, fat: 9.9, satFat: 3, transFat: 0, fiber: 0, sodium: 61 },
   { name: 'Coxão mole cozido', categoria: 'proteina', portionLabel: '100g', portionGrams: 100, kcal: 219, carbs: 0, sugars: 0, protein: 32.4, fat: 8.9, satFat: 2.7, transFat: 0, fiber: 0, sodium: 44 },
