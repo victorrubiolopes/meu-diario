@@ -1,5 +1,6 @@
 // Lista de atualizações recentes do app, mais recente primeiro. Editável manualmente a cada mudança.
 const CHANGELOG = [
+  { date: '2026-08-22', texto: 'Novo alimento: Pão Panco Vida maçã, canela e castanha (valores do rótulo, porção de 2 fatias / 50g)' },
   { date: '2026-08-22', texto: 'Novos alimentos: Pipoca de cinema salgada e Pipoca de cinema caramelo — valores aproximados (cinema não publica tabela nutricional), então pesar ajuda' },
   { date: '2026-08-22', texto: 'Novos alimentos do Mania de Churrasco com os valores oficiais da rede: Short-rib Angus (porção de 400g) e Batata rústica (porção de 300g)' },
   { date: '2026-08-21', texto: 'Correção: "Tilápia grelhada" aparecia duas vezes na biblioteca de alimentos — a cópia extra some sozinha ao abrir o app' },
