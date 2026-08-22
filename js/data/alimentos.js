@@ -463,6 +463,10 @@ const ALIMENTOS_PADRAO = [
   // não como valor de rótulo.
   { name: 'Pipoca de cinema salgada (aprox.)', categoria: 'outro', portionLabel: '100g', portionGrams: 100, kcal: 540, carbs: 55, sugars: 0.5, protein: 8, fat: 33, satFat: 12, transFat: 0.2, fiber: 10, sodium: 700 },
   { name: 'Pipoca de cinema caramelo (aprox.)', categoria: 'outro', portionLabel: '100g', portionGrams: 100, kcal: 430, carbs: 76, sugars: 40, protein: 4, fat: 13, satFat: 6, transFat: 0.1, fiber: 6, sodium: 200 },
+
+  // Panco Vida — pão 35% integral. Valores do rótulo, na porção declarada de 50g (2 fatias),
+  // ou seja 1 fatia = 25g. Bom de fibra (2,6g na porção) e proteína (4,9g) pra um pão de forma.
+  { name: 'Pão Panco Vida maçã, canela e castanha', categoria: 'carboidrato', portionLabel: '2 fatias (50g)', portionGrams: 50, kcal: 118, carbs: 20, sugars: 6, protein: 4.9, fat: 2.3, satFat: 0.4, transFat: 0, fiber: 2.6, sodium: 144 },
 ];
 
 // Categoria de cada alimento é uma propriedade de código (não persistida em Storage),
