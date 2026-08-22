@@ -467,6 +467,18 @@ const ALIMENTOS_PADRAO = [
   // Panco Vida — pão 35% integral. Valores do rótulo, na porção declarada de 50g (2 fatias),
   // ou seja 1 fatia = 25g. Bom de fibra (2,6g na porção) e proteína (4,9g) pra um pão de forma.
   { name: 'Pão Panco Vida maçã, canela e castanha', categoria: 'carboidrato', portionLabel: '2 fatias (50g)', portionGrams: 50, kcal: 118, carbs: 20, sugars: 6, protein: 4.9, fat: 2.3, satFat: 0.4, transFat: 0, fiber: 2.6, sodium: 144 },
+
+  // Pães e condimentos com valores de rótulo (fotos das embalagens).
+  { name: 'Pão de ovos (pão egg)', categoria: 'carboidrato', portionLabel: '1 unidade (30g)', portionGrams: 30, kcal: 54, carbs: 6.8, sugars: 1.2, protein: 1.5, fat: 2.3, satFat: 0.8, transFat: 0, fiber: 0.2, sodium: 40 },
+  { name: 'Pão para hambúrguer', categoria: 'carboidrato', portionLabel: '1 unidade (50g)', portionGrams: 50, kcal: 137, carbs: 22, sugars: 6, protein: 6.5, fat: 2.5, satFat: 1.1, transFat: 0, fiber: 1.4, sodium: 214 },
+  // Versão adoçada com sucralose: os 4,9g de açúcar são do próprio tomate (açúcares
+  // adicionados = 0). Cadastrado em 100g porque a coluna de 12g do rótulo vem tão
+  // arredondada que distorce (1 colher de sopa = 12g).
+  { name: 'Ketchup Heinz sem açúcar adicionado', categoria: 'outro', portionLabel: '100g', portionGrams: 100, kcal: 39, carbs: 6.3, sugars: 4.9, protein: 1.4, fat: 0, satFat: 0, transFat: 0, fiber: 2, sodium: 360 },
+  // Já existe um "Requeijão light" genérico na biblioteca, com valores diferentes
+  // (128kcal/100g contra 143 deste). Nome diferente pra conviverem sem colidir no
+  // mergeSeeds — o "61% menos gordura" é a alegação impressa no pote.
+  { name: 'Requeijão light 61% menos gordura', categoria: 'outro', portionLabel: '1 colher de sopa (30g)', portionGrams: 30, kcal: 43, carbs: 1.2, sugars: 1.2, protein: 3.3, fat: 2.8, satFat: 1.8, transFat: 0.1, fiber: 0, sodium: 162 },
 ];
 
 // Categoria de cada alimento é uma propriedade de código (não persistida em Storage),
