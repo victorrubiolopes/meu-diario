@@ -449,6 +449,20 @@ const ALIMENTOS_PADRAO = [
   { name: 'Donut Krispy Kreme Chocolate Vanilla Cream', categoria: 'outro', portionLabel: '1 unidade (92g)', portionGrams: 92, kcal: 279, carbs: 52, sugars: 24, protein: 5.9, fat: 5, satFat: 2.1, transFat: 0, fiber: 2.1, sodium: 180 },
   { name: 'Donut Krispy Kreme Chocolate Dreamcake', categoria: 'outro', portionLabel: '1 unidade (98g)', portionGrams: 98, kcal: 355, carbs: 57, sugars: 29, protein: 6.3, fat: 11, satFat: 4.8, transFat: 0, fiber: 2.6, sodium: 188 },
   { name: 'Donut Krispy Kreme Cookies\'n Cream', categoria: 'outro', portionLabel: '1 unidade (100g)', portionGrams: 100, kcal: 376, carbs: 61, sugars: 30, protein: 6.3, fat: 11, satFat: 5.1, transFat: 0, fiber: 2.2, sodium: 207 },
+
+  // Mania de Churrasco — valores oficiais da tabela nutricional da rede.
+  // A porção declarada é a do prato servido (não 100g), então o app escala a partir dela.
+  { name: 'Short-rib Angus (Mania de Churrasco)', categoria: 'proteina', portionLabel: '1 porção (400g)', portionGrams: 400, kcal: 779, carbs: 0, sugars: 0, protein: 72, fat: 56, satFat: 28, transFat: 2.8, fiber: 0, sodium: 474 },
+  // Fritura: 71g de gordura na porção, mais calorias vindas de gordura do que de carboidrato.
+  // Fica em 'carboidrato' mesmo assim porque é o acompanhamento amiláceo do prato.
+  { name: 'Batata rústica (Mania de Churrasco)', categoria: 'carboidrato', portionLabel: '1 porção (300g)', portionGrams: 300, kcal: 935, carbs: 70, sugars: 0, protein: 7.6, fat: 71, satFat: 15, transFat: 0.3, fiber: 7.6, sodium: 1810 },
+
+  // Pipoca de cinema — APROXIMADA. Cinépolis não publica tabela nutricional (rede de
+  // cinema é dispensada pela Anvisa de declarar alimento preparado na hora). Estimativa
+  // montada a partir da pipoca estourada + óleo/caramelo do preparo. Use como referência,
+  // não como valor de rótulo.
+  { name: 'Pipoca de cinema salgada (aprox.)', categoria: 'outro', portionLabel: '100g', portionGrams: 100, kcal: 540, carbs: 55, sugars: 0.5, protein: 8, fat: 33, satFat: 12, transFat: 0.2, fiber: 10, sodium: 700 },
+  { name: 'Pipoca de cinema caramelo (aprox.)', categoria: 'outro', portionLabel: '100g', portionGrams: 100, kcal: 430, carbs: 76, sugars: 40, protein: 4, fat: 13, satFat: 6, transFat: 0.1, fiber: 6, sodium: 200 },
 ];
 
 // Categoria de cada alimento é uma propriedade de código (não persistida em Storage),
