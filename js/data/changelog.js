@@ -1,5 +1,6 @@
 // Lista de atualizações recentes do app, mais recente primeiro. Editável manualmente a cada mudança.
 const CHANGELOG = [
+  { date: '2026-08-22', texto: 'Novo alimento: Hambúrguer de patinho grelhado (1 unidade = 90g grelhado, o equivalente a 150g de carne crua)' },
   { date: '2026-08-22', texto: 'Novos alimentos com valores de rótulo: Pão de ovos (pão egg), Pão para hambúrguer, Ketchup Heinz sem açúcar adicionado e Requeijão light 61% menos gordura' },
   { date: '2026-08-22', texto: 'Novo alimento: Pão Panco Vida maçã, canela e castanha (valores do rótulo, porção de 2 fatias / 50g)' },
   { date: '2026-08-22', texto: 'Novos alimentos: Pipoca de cinema salgada e Pipoca de cinema caramelo — valores aproximados (cinema não publica tabela nutricional), então pesar ajuda' },
