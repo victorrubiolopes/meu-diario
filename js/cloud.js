@@ -554,6 +554,33 @@ const Cloud = (() => {
     );
   }
 
+  // ---- Promover / remover profissional (só super-admin) ----
+  // O papel de nutri é a EXISTÊNCIA do documento admins/{uid}: não há campo de papel,
+  // quem tem documento é profissional. Até aqui esse documento só nascia pelo Console do
+  // Firebase, então cadastrar uma nutri exigia sair do app. As regras (firestore.rules)
+  // é que barram de verdade — o super não mexe no próprio documento, não cria outro
+  // super e não altera quem já é super. A UI esconde os mesmos casos, mas por educação:
+  // quem manda é a regra.
+  async function papelDe(uidAlvo) {
+    const s = await db.collection('admins').doc(uidAlvo).get();
+    if (!s || !s.exists) return { nutri: false, super: false };
+    return { nutri: true, super: !!(s.data() || {}).super };
+  }
+  // Sem 'super' no payload de propósito: a regra recusa a escrita se o campo vier true,
+  // e omitir deixa explícito que este caminho nunca cria dono de app.
+  async function promoverNutri(uidAlvo, perfil) {
+    const p = perfil || {};
+    await db.collection('admins').doc(uidAlvo).set({
+      nome: p.displayName || '',
+      email: p.email || '',
+      criadoEm: Date.now(),
+      criadoPor: user.uid,
+    });
+  }
+  async function removerNutri(uidAlvo) {
+    await db.collection('admins').doc(uidAlvo).delete();
+  }
+
   // ---- Vídeos de exercício: sugestão (usuário) e aprovação (admin) ----
   // Aplica o vídeo no exercício compartilhado (cria/atualiza), tornando-o global.
   async function aplicarVideoCompartilhado(nome, videoUrl) {
@@ -624,7 +651,7 @@ const Cloud = (() => {
     init, wrapStorage, isEnabled, currentUser, getStatus, onChange,
     loginGoogle, loginEmail, signupEmail, logout, push,
     isAdmin, isSuperAdmin, uid, listarUsuarios, dadosUsuario, prescricaoDe, enviarDieta, enviarPlano, enviarTreino, enviarCorrida, enviarListaCompras, enviarSolicitacao, enviarRegrasRefeicaoLivre,
-    gerarConviteLink, listarNutris, reatribuirPaciente,
+    gerarConviteLink, listarNutris, reatribuirPaciente, papelDe, promoverNutri, removerNutri,
     sugerirVideo, listarVideosPendentes, aprovarVideoPendente, rejeitarVideoPendente,
     sugerirReceita, listarReceitasPendentes, aprovarReceitaPendente, rejeitarReceitaPendente,
   };

@@ -59,7 +59,24 @@ service cloud.firestore {
 
     match /admins/{userId} {
       allow read:  if request.auth != null;
-      allow write: if false; // só via Console/Admin SDK
+      // O papel de profissional É a existência deste documento. Antes só dava pra criar
+      // pelo Console; agora o super-admin promove/remove pela própria tela de pacientes.
+      // Três travas, todas necessárias mesmo com a UI escondendo os botões (regra é o
+      // que vale, UI é conveniência):
+      //  1. não pode mexer no próprio documento — auto-rebaixar deixaria o app sem
+      //     ninguém capaz de promover, e não há como desfazer sem o Console;
+      //  2. não pode criar outro super pelo app — super continua só via Console;
+      //  3. não pode alterar nem apagar quem já é super.
+      allow create: if ehSuperAdmin()
+        && userId != request.auth.uid
+        && request.resource.data.get('super', false) == false;
+      allow update: if ehSuperAdmin()
+        && userId != request.auth.uid
+        && request.resource.data.get('super', false) == false
+        && resource.data.get('super', false) == false;
+      allow delete: if ehSuperAdmin()
+        && userId != request.auth.uid
+        && resource.data.get('super', false) == false;
     }
 
     match /inviteCodes/{code} {
