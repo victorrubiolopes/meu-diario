@@ -184,6 +184,12 @@ const ALIMENTOS_PADRAO = [
 
   // Tubérculos
   { name: 'Batata inglesa cozida', categoria: 'carboidrato', portionLabel: '100g', portionGrams: 100, kcal: 52, carbs: 11.9, sugars: 0.8, protein: 1.2, fat: 0, satFat: 0, transFat: 0, fiber: 1.3, sodium: 2 },
+  // Batata cozida na água e finalizada na manteiga ("salteada"). Composição de 100g do
+  // prato pronto: 97,5g de 'Batata inglesa cozida' + 2,5g de 'Manteiga' — ou seja, 5g de
+  // manteiga numa porção de 200g, que é a proporção de uma colher de chá rasa por prato.
+  // Quem usar mais manteiga que isso é melhor lançar os dois alimentos separados, porque a
+  // manteiga é 720 kcal/100g e domina o resultado: cada grama a mais são +7 kcal.
+  { name: 'Batata inglesa cozida com manteiga', categoria: 'carboidrato', portionLabel: '100g', portionGrams: 100, kcal: 69, carbs: 11.6, sugars: 0.8, protein: 1.2, fat: 2.1, satFat: 1.3, transFat: 0, fiber: 1.3, sodium: 17 },
   { name: 'Batata inglesa assada', categoria: 'carboidrato', portionLabel: '100g', portionGrams: 100, kcal: 93, carbs: 21, sugars: 1.2, protein: 2.5, fat: 0.1, satFat: 0, transFat: 0, fiber: 2.2, sodium: 5 },
   { name: 'Batata frita', categoria: 'outro', portionLabel: '100g', portionGrams: 100, kcal: 267, carbs: 35, sugars: 0.3, protein: 3.4, fat: 13, satFat: 2, transFat: 0.5, fiber: 2.9, sodium: 210 },
   { name: 'Inhame cozido', categoria: 'carboidrato', portionLabel: '100g', portionGrams: 100, kcal: 116, carbs: 27.6, sugars: 0.5, protein: 2.1, fat: 0.2, satFat: 0, transFat: 0, fiber: 2.5, sodium: 9 },
