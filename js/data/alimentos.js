@@ -51,7 +51,15 @@ const ALIMENTOS_PADRAO = [
   { name: 'Mel de abelha', categoria: 'outro', portionLabel: '1 colher sopa (20g)', portionGrams: 20, kcal: 51, carbs: 14.7, sugars: 14.7, protein: 0.1, fat: 0, satFat: 0, transFat: 0, fiber: 0.1, sodium: 3 },
   { name: 'Chocolate meio amargo', categoria: 'outro', portionLabel: '25g', portionGrams: 25, kcal: 139, carbs: 14.9, sugars: 10, protein: 1.7, fat: 8.5, satFat: 5.1, transFat: 0, fiber: 0.6, sodium: 21 },
   { name: 'Shoyu (molho de soja)', categoria: 'outro', portionLabel: '1 colher sopa (15g)', portionGrams: 15, kcal: 9, carbs: 1.7, sugars: 0.3, protein: 0.5, fat: 0, satFat: 0, transFat: 0, fiber: 0, sodium: 754 },
-  { name: 'Doce de leite', categoria: 'outro', portionLabel: '1 colher sopa (20g)', portionGrams: 20, kcal: 40, carbs: 12.5, sugars: 12.5, protein: 0.2, fat: 0, satFat: 0, transFat: 0, fiber: 1, sodium: 6 },
+  // Valores de rótulo (pote artesanal de 500g, porção de 20g = 1 colher de sopa).
+  // Substituem os anteriores, que estavam impossíveis pra um doce à base de leite:
+  // 0g de gordura, 0,2g de proteína e 1g de fibra (doce de leite não tem fibra nenhuma),
+  // dando 200kcal/100g contra os ~300 reais.
+  // O rótulo é do formato antigo (declara Colesterol e Cálcio, que a RDC 429 tirou) e por
+  // isso não traz linha de açúcares totais. Como doce de leite é literalmente leite +
+  // açúcar, todo o carboidrato é açúcar — daí sugars = carbs.
+  // Colesterol (6mg) e cálcio (50mg) do rótulo não têm campo no schema e ficaram de fora.
+  { name: 'Doce de leite', categoria: 'outro', portionLabel: '1 colher sopa (20g)', portionGrams: 20, kcal: 60, carbs: 11, sugars: 11, protein: 1.4, fat: 1.5, satFat: 1, transFat: 0, fiber: 0, sodium: 20 },
   { name: 'Azeitona em conserva', categoria: 'outro', portionLabel: '5 unidades (15g)', portionGrams: 15, kcal: 29, carbs: 0.8, sugars: 0, protein: 0.2, fat: 3, satFat: 0.4, transFat: 0, fiber: 0.7, sodium: 202 },
   { name: 'Maionese tradicional', categoria: 'outro', portionLabel: '1 colher sopa (15g)', portionGrams: 15, kcal: 25, carbs: 0.6, sugars: 0.6, protein: 0.2, fat: 2.8, satFat: 0.4, transFat: 0, fiber: 0.6, sodium: 7 },
   { name: 'Vaca atolada', categoria: 'outro', portionLabel: '100g', portionGrams: 100, kcal: 145, carbs: 10.1, sugars: 1, protein: 5.1, fat: 9.3, satFat: 3.5, transFat: 0, fiber: 0.2, sodium: 5 },

@@ -1,5 +1,6 @@
 // Lista de atualizações recentes do app, mais recente primeiro. Editável manualmente a cada mudança.
 const CHANGELOG = [
+  { date: '2026-08-23', texto: 'Correção: o "Doce de leite" da biblioteca estava com valores impossíveis (zero gordura, 1g de fibra, 200 kcal/100g). Agora usa os valores de um rótulo real: 60 kcal por colher de sopa (20g)' },
   { date: '2026-08-23', texto: 'Correção: o "Hambúrguer de patinho grelhado" agora se registra pelo peso CRU (1 unidade = 150g crus). Ele assumia que a carne encolhia 40% na chapa, o que não acontece com hambúrguer em frigideira — quem pesasse os 150g contava 328 kcal em vez de 200. Pese a carne antes de fazer' },
   { date: '2026-08-22', texto: 'Novo alimento: Hambúrguer de patinho grelhado (1 unidade = 90g grelhado, o equivalente a 150g de carne crua)' },
   { date: '2026-08-22', texto: 'Novos alimentos com valores de rótulo: Pão de ovos (pão egg), Pão para hambúrguer, Ketchup Heinz sem açúcar adicionado e Requeijão light 61% menos gordura' },
