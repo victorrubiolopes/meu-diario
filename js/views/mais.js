@@ -1841,6 +1841,7 @@ const ViewMais = (() => {
         <div id="admin-treino"></div>
         <div id="admin-corrida"></div>
         <div id="admin-solicitar"></div>
+        <div id="admin-papel"></div>
         <div id="admin-reatribuir"></div>
       `;
       montarPlano(uid, presc);
@@ -1849,6 +1850,7 @@ const ViewMais = (() => {
       montarTreino(uid, presc);
       montarCorrida(uid, presc);
       montarSolicitacao(uid, presc);
+      montarPapel(uid, info);
       montarReatribuir(uid, info);
       const diarioConteudo = detailEl.querySelector('#ad-diario-conteudo');
       const diarioData = detailEl.querySelector('#ad-diario-data');
@@ -1929,6 +1931,68 @@ const ViewMais = (() => {
         `;
         }).join('')}
       `;
+    }
+
+    // Promover/remover profissional (só super-admin). O papel de nutri é a existência do
+    // documento admins/{uid} no Firestore, que antes só nascia pelo Console — cadastrar
+    // uma nutri obrigava a sair do app. `aviso` existe pra reaproveitar o card depois de
+    // uma promoção: repinta com o estado novo já carregando a mensagem de sucesso, em vez
+    // de deixar o botão com o rótulo velho.
+    function montarPapel(uid, info, aviso) {
+      const cont = detailEl.querySelector('#admin-papel');
+      if (!cont) return;
+      if (typeof Cloud.isSuperAdmin !== 'function' || !Cloud.isSuperAdmin()) return;
+      if (typeof Cloud.papelDe !== 'function') return;
+
+      const card = corpo => `<div class="card"><h3 style="font-size:0.92rem;margin:0 0 6px">🎓 Papel</h3>${corpo}</div>`;
+
+      // O próprio dono não aparece com botão: rebaixar a si mesmo deixaria o app sem
+      // ninguém capaz de promover, e só o Console desfaria. As regras recusam do mesmo
+      // jeito — isto aqui é só pra não oferecer um botão que vai falhar.
+      if (typeof Cloud.uid === 'function' && Cloud.uid() === uid) {
+        cont.innerHTML = card('<p class="meta">Este é você (super-admin). O papel do próprio dono só muda pelo Console do Firebase.</p>');
+        return;
+      }
+
+      cont.innerHTML = card('<div class="empty">Carregando papel…</div>');
+      Cloud.papelDe(uid).then(papel => {
+        if (papel.super) {
+          cont.innerHTML = card('<p class="meta"><strong>Super-admin.</strong> Esse papel só muda pelo Console do Firebase.</p>');
+          return;
+        }
+        const nome = (info && (info.displayName || info.email)) || uid;
+        const nPacientes = usersCache.filter(u => u.nutriId === uid).length;
+        const plural = nPacientes > 1;
+        cont.innerHTML = card(`
+          <p class="meta">Atual: <strong>${papel.nutri ? 'Profissional (nutri)' : 'Paciente'}</strong></p>
+          ${papel.nutri && nPacientes > 0
+            ? `<p class="meta">Tem ${nPacientes} paciente${plural ? 's' : ''} vinculado${plural ? 's' : ''} — ao remover o papel, ${plural ? 'eles ficam soltos' : 'ele fica solto'} até você reatribuir.</p>`
+            : ''}
+          <button class="${papel.nutri ? '' : 'primary'}" id="papel-btn" style="margin-top:10px">
+            ${papel.nutri ? 'Remover papel de profissional' : `Tornar profissional`}
+          </button>
+          <p class="meta" id="papel-msg" style="margin-top:6px">${aviso
+            ? Util.escapeHtml(aviso)
+            : (papel.nutri ? '' : 'Passa a ter painel de pacientes e link de convite.')}</p>
+        `);
+        cont.querySelector('#papel-btn').addEventListener('click', async () => {
+          const msg = cont.querySelector('#papel-msg');
+          if (papel.nutri && !confirm(`Remover o papel de profissional de ${nome}?`)) return;
+          msg.textContent = 'Salvando…';
+          try {
+            if (papel.nutri) await Cloud.removerNutri(uid);
+            else await Cloud.promoverNutri(uid, info || {});
+            // Repinta os dois cards: o papel mudou e a lista de nutris do reatribuir
+            // ficou desatualizada (quem virou profissional passa a ser opção lá).
+            montarPapel(uid, info, papel.nutri
+              ? '✅ Papel removido. Ele precisa entrar de novo pro painel sumir.'
+              : '✅ Agora é profissional. Ele precisa sair e entrar de novo pro painel aparecer.');
+            montarReatribuir(uid, info);
+          } catch (e) {
+            msg.textContent = '⚠️ Falha: ' + (e.message || '') + ' — confira se as regras novas do Firestore já foram publicadas no Console.';
+          }
+        });
+      }).catch(e => { cont.innerHTML = card(`<div class="empty">Erro ao ler o papel: ${Util.escapeHtml(e.message || '')}</div>`); });
     }
 
     // Reatribuir paciente a uma nutri (só super-admin). Resolve pacientes "soltos"

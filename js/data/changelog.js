@@ -1,5 +1,6 @@
 // Lista de atualizações recentes do app, mais recente primeiro. Editável manualmente a cada mudança.
 const CHANGELOG = [
+  { date: '2026-08-23', texto: 'Painel do super-admin: dá pra tornar alguém profissional (ou tirar o papel) direto em Meus pacientes → abrir a pessoa → card "Papel". Antes só criando o registro na mão pelo Console do Firebase' },
   { date: '2026-08-23', texto: 'Novo alimento: Doce de leite argentino Toco (mesmos valores do "Doce de leite" genérico — foi o rótulo dele que corrigiu o outro; existe separado pra quem quer registrar a marca)' },
   { date: '2026-08-23', texto: 'Correção: o "Doce de leite" da biblioteca estava com valores impossíveis (zero gordura, 1g de fibra, 200 kcal/100g). Agora usa os valores de um rótulo real: 60 kcal por colher de sopa (20g)' },
   { date: '2026-08-23', texto: 'Correção: o "Hambúrguer de patinho grelhado" agora se registra pelo peso CRU (1 unidade = 150g crus). Ele assumia que a carne encolhia 40% na chapa, o que não acontece com hambúrguer em frigideira — quem pesasse os 150g contava 328 kcal em vez de 200. Pese a carne antes de fazer' },
