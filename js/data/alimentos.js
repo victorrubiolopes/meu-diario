@@ -91,17 +91,20 @@ const ALIMENTOS_PADRAO = [
   { name: 'Carne bovina crua (patinho)', categoria: 'proteina', portionLabel: '100g', portionGrams: 100, kcal: 133, carbs: 0, sugars: 0, protein: 21.7, fat: 4.5, satFat: 1.4, transFat: 0, fiber: 0, sodium: 49 },
   { name: 'Patinho grelhado', categoria: 'proteina', portionLabel: '100g', portionGrams: 100, kcal: 219, carbs: 0, sugars: 0, protein: 35.9, fat: 7.3, satFat: 2.2, transFat: 0, fiber: 0, sodium: 60 },
   { name: 'Patinho assado', categoria: 'proteina', portionLabel: '100g', portionGrams: 100, kcal: 199, carbs: 0, sugars: 0, protein: 36.1, fat: 5, satFat: 1.5, transFat: 0, fiber: 0, sodium: 60 },
-  // Hambúrguer caseiro de patinho moído puro, sem gordura adicionada. Macros = 'Patinho
-  // grelhado' escalado pra 90g, que é o que sobra de um disco de 150g cru (a carne perde
-  // ~40% do peso na chapa).
-  // O rótulo declara SÓ o peso grelhado de propósito: o app tem um único campo de gramas
-  // por alimento, então citar "90g grelhado / 150g cru" fazia os dois pesos caírem no mesmo
-  // campo — quem pesasse a carne crua e digitasse 150 receberia 328 kcal em vez de 200.
-  // Pra registrar pelo peso cru existe 'Carne bovina crua (patinho)', que já é por 100g.
-  // O sódio é o único valor que não vem da carne: assume ~1g de sal no tempero, senão
-  // seriam só 54mg. Hambúrguer de hamburgueria NÃO serve aqui — blend artesanal leva
+  // Hambúrguer caseiro de patinho moído puro, sem gordura adicionada.
+  // A base é o peso CRU (150g = 'Carne bovina crua (patinho)' x1,5), não o grelhado. Duas
+  // versões anteriores usaram base grelhada de 90g, assumindo que a carne perde ~40% do
+  // peso na chapa — número de bife bem passado, não de hambúrguer. Na prática o disco
+  // frito em frigideira só untada sai perto do peso original: perde água mas reabsorve a
+  // gordura que rendeu. Com base grelhada, pesar 150g e digitar 150 dava 328 kcal em vez
+  // de 200 (64% a mais).
+  // Peso cru é a única medida que mapeia direto pra caloria: água que evapora não leva
+  // energia junto, então não importa quanto secou. Por isso o rótulo diz "crus" — é uma
+  // instrução, não só uma referência.
+  // O sódio é o único valor que não vem da carne: assume ~0,7g de sal no tempero (a carne
+  // sozinha daria 74mg). Hambúrguer de hamburgueria NÃO serve aqui — blend artesanal leva
   // acém/costela e chega a 15-20% de gordura, quase o dobro de calorias.
-  { name: 'Hambúrguer de patinho grelhado', categoria: 'proteina', portionLabel: '1 unidade grelhada (90g)', portionGrams: 90, kcal: 197, carbs: 0, sugars: 0, protein: 32.3, fat: 6.6, satFat: 2, transFat: 0, fiber: 0, sodium: 350 },
+  { name: 'Hambúrguer de patinho grelhado', categoria: 'proteina', portionLabel: '1 unidade (150g crus)', portionGrams: 150, kcal: 200, carbs: 0, sugars: 0, protein: 32.6, fat: 6.8, satFat: 2.1, transFat: 0, fiber: 0, sodium: 350 },
   { name: 'Coxão mole cru', categoria: 'proteina', portionLabel: '100g', portionGrams: 100, kcal: 169, carbs: 0, sugars: 0, protein: 21.2, fat: 8.7, satFat: 2.6, transFat: 0, fiber: 0, sodium: 61 },
   { name: 'Coxão mole assado', categoria: 'proteina', portionLabel: '100g', portionGrams: 100, kcal: 232, carbs: 0, sugars: 0, protein: 32.7, fat: 9.9, satFat: 3, transFat: 0, fiber: 0, sodium: 61 },
   { name: 'Coxão mole cozido', categoria: 'proteina', portionLabel: '100g', portionGrams: 100, kcal: 219, carbs: 0, sugars: 0, protein: 32.4, fat: 8.9, satFat: 2.7, transFat: 0, fiber: 0, sodium: 44 },

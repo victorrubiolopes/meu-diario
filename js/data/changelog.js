@@ -1,6 +1,6 @@
 // Lista de atualizações recentes do app, mais recente primeiro. Editável manualmente a cada mudança.
 const CHANGELOG = [
-  { date: '2026-08-23', texto: 'Correção: o "Hambúrguer de patinho grelhado" citava dois pesos (grelhado e cru) no mesmo rótulo, mas o campo de gramas é um só — quem pesasse a carne crua contava calorias a mais. Agora vale só o peso grelhado; pra pesar cru, use "Carne bovina crua (patinho)"' },
+  { date: '2026-08-23', texto: 'Correção: o "Hambúrguer de patinho grelhado" agora se registra pelo peso CRU (1 unidade = 150g crus). Ele assumia que a carne encolhia 40% na chapa, o que não acontece com hambúrguer em frigideira — quem pesasse os 150g contava 328 kcal em vez de 200. Pese a carne antes de fazer' },
   { date: '2026-08-22', texto: 'Novo alimento: Hambúrguer de patinho grelhado (1 unidade = 90g grelhado, o equivalente a 150g de carne crua)' },
   { date: '2026-08-22', texto: 'Novos alimentos com valores de rótulo: Pão de ovos (pão egg), Pão para hambúrguer, Ketchup Heinz sem açúcar adicionado e Requeijão light 61% menos gordura' },
   { date: '2026-08-22', texto: 'Novo alimento: Pão Panco Vida maçã, canela e castanha (valores do rótulo, porção de 2 fatias / 50g)' },
