@@ -50,6 +50,13 @@ const ALIMENTOS_PADRAO = [
   { name: 'Água de coco', categoria: 'outro', portionLabel: '1 copo (200ml)', portionGrams: 200, kcal: 38, carbs: 9, sugars: 8, protein: 0.6, fat: 0.1, satFat: 0, transFat: 0, fiber: 0, sodium: 45 },
   { name: 'Mel de abelha', categoria: 'outro', portionLabel: '1 colher sopa (20g)', portionGrams: 20, kcal: 51, carbs: 14.7, sugars: 14.7, protein: 0.1, fat: 0, satFat: 0, transFat: 0, fiber: 0.1, sodium: 3 },
   { name: 'Chocolate meio amargo', categoria: 'outro', portionLabel: '25g', portionGrams: 25, kcal: 139, carbs: 14.9, sugars: 10, protein: 1.7, fat: 8.5, satFat: 5.1, transFat: 0, fiber: 0.6, sodium: 21 },
+  // APROXIMADO: cupcake é de padaria/caseiro, não tem rótulo. Montado por composição,
+  // assumindo a unidade padrão de 60g = 45g de massa de chocolate + 15g de ganache meio
+  // amarga. Dá 403 kcal/100g, dentro da faixa de bolo com cobertura (380-420).
+  // A cobertura é metade da gordura: se o seu vier SEM ganache, use ~167 kcal na unidade
+  // em vez de 242. O tamanho não é problema — o app escala pelo peso, então pesar resolve;
+  // o que muda de verdade o valor por grama é ter ou não cobertura.
+  { name: 'Cupcake de chocolate meio amargo (aprox.)', categoria: 'outro', portionLabel: '1 unidade (60g)', portionGrams: 60, kcal: 242, carbs: 28, sugars: 20, protein: 2.9, fat: 13, satFat: 7, transFat: 0, fiber: 2, sodium: 200 },
   { name: 'Shoyu (molho de soja)', categoria: 'outro', portionLabel: '1 colher sopa (15g)', portionGrams: 15, kcal: 9, carbs: 1.7, sugars: 0.3, protein: 0.5, fat: 0, satFat: 0, transFat: 0, fiber: 0, sodium: 754 },
   // Valores de rótulo (pote artesanal de 500g, porção de 20g = 1 colher de sopa).
   // Substituem os anteriores, que estavam impossíveis pra um doce à base de leite:
