@@ -60,6 +60,10 @@ const ALIMENTOS_PADRAO = [
   // açúcar, todo o carboidrato é açúcar — daí sugars = carbs.
   // Colesterol (6mg) e cálcio (50mg) do rótulo não têm campo no schema e ficaram de fora.
   { name: 'Doce de leite', categoria: 'outro', portionLabel: '1 colher sopa (20g)', portionGrams: 20, kcal: 60, carbs: 11, sugars: 11, protein: 1.4, fat: 1.5, satFat: 1, transFat: 0, fiber: 0, sodium: 20 },
+  // Mesmos valores do genérico acima, porque foi o rótulo DESTE pote (500g) que corrigiu
+  // aquela entrada. Existe separado só pra dar o nome da marca a quem quer registrar
+  // exatamente o que comprou — mesma ideia do 'Requeijão light 61% menos gordura'.
+  { name: 'Doce de leite argentino Toco', categoria: 'outro', portionLabel: '1 colher sopa (20g)', portionGrams: 20, kcal: 60, carbs: 11, sugars: 11, protein: 1.4, fat: 1.5, satFat: 1, transFat: 0, fiber: 0, sodium: 20 },
   { name: 'Azeitona em conserva', categoria: 'outro', portionLabel: '5 unidades (15g)', portionGrams: 15, kcal: 29, carbs: 0.8, sugars: 0, protein: 0.2, fat: 3, satFat: 0.4, transFat: 0, fiber: 0.7, sodium: 202 },
   { name: 'Maionese tradicional', categoria: 'outro', portionLabel: '1 colher sopa (15g)', portionGrams: 15, kcal: 25, carbs: 0.6, sugars: 0.6, protein: 0.2, fat: 2.8, satFat: 0.4, transFat: 0, fiber: 0.6, sodium: 7 },
   { name: 'Vaca atolada', categoria: 'outro', portionLabel: '100g', portionGrams: 100, kcal: 145, carbs: 10.1, sugars: 1, protein: 5.1, fat: 9.3, satFat: 3.5, transFat: 0, fiber: 0.2, sodium: 5 },
