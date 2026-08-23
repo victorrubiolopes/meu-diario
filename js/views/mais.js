@@ -37,12 +37,14 @@ const ViewMais = (() => {
   // ---------------- NOTIFICAÇÕES (avisos do profissional pro paciente) ----------------
   const NOTIF_ICONES = {
     dieta: '🥗', plano: '🍽️', treino: '🏋️', corrida: '🏃',
-    lista: '🛒', refeicaoLivre: '🍔', solicitacao: '📣',
+    lista: '🛒', refeicaoLivre: '🍔', solicitacao: '📣', medidas: '📏',
   };
   // Pedidos levam o paciente direto pra tela onde ele resolve — um aviso que não leva
   // a lugar nenhum vira só barulho.
   const NOTIF_DESTINO = {
     medidas: { tab: 'medidas', rotulo: 'Registrar medidas' },
+    // Aferição já lançada pela nutri: o paciente vai conferir, não preencher.
+    medidasAferidas: { tab: 'medidas', rotulo: 'Ver minhas medidas' },
     peso: { tab: 'medidas', rotulo: 'Registrar peso' },
     fotos: { tab: 'mais', maisView: 'fotos', rotulo: 'Abrir Fotos' },
     exames: { tab: 'mais', maisView: 'exames', rotulo: 'Abrir Exames' },
@@ -1840,6 +1842,7 @@ const ViewMais = (() => {
         <div id="admin-refeicao-livre"></div>
         <div id="admin-treino"></div>
         <div id="admin-corrida"></div>
+        <div id="admin-medidas"></div>
         <div id="admin-solicitar"></div>
         <div id="admin-papel"></div>
         <div id="admin-reatribuir"></div>
@@ -1849,6 +1852,7 @@ const ViewMais = (() => {
       montarRegrasRefeicaoLivre(uid, presc);
       montarTreino(uid, presc);
       montarCorrida(uid, presc);
+      montarMedidasPaciente(uid, dados);
       montarSolicitacao(uid, presc);
       montarPapel(uid, info);
       montarReatribuir(uid, info);
@@ -1931,6 +1935,75 @@ const ViewMais = (() => {
         `;
         }).join('')}
       `;
+    }
+
+    // Medidas aferidas na consulta: a nutri lança e vai parar no diário do paciente.
+    // O envio é uma prescrição (prescricoes/{uid}.medidas), não escrita direta em
+    // users/{uid} — as regras dão essa escrita só ao dono do diário, e o app dele aplica
+    // no login seguinte. Campos vêm de ViewMedidas.FIELDS pra tela da nutri e a do paciente
+    // nunca divergirem.
+    function montarMedidasPaciente(uid, dados) {
+      const cont = detailEl.querySelector('#admin-medidas');
+      if (!cont) return;
+      if (typeof Cloud.enviarMedidas !== 'function') return;
+      const campos = (typeof ViewMedidas !== 'undefined' && Array.isArray(ViewMedidas.FIELDS)) ? ViewMedidas.FIELDS : [];
+      if (!campos.length) return;
+
+      const medidas = (dados && Array.isArray(dados.medidas) ? dados.medidas : [])
+        .slice().sort((a, b) => (b.date || '').localeCompare(a.date || ''));
+      const ultima = medidas[0] || null;
+      const perfil = (dados && dados.perfil) || {};
+      const val = k => (ultima && ultima[k] != null ? ultima[k] : '');
+      const input = (id, label, valor) => `
+        <div>
+          <label style="font-size:0.75rem">${Util.escapeHtml(label)}</label>
+          <input type="number" step="0.1" id="${id}" value="${valor}">
+        </div>`;
+      // Altura entra junto dos campos de medida na tela, mas não é medida: não muda com o
+      // tempo, então vai direto pro perfil em vez de virar ponto no histórico.
+      const todos = campos.map(f => ({ id: `am-${f.key}`, label: f.label, valor: val(f.key) }))
+        .concat([{ id: 'am-altura', label: 'Altura (cm) — vai pro perfil', valor: perfil.altura != null ? perfil.altura : '' }]);
+      const linhas = [];
+      for (let i = 0; i < todos.length; i += 2) linhas.push(todos.slice(i, i + 2));
+
+      cont.innerHTML = `
+        <div class="card">
+          <h3 style="font-size:0.92rem;margin:0 0 6px">📏 Medidas da consulta</h3>
+          <p class="meta" style="margin-top:0">${ultima
+            ? `Última do paciente: ${Util.escapeHtml(ultima.date)}${ultima.weight != null ? ` · ${ultima.weight}kg` : ''}. Os campos já vêm com ela — ajuste o que você mediu hoje.`
+            : 'O paciente ainda não tem medidas registradas.'}</p>
+          <label>Data da aferição</label>
+          <input type="date" id="am-data" value="${Util.escapeHtml(Util.todayISO())}">
+          ${linhas.map(par => `<div class="row">${par.map(c => input(c.id, c.label, c.valor)).join('')}</div>`).join('')}
+          <label style="margin-top:8px">Observações da consulta</label>
+          <textarea id="am-notes" placeholder="Ex: retorno em 30 dias, manter o treino atual..."></textarea>
+          <button class="primary" id="am-enviar" style="margin-top:10px">Enviar medidas para o paciente</button>
+          <p class="meta" id="am-msg" style="margin-top:8px">Peso e altura também atualizam o cadastro dele, não só o gráfico.</p>
+        </div>
+      `;
+
+      cont.querySelector('#am-enviar').addEventListener('click', async () => {
+        const msg = cont.querySelector('#am-msg');
+        const data = cont.querySelector('#am-data').value;
+        if (!data) { msg.textContent = '⚠️ Escolha a data da aferição.'; return; }
+        const medida = { date: data };
+        campos.forEach(f => {
+          const v = cont.querySelector(`#am-${f.key}`).value;
+          if (v !== '') medida[f.key] = Number(v);
+        });
+        const alturaV = cont.querySelector('#am-altura').value;
+        if (alturaV !== '') medida.altura = Number(alturaV);
+        const notes = cont.querySelector('#am-notes').value.trim();
+        if (notes) medida.notes = notes;
+        // Só a data não é aferição: sem isso um clique sem querer viraria um registro vazio
+        // no histórico do paciente.
+        if (Object.keys(medida).length <= 1) { msg.textContent = '⚠️ Preencha pelo menos um campo.'; return; }
+        msg.textContent = 'Enviando…';
+        try {
+          await Cloud.enviarMedidas(uid, medida);
+          msg.textContent = '✅ Enviado! Entra no diário dele na próxima vez que abrir o app.';
+        } catch (e) { msg.textContent = '⚠️ Falha: ' + (e.message || ''); }
+      });
     }
 
     // Promover/remover profissional (só super-admin). O papel de nutri é a existência do

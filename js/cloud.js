@@ -319,6 +319,16 @@ const Cloud = (() => {
     return TITULOS_SOLICITACAO[tipo] || TITULOS_SOLICITACAO.outro;
   }
 
+  // Fonte única dos campos de medida é a própria tela de Medidas (ViewMedidas.FIELDS), pra
+  // que um campo novo lá passe a sincronizar sozinho. O fallback existe só pra cloud.js não
+  // depender da ordem de carregamento dos scripts.
+  const MEDIDA_CAMPOS_FALLBACK = ['weight', 'waist', 'neck', 'abdomen', 'chest', 'hip', 'arm', 'thigh', 'bodyFat', 'leanMass'];
+  function camposDeMedida() {
+    return (typeof ViewMedidas !== 'undefined' && Array.isArray(ViewMedidas.FIELDS))
+      ? ViewMedidas.FIELDS.map(f => f.key)
+      : MEDIDA_CAMPOS_FALLBACK;
+  }
+
   async function aplicarPrescricao() {
     try {
       const s = await db.collection('prescricoes').doc(user.uid).get();
@@ -434,6 +444,63 @@ const Cloud = (() => {
         mudou = true;
       }
 
+      // Medidas aferidas pela nutri na consulta. Este bloco é diferente dos outros: escreve
+      // no diário do paciente, não em catálogo. Como aplicarPrescricao roda a cada login,
+      // precisa ser idempotente de verdade, senão a mesma aferição vira um ponto novo no
+      // gráfico toda vez que o app abre.
+      // Casa primeiro por origemId (a mesma aferição, já aplicada antes) e, se não achar,
+      // pela data — o app trabalha com uma medida por dia (getByDate('medidas', data)[0]),
+      // então uma segunda entrada no mesmo dia bagunçaria histórico e gráficos.
+      // Só sobrescreve os campos que a nutri preencheu: o que ela deixou em branco continua
+      // sendo o que o paciente já tinha medido.
+      if (Array.isArray(d.medidas) && d.medidas.length) {
+        const campos = camposDeMedida();
+        const locais = Storage.getAll('medidas');
+        let mexeu = false;
+        let perfilPatch = null;
+        // Ordena por data pra que o patch de perfil termine com a aferição mais recente,
+        // e não com a última que por acaso estiver no fim do array.
+        d.medidas
+          .filter(m => m && m.id && m.date)
+          .slice()
+          .sort((a, b) => a.date.localeCompare(b.date))
+          .forEach(m => {
+            const valores = {};
+            campos.forEach(k => { if (m[k] != null) valores[k] = m[k]; });
+            if (m.notes) valores.notes = m.notes;
+            let i = locais.findIndex(x => x.origemId === m.id);
+            if (i < 0) i = locais.findIndex(x => x.date === m.date);
+            if (i >= 0) {
+              const antes = JSON.stringify(locais[i]);
+              locais[i] = { ...locais[i], ...valores, origemId: m.id, fonte: 'nutri' };
+              if (JSON.stringify(locais[i]) !== antes) mexeu = true;
+            } else {
+              locais.push({ id: Storage.uid(), date: m.date, ...valores, origemId: m.id, fonte: 'nutri' });
+              mexeu = true;
+            }
+            // "Já muda o perfil": peso e altura aferidos na consulta valem como dado de
+            // cadastro, não só como ponto no gráfico. Altura não é campo de medida (não
+            // muda), por isso vem separada no envio.
+            if (m.weight != null || m.altura != null) {
+              perfilPatch = { ...(perfilPatch || {}) };
+              if (m.weight != null) perfilPatch.peso = m.weight;
+              if (m.altura != null) perfilPatch.altura = m.altura;
+            }
+          });
+        if (mexeu) {
+          localStorage.setItem(Storage.KEYS.medidas, JSON.stringify(locais));
+          mudou = true;
+        }
+        if (perfilPatch) {
+          const perfilAtual = Storage.getPerfil();
+          const depois = { ...perfilAtual, ...perfilPatch };
+          if (JSON.stringify(depois) !== JSON.stringify(perfilAtual)) {
+            localStorage.setItem('perfil', JSON.stringify(depois));
+            mudou = true;
+          }
+        }
+      }
+
       // Um aviso por tipo de conteúdo, só quando o carimbo daquele bloco avançou.
       const avisos = [
         ['dieta', d.dietaUpdatedAt, 'dieta', 'Nova dieta recebida', d.nome ? `Meta: ${d.nome}` : ''],
@@ -449,6 +516,14 @@ const Cloud = (() => {
       avisos.forEach(([chave, carimbo, tipo, titulo, texto]) => {
         if (avisar(chave, carimbo, tipo, titulo, texto)) mudou = true;
       });
+      // Medidas ganham atalho pra tela de Medidas (via tipoSolicitacao), porque o aviso
+      // "suas medidas foram atualizadas" só serve se der pra conferir de imediato.
+      if (Array.isArray(d.medidas) && d.medidas.length) {
+        const ultima = d.medidas[d.medidas.length - 1] || {};
+        if (avisar('medidas', d.medidasUpdatedAt, 'medidas', 'Suas medidas foram atualizadas',
+          ultima.date ? `Aferição de ${ultima.date.split('-').reverse().join('/')}` : '',
+          { tipoSolicitacao: 'medidasAferidas' })) mudou = true;
+      }
 
       // Pedidos do profissional (atualizar medidas, mandar foto...). Cada um vira uma
       // notificação própria, identificada pelo id — assim vários pedidos convivem e um
@@ -529,6 +604,24 @@ const Cloud = (() => {
     const nova = { id: Storage.uid(), tipo, texto: texto || '', criadoEm: Date.now(), byUid: user.uid };
     await doc.set(
       { solicitacoes: atuais.concat([nova]), solicitacoesUpdatedAt: Date.now(), updatedAt: Date.now(), byUid: user.uid },
+      { merge: true }
+    );
+    return nova;
+  }
+
+  // ---- Medidas aferidas pela nutri na consulta ----
+  // A nutri NÃO escreve em users/{uid}: as regras dão essa escrita só ao dono, e é bom que
+  // seja assim — o diário é do paciente. Então a aferição viaja como prescrição e o app DELE
+  // aplica no próprio armazenamento, mesmo caminho de dieta/treino/lista.
+  // Lista e não campo único (igual solicitacoes): consultas se acumulam, e o id por aferição
+  // é o que permite aplicar cada uma exatamente uma vez.
+  async function enviarMedidas(uidAlvo, medida) {
+    const doc = db.collection('prescricoes').doc(uidAlvo);
+    const s = await doc.get();
+    const atuais = (s.exists && Array.isArray(s.data().medidas)) ? s.data().medidas : [];
+    const nova = { id: Storage.uid(), ...medida, criadoEm: Date.now(), byUid: user.uid };
+    await doc.set(
+      { medidas: atuais.concat([nova]), medidasUpdatedAt: Date.now(), updatedAt: Date.now(), byUid: user.uid },
       { merge: true }
     );
     return nova;
@@ -650,7 +743,7 @@ const Cloud = (() => {
   return {
     init, wrapStorage, isEnabled, currentUser, getStatus, onChange,
     loginGoogle, loginEmail, signupEmail, logout, push,
-    isAdmin, isSuperAdmin, uid, listarUsuarios, dadosUsuario, prescricaoDe, enviarDieta, enviarPlano, enviarTreino, enviarCorrida, enviarListaCompras, enviarSolicitacao, enviarRegrasRefeicaoLivre,
+    isAdmin, isSuperAdmin, uid, listarUsuarios, dadosUsuario, prescricaoDe, enviarDieta, enviarPlano, enviarTreino, enviarCorrida, enviarListaCompras, enviarSolicitacao, enviarRegrasRefeicaoLivre, enviarMedidas,
     gerarConviteLink, listarNutris, reatribuirPaciente, papelDe, promoverNutri, removerNutri,
     sugerirVideo, listarVideosPendentes, aprovarVideoPendente, rejeitarVideoPendente,
     sugerirReceita, listarReceitasPendentes, aprovarReceitaPendente, rejeitarReceitaPendente,
