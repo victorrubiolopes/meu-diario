@@ -77,7 +77,48 @@ const App = (() => {
       case 'medidas': ViewMedidas.render($app, state, api); break;
       case 'mais': ViewMais.render($app, state, api); break;
     }
+
+    sincronizarHistorico();
   }
+
+  // ---- Botão voltar do aparelho (Android) e do navegador ----
+  // O app é uma página só e nunca mexia no histórico, então o voltar do celular fechava o
+  // app em vez de sair da tela. Com telas encadeadas isso passou a incomodar de verdade.
+  //
+  // Em vez de espelhar a pilha inteira no histórico (que exigiria desfazer N entradas ao
+  // trocar de aba, cada uma disparando popstate), mantém-se UMA entrada sentinela enquanto
+  // houver tela aberta dentro de Mais. O voltar do aparelho consome a sentinela, o popstate
+  // traduz isso em back(), e o render seguinte empilha outra se ainda sobrou tela. Quando
+  // não sobra, o próximo voltar fecha o app — que é o comportamento esperado.
+  let sentinelaAtiva = false;
+  let ignorarProximoPop = false;
+
+  function profundidade() { return state.maisView ? state.maisStack.length + 1 : 0; }
+
+  function sincronizarHistorico() {
+    const precisa = profundidade() > 0;
+    if (precisa && !sentinelaAtiva) {
+      history.pushState({ diarioSentinela: true }, '');
+      sentinelaAtiva = true;
+      return;
+    }
+    // Saiu das telas sem passar pelo voltar (trocar de aba, por exemplo): a sentinela vira
+    // lixo e engoliria o próximo voltar do aparelho sem fazer nada. Consome ela na mão.
+    if (!precisa && sentinelaAtiva) {
+      sentinelaAtiva = false;
+      ignorarProximoPop = true;
+      history.back();
+    }
+  }
+
+  window.addEventListener('popstate', () => {
+    if (ignorarProximoPop) { ignorarProximoPop = false; return; }
+    if (profundidade() === 0) return; // nada aberto: deixa o voltar fechar o app
+    // A sentinela já foi consumida pelo próprio voltar; back() chama render(), que empilha
+    // outra se ainda houver tela.
+    sentinelaAtiva = false;
+    back();
+  });
 
   const MAIS_TITLES = {
     tarefas: 'Tarefas',
