@@ -1,5 +1,6 @@
 // Lista de atualizações recentes do app, mais recente primeiro. Editável manualmente a cada mudança.
 const CHANGELOG = [
+  { date: '2026-08-23', texto: 'Planos de Treino refeito: em vez de um dropdown escondido, agora aparecem dois caminhos claros — "Usar um pacote pronto" e "Criar meu próprio treino". Cada um abre a própria tela, com botão voltar, e os pacotes são cards com descrição em vez de uma lista suspensa. Cada treino também abre em tela própria pra editar' },
   { date: '2026-08-23', texto: 'Novo alimento: Batata inglesa cozida com manteiga (69 kcal/100g) — assume 5g de manteiga por porção de 200g. Se usar mais manteiga que isso, lance os dois alimentos separados' },
   { date: '2026-08-23', texto: 'Painel do profissional: novo card "Medidas da consulta" — a nutri lança peso, circunferências e %BF do paciente e cai direto no diário dele, com aviso no sino. Peso e altura também atualizam o cadastro, não só o gráfico' },
   { date: '2026-08-23', texto: 'Novo alimento: Cupcake de chocolate meio amargo — valor aproximado (cupcake não tem rótulo), assumindo unidade de 60g com cobertura de ganache. Sem cobertura, conte ~167 kcal em vez de 242' },
