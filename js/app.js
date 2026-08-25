@@ -5,6 +5,8 @@ const App = (() => {
     treinoSub: 'musculacao',
     historicoSub: 'peso',
     maisView: null,
+    maisParam: null,  // argumento da tela atual (ex: id do plano em edição)
+    maisStack: [],    // telas anteriores dentro de Mais, pro botão voltar
   };
 
   const $app = document.getElementById('app');
@@ -29,16 +31,27 @@ const App = (() => {
   function goTo(tab) {
     state.tab = tab;
     state.maisView = null;
+    state.maisParam = null;
+    state.maisStack = [];
     render();
   }
 
-  function goToMais(view) {
+  // Antes só existia UMA tela dentro de Mais, então voltar sempre caía no menu. Agora a
+  // tela atual é empilhada antes de abrir a próxima, o que permite telas encadeadas
+  // (Planos de Treino → escolher pacote → voltar pra Planos de Treino).
+  // Chamada a partir do menu raiz (maisView null) não empilha nada, então o caminho antigo
+  // — abrir uma tela de Mais e voltar pro menu — continua idêntico.
+  function goToMais(view, param) {
+    if (state.maisView) state.maisStack.push({ view: state.maisView, param: state.maisParam });
     state.maisView = view;
+    state.maisParam = param != null ? param : null;
     render();
   }
 
   function back() {
-    state.maisView = null;
+    const anterior = state.maisStack.pop();
+    state.maisView = anterior ? anterior.view : null;
+    state.maisParam = anterior ? anterior.param : null;
     render();
   }
 
@@ -75,6 +88,8 @@ const App = (() => {
     'biblioteca-alimentos': 'Biblioteca de Alimentos',
     'biblioteca-exercicios': 'Biblioteca de Exercícios',
     'planos-treino': 'Planos de Treino',
+    'treino-pacotes': 'Pacotes de treino',
+    'plano-editar': 'Editar treino',
     combos: 'Combos de Refeição',
     'dietas-custom': 'Minhas Dietas',
     backup: 'Backup',

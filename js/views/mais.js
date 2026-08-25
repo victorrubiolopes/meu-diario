@@ -24,6 +24,8 @@ const ViewMais = (() => {
       case 'biblioteca-alimentos': return renderBibliotecaAlimentos($app, state, api);
       case 'biblioteca-exercicios': return renderBibliotecaExercicios($app, state, api);
       case 'planos-treino': return renderPlanosTreino($app, state, api);
+      case 'treino-pacotes': return renderTreinoPacotes($app, state, api);
+      case 'plano-editar': return renderPlanoEditar($app, state, api);
       case 'combos': return renderCombos($app, state, api);
       case 'dietas-custom': return renderDietasCustom($app, state, api);
       case 'refeicao-livre': return renderRegrasRefeicaoLivre($app, state, api);
@@ -939,70 +941,135 @@ const ViewMais = (() => {
   }
 
   // ---------------- PLANOS DE TREINO ----------------
-  function renderPlanosTreino($app, state, api) {
-    const planos = Storage.getAll('treino_planos').sort((a, b) => a.ordem - b.ordem);
-    const biblioteca = Storage.getAll('exercicios_biblioteca');
-    const perfil = Storage.getPerfil();
-    const objetivoAtual = perfil.dietaTemplate || 'manutencao';
-
-    // As fichas pessoais do Victor (Bronyer, MFIT) só aparecem pra ele — não são pacotes
-    // genéricos do app. Somem do dropdown pra todo mundo mais (flag pessoal: true).
+  // As fichas pessoais do Victor (Bronyer, MFIT) só aparecem pra ele — não são pacotes
+  // genéricos do app (flag pessoal: true na entrada de TREINOS_PREDEFINIDOS).
+  function pacotesVisiveis() {
     const souDono = typeof Cloud === 'undefined' || !Cloud.isEnabled()
       || (typeof Cloud.isSuperAdmin === 'function' && Cloud.isSuperAdmin());
-    const pacotesVisiveis = Object.keys(TREINOS_PREDEFINIDOS).filter(id => souDono || !TREINOS_PREDEFINIDOS[id].pessoal);
+    return Object.keys(TREINOS_PREDEFINIDOS).filter(id => souDono || !TREINOS_PREDEFINIDOS[id].pessoal);
+  }
+  function rotuloPacote(id) {
+    const dieta = DIETA_TEMPLATES.find(d => d.id === id);
+    return dieta ? `${dieta.nome} — ${TREINOS_PREDEFINIDOS[id].label}` : TREINOS_PREDEFINIDOS[id].label;
+  }
 
+  // Tela raiz de Planos de Treino: os dois caminhos (pacote pronto ou montar do zero) viraram
+  // escolhas explícitas em vez de um dropdown escondido num card e um botão no rodapé. Cada
+  // uma abre a própria tela, com voltar no topo — quem chega aqui pela primeira vez precisa
+  // entender que existem dois caminhos antes de escolher um.
+  function renderPlanosTreino($app, state, api) {
+    const planos = Storage.getAll('treino_planos').sort((a, b) => a.ordem - b.ordem);
+
+    const escolha = (id, icone, titulo, sub) => `
+      <button class="menu-item" id="${id}" style="align-items:flex-start;text-align:left">
+        <span class="icon">${icone}</span>
+        <div style="flex:1">
+          <div><strong>${titulo}</strong></div>
+          <div class="meta">${sub}</div>
+        </div>
+        <span class="chev">›</span>
+      </button>`;
+
+    $app.innerHTML = `
+      <div class="card">
+        <p class="meta">Monte seus treinos (ex: A, B, C) e o app sugere automaticamente qual vem a seguir, em rotação, com base no último que você registrou — não importa o dia da semana.</p>
+      </div>
+      <div class="card" style="padding:4px 16px">
+        <div class="menu-list">
+          ${escolha('ir-pacotes', '📦', 'Usar um pacote pronto', 'Treinos já montados por objetivo. Dá pra editar tudo depois.')}
+          ${escolha('criar-plano', '✏️', 'Criar meu próprio treino', 'Você escolhe os exercícios, séries e cargas do zero.')}
+        </div>
+      </div>
+      ${planos.length ? `
+        <div class="card" style="padding:4px 16px">
+          <div class="menu-list">
+            ${planos.map(p => `
+              <button class="menu-item" data-plano="${Util.escapeHtml(p.id)}" style="align-items:flex-start;text-align:left">
+                <span class="icon">🏋️</span>
+                <div style="flex:1">
+                  <div><strong>${Util.escapeHtml(p.nome)}</strong></div>
+                  <div class="meta">${(p.exercises || []).filter(e => e.name).length} exercício(s)</div>
+                </div>
+                <span class="chev">›</span>
+              </button>`).join('')}
+          </div>
+        </div>`
+      : '<div class="card"><div class="empty">Nenhum treino ainda. Escolha uma das duas opções acima pra começar.</div></div>'}
+    `;
+
+    document.getElementById('ir-pacotes').addEventListener('click', () => api.goToMais('treino-pacotes'));
+    document.getElementById('criar-plano').addEventListener('click', () => {
+      const maxOrdem = planos.reduce((m, p) => Math.max(m, p.ordem), 0);
+      const novo = Storage.add('treino_planos', {
+        nome: `Treino ${String.fromCharCode(65 + planos.length)}`,
+        ordem: maxOrdem + 1,
+        exercises: [{ name: '', sets: '', reps: '', weight: '' }],
+      });
+      // Vai direto pro editor: antes o plano vazio nascia no fim da lista e cabia ao usuário
+      // perceber que algo tinha aparecido lá embaixo.
+      api.goToMais('plano-editar', novo.id);
+    });
+    $app.querySelectorAll('[data-plano]').forEach(btn => {
+      btn.addEventListener('click', () => api.goToMais('plano-editar', btn.dataset.plano));
+    });
+  }
+
+  // Tela de escolha de pacote: um card por pacote, com a descrição e quantos treinos vêm
+  // junto, em vez de um <select> onde só dá pra ler um de cada vez.
+  function renderTreinoPacotes($app, state, api) {
+    const ids = pacotesVisiveis();
+    $app.innerHTML = `
+      <div class="card">
+        <p class="meta">Ponto de partida baseado em ciência do esporte (volume e frequência por grupo muscular). Depois de carregar, todos os treinos ficam editáveis — ajuste exercícios, séries, reps e cargas ao seu nível.</p>
+      </div>
+      ${ids.map(id => {
+        const pack = TREINOS_PREDEFINIDOS[id];
+        return `
+          <div class="card">
+            <h2 style="font-size:1rem;margin:0 0 4px">${Util.escapeHtml(rotuloPacote(id))}</h2>
+            <p class="meta" style="margin-top:0">${Util.escapeHtml(pack.descricao || '')}</p>
+            <p class="meta">${pack.planos.length} treino(s): ${Util.escapeHtml(pack.planos.map(p => p.nome).join(' · '))}</p>
+            <button class="primary" data-usar="${Util.escapeHtml(id)}" style="margin-top:8px">Usar este pacote</button>
+          </div>`;
+      }).join('')}
+    `;
+
+    $app.querySelectorAll('[data-usar]').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const id = btn.dataset.usar;
+        const pack = TREINOS_PREDEFINIDOS[id];
+        if (!confirm(`Adicionar ${pack.planos.length} treino(s) do pacote "${rotuloPacote(id)}" aos seus planos?`)) return;
+        const planos = Storage.getAll('treino_planos');
+        const maxOrdem = planos.reduce((m, p) => Math.max(m, p.ordem || 0), 0);
+        pack.planos.forEach((p, i) => {
+          Storage.add('treino_planos', { nome: p.nome, ordem: maxOrdem + i + 1, exercises: p.exercises.map(e => ({ ...e })) });
+          // Exercícios de um pacote pré-definido (ex: ficha do personal) só existiam dentro do
+          // plano, nunca na biblioteca — sem isso, ficavam sem grupo muscular/ilustração.
+          p.exercises.forEach(e => garantirExercicioNaBiblioteca(e.name));
+        });
+        // Volta pra lista em vez de ficar na tela de pacotes: o resultado da ação está lá,
+        // e é onde o usuário confere o que entrou.
+        api.back();
+      });
+    });
+  }
+
+  // Editor de um treino só. Reaproveita o card que antes era repetido na lista inteira.
+  function renderPlanoEditar($app, state, api) {
+    const planos = Storage.getAll('treino_planos').sort((a, b) => a.ordem - b.ordem);
+    const plano = planos.find(p => p.id === state.maisParam);
+    // Excluir dentro do card chama api.render(), que cai aqui de novo sem o plano — nesse
+    // caso a tela não existe mais e o certo é voltar, não pintar uma tela vazia.
+    if (!plano) { api.back(); return; }
+
+    const biblioteca = Storage.getAll('exercicios_biblioteca');
     $app.innerHTML = `
       <datalist id="exercicios-datalist-planos">
         ${biblioteca.map(e => `<option value="${Util.escapeHtml(e.name)}">`).join('')}
       </datalist>
-      <div class="card">
-        <p class="meta">Monte seus treinos (ex: A, B, C) e o app sugere automaticamente qual vem a seguir, em rotação, com base no último que você registrou — não importa o dia da semana.</p>
-      </div>
-      <div class="card">
-        <h2>Treino pré-definido</h2>
-        <label>Baseado em</label>
-        <select id="pack-select">
-          ${pacotesVisiveis.map(id => {
-            const dieta = DIETA_TEMPLATES.find(d => d.id === id);
-            const rotulo = dieta ? `${dieta.nome} — ${TREINOS_PREDEFINIDOS[id].label}` : TREINOS_PREDEFINIDOS[id].label;
-            return `<option value="${id}" ${id === objetivoAtual ? 'selected' : ''}>${Util.escapeHtml(rotulo)}</option>`;
-          }).join('')}
-        </select>
-        <p class="meta" id="pack-desc" style="color:var(--text-muted);font-size:0.78rem"></p>
-        <button class="secondary" id="load-pack">Carregar treinos deste pacote</button>
-        <p class="meta" style="font-size:0.72rem;margin-top:6px">Ponto de partida geral baseado em ciência do esporte (volume e frequência por grupo muscular). Totalmente editável depois — ajuste pesos, séries e reps ao seu nível.</p>
-      </div>
-      <div id="planos-list"></div>
-      <button class="secondary" id="add-plano" style="margin:0 16px 16px">+ Novo plano de treino</button>
+      <div id="plano-editor"></div>
     `;
-
-    const list = document.getElementById('planos-list');
-    planos.forEach(plano => list.appendChild(renderPlanoCard(plano, planos, api)));
-
-    const packSelect = document.getElementById('pack-select');
-    const updatePackDesc = () => {
-      document.getElementById('pack-desc').textContent = TREINOS_PREDEFINIDOS[packSelect.value].descricao;
-    };
-    packSelect.addEventListener('change', updatePackDesc);
-    updatePackDesc();
-
-    document.getElementById('load-pack').addEventListener('click', () => {
-      const pack = TREINOS_PREDEFINIDOS[packSelect.value];
-      const maxOrdem = planos.reduce((m, p) => Math.max(m, p.ordem), 0);
-      pack.planos.forEach((p, i) => {
-        Storage.add('treino_planos', { nome: p.nome, ordem: maxOrdem + i + 1, exercises: p.exercises.map(e => ({ ...e })) });
-        // Exercícios de um pacote pré-definido (ex: ficha do personal) só existiam dentro do
-        // plano, nunca na biblioteca — sem isso, ficavam sem grupo muscular/ilustração.
-        p.exercises.forEach(e => garantirExercicioNaBiblioteca(e.name));
-      });
-      api.render();
-    });
-
-    document.getElementById('add-plano').addEventListener('click', () => {
-      const maxOrdem = planos.reduce((m, p) => Math.max(m, p.ordem), 0);
-      Storage.add('treino_planos', { nome: `Treino ${String.fromCharCode(65 + planos.length)}`, ordem: maxOrdem + 1, exercises: [{ name: '', sets: '', reps: '', weight: '' }] });
-      api.render();
-    });
+    document.getElementById('plano-editor').appendChild(renderPlanoCard(plano, planos, api));
   }
 
   function renderPlanoCard(plano, allPlanos, api) {
