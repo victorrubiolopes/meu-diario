@@ -59,3 +59,20 @@ Tudo em **português (pt-BR)**: interface, comentários, mensagens de commit e c
 - Local-first: login é opcional, mas há uma tela de login (gate) quando a nuvem está ativa.
 - Onboarding: conta nova vê tela de boas-vindas pedindo peso/altura/idade/sexo/atividade/objetivo.
 - `aplicarSeeds()` em `app.js` roda migrações one-shot (ex: renomes de grupo muscular, níveis de emagrecimento).
+
+### Navegação (`app.js`)
+- 5 abas fixas na barra de baixo (`state.tab`). Dentro da aba **Mais** existem telas próprias,
+  com botão voltar e título no topbar (`MAIS_TITLES`).
+- Telas de Mais são **encadeáveis**: `state.maisView` é a tela atual, `state.maisParam` o argumento
+  dela (ex: id do plano em edição) e `state.maisStack` as anteriores.
+  `api.goToMais(view, param)` empilha, `api.back()` desempilha, `goTo(tab)` zera a pilha.
+  Chamada a partir do menu raiz não empilha nada — abrir uma tela e voltar cai no menu, como antes.
+- **Botão voltar do celular**: o app mantém UMA entrada sentinela no `history` enquanto houver tela
+  aberta; o `popstate` vira `back()` e o `render()` repõe a sentinela se ainda sobrou tela. Sair das
+  telas sem usar o voltar (trocar de aba) consome a sentinela na mão, senão o próximo voltar do
+  aparelho seria engolido. Tudo isso fica em `sincronizarHistorico()`, chamado no fim do `render()`.
+- Padrão de UI pra lista-que-abre-tela: `.menu-list` + `.menu-item` + `.chev` (menu de Mais, pacotes
+  de treino, lista de pacientes do painel). Não inventar CSS novo pra isso.
+- Onde vale tela própria: escolher algo de uma lista, montar/editar (planos de treino, biblioteca,
+  dietas, painel do profissional). Onde NÃO vale: o registro diário (comida, treino, peso) — é o que
+  o usuário faz várias vezes por dia e hoje sai em 2 toques; navegação ali só adiciona atrito.
