@@ -11,6 +11,9 @@ const ViewAlimentacao = (() => {
   let carrinho = [];
   // Incrementado só pelo botão "Ver outras opções" da sugestão de refeições.
   let sugestaoSeed = 0;
+  // 'busca' = escolher alimento da biblioteca (padrão); 'macros' = digitar kcal e macros
+  // direto, pra comida que não dá pra quebrar item a item (restaurante, casa dos outros).
+  let modoAdicionar = 'busca';
   const CATEGORIA_LABELS = { proteina: 'proteína', carboidrato: 'carboidrato', fruta: 'fruta', legume: 'legume/verdura', outro: 'extra' };
 
   function sumNutrients(entries) {
@@ -305,13 +308,35 @@ const ViewAlimentacao = (() => {
         <select id="meal-type">
           ${MEAL_TYPES.map(t => `<option value="${t}" ${t === (ultimoMealType || MEAL_TYPES[0]) ? 'selected' : ''}>${t}</option>`).join('')}
         </select>
-        <label>Alimento</label>
-        <div class="autocomplete-wrap">
-          <input type="text" id="food-search" placeholder="Buscar na biblioteca..." autocomplete="off">
-          <div class="autocomplete-list" id="food-results" style="display:none"></div>
+        <div class="tabs-sub" style="margin:10px 0">
+          <button data-modo="busca" class="${modoAdicionar === 'busca' ? 'active' : ''}">Buscar alimento</button>
+          <button data-modo="macros" class="${modoAdicionar === 'macros' ? 'active' : ''}">Só macros</button>
         </div>
-        <div id="selected-food-box"></div>
-        <button class="primary" id="add-meal" disabled>+ Adicionar à lista</button>
+        ${modoAdicionar === 'macros' ? `
+          <p class="meta" style="margin-top:0">Pra comida que não dá pra quebrar item a item — restaurante, casa dos outros, marmita de terceiro. Só as calorias já valem; o resto é opcional.</p>
+          <label>Descrição</label>
+          <input type="text" id="mm-nome" placeholder="Ex: Almoço no restaurante">
+          <label>Calorias (kcal)</label>
+          <input type="number" id="mm-kcal" inputmode="decimal" step="1" placeholder="Obrigatório">
+          <div class="row">
+            <div><label>Proteína (g)</label><input type="number" id="mm-protein" inputmode="decimal" step="0.1"></div>
+            <div><label>Carboidrato (g)</label><input type="number" id="mm-carbs" inputmode="decimal" step="0.1"></div>
+          </div>
+          <div class="row">
+            <div><label>Gordura (g)</label><input type="number" id="mm-fat" inputmode="decimal" step="0.1"></div>
+            <div><label>Fibra (g)</label><input type="number" id="mm-fiber" inputmode="decimal" step="0.1"></div>
+          </div>
+          <button class="primary" id="mm-add" style="margin-top:10px">+ Adicionar à lista</button>
+          <p class="meta" id="mm-msg" style="margin-top:6px"></p>
+        ` : `
+          <label>Alimento</label>
+          <div class="autocomplete-wrap">
+            <input type="text" id="food-search" placeholder="Buscar na biblioteca..." autocomplete="off">
+            <div class="autocomplete-list" id="food-results" style="display:none"></div>
+          </div>
+          <div id="selected-food-box"></div>
+          <button class="primary" id="add-meal" disabled>+ Adicionar à lista</button>
+        `}
         ${carrinho.length > 0 ? `
           <div class="card" style="margin:12px 0 0;padding:10px 14px;background:var(--bg)">
             <p class="meta" style="font-weight:600;margin-bottom:6px">Prontos pra salvar (${carrinho.length})</p>
@@ -424,12 +449,47 @@ const ViewAlimentacao = (() => {
       api.goToMais('biblioteca-alimentos');
     });
 
+    $app.querySelectorAll('[data-modo]').forEach(btn => {
+      btn.addEventListener('click', () => { modoAdicionar = btn.dataset.modo; api.render(); });
+    });
+
+    // Lançamento direto de kcal/macros. Vai pro mesmo carrinho da busca, então soma nos
+    // totais, salva junto e vira combo igual a qualquer outro item — a entrada de comida
+    // já guarda os macros no próprio lançamento, não uma referência à biblioteca.
+    const mmAdd = document.getElementById('mm-add');
+    if (mmAdd) {
+      mmAdd.addEventListener('click', () => {
+        const msg = document.getElementById('mm-msg');
+        const num = id => {
+          const v = document.getElementById(id).value.trim();
+          return v === '' ? 0 : Number(v);
+        };
+        const kcal = num('mm-kcal');
+        if (!kcal || kcal <= 0) { msg.textContent = '⚠️ Informe as calorias.'; return; }
+        const item = { foodName: document.getElementById('mm-nome').value.trim() || 'Refeição (macros)', qty: 1 };
+        // Só os campos que a tela pede; o resto do schema (açúcares, saturada, trans, sódio)
+        // fica zerado de propósito — quem lança por macro não tem esses números, e inventar
+        // valor bagunçaria o total do dia.
+        NUTRI_FIELDS.forEach(f => { item[f] = 0; });
+        item.kcal = kcal;
+        item.protein = num('mm-protein');
+        item.carbs = num('mm-carbs');
+        item.fat = num('mm-fat');
+        item.fiber = num('mm-fiber');
+        carrinho.push(item);
+        api.render();
+      });
+    }
+
     const searchInput = document.getElementById('food-search');
     const resultsBox = document.getElementById('food-results');
     const addBtn = document.getElementById('add-meal');
     selectedFood = null;
 
-    searchInput.addEventListener('input', () => {
+    // No modo "Só macros" os campos de busca nem existem. Guarda só os dois listeners que
+    // dependem deles — sair da função aqui deixaria sem fiação o carrinho, o salvar e as
+    // fotos, que são comuns aos dois modos.
+    if (searchInput) searchInput.addEventListener('input', () => {
       const q = searchInput.value.trim().toLowerCase();
       selectedFood = null;
       addBtn.disabled = true;
@@ -492,7 +552,7 @@ const ViewAlimentacao = (() => {
 
     document.getElementById('meal-type').addEventListener('change', e => { ultimoMealType = e.target.value; });
 
-    addBtn.addEventListener('click', () => {
+    if (addBtn) addBtn.addEventListener('click', () => {
       if (!selectedFood) return;
       const qty = Number(document.getElementById('qty-input').value) || 1;
       const item = { foodName: selectedFood.name, qty };

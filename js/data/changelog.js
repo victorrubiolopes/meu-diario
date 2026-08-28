@@ -1,5 +1,6 @@
 // Lista de atualizações recentes do app, mais recente primeiro. Editável manualmente a cada mudança.
 const CHANGELOG = [
+  { date: '2026-08-25', texto: 'Comida: novo modo "Só macros" ao adicionar refeição — dá pra lançar calorias, proteína, carbo, gordura e fibra direto, sem quebrar item a item. Serve pra restaurante, casa dos outros e marmita de terceiro. Só as calorias já bastam' },
   { date: '2026-08-25', texto: 'O botão voltar do celular agora sai da tela em vez de fechar o app. Só fecha quando não há mais tela aberta pra voltar' },
   { date: '2026-08-23', texto: 'Planos de Treino refeito: em vez de um dropdown escondido, agora aparecem dois caminhos claros — "Usar um pacote pronto" e "Criar meu próprio treino". Cada um abre a própria tela, com botão voltar, e os pacotes são cards com descrição em vez de uma lista suspensa. Cada treino também abre em tela própria pra editar' },
   { date: '2026-08-23', texto: 'Novo alimento: Batata inglesa cozida com manteiga (69 kcal/100g) — assume 5g de manteiga por porção de 200g. Se usar mais manteiga que isso, lance os dois alimentos separados' },
