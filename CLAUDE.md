@@ -71,8 +71,16 @@ Tudo em **português (pt-BR)**: interface, comentários, mensagens de commit e c
   aberta; o `popstate` vira `back()` e o `render()` repõe a sentinela se ainda sobrou tela. Sair das
   telas sem usar o voltar (trocar de aba) consome a sentinela na mão, senão o próximo voltar do
   aparelho seria engolido. Tudo isso fica em `sincronizarHistorico()`, chamado no fim do `render()`.
-- Padrão de UI pra lista-que-abre-tela: `.menu-list` + `.menu-item` + `.chev` (menu de Mais, pacotes
-  de treino, lista de pacientes do painel). Não inventar CSS novo pra isso.
+- Padrão de UI pra lista-que-abre-tela: `.menu-list` + `.menu-item` + `.chev`, montado pelos helpers
+  `escolhaHtml()` / `menuCardHtml()` de `mais.js`. Não inventar CSS novo nem remontar o markup na mão.
 - Onde vale tela própria: escolher algo de uma lista, montar/editar (planos de treino, biblioteca,
   dietas, painel do profissional). Onde NÃO vale: o registro diário (comida, treino, peso) — é o que
   o usuário faz várias vezes por dia e hoje sai em 2 toques; navegação ali só adiciona atrito.
+- **Já aplicado em**: Planos de Treino, Biblioteca de Alimentos, Biblioteca de Exercícios, Combos e
+  Minhas Dietas. A regra em todas: a **tela raiz é a lista** (é o que a pessoa vem consultar), com os
+  caminhos de criação como `.menu-item` acima dela; cada formulário é uma tela-filha que fecha em
+  `api.back()`, nunca em `api.render()` — voltar pra lista é o que mostra que a ação deu certo.
+- Formulário que acumula estado local antes de salvar (itens de um combo, exercícios de um plano)
+  repinta só a sub-lista, nunca a tela toda: `api.render()` no meio do preenchimento apaga o que a
+  pessoa já montou.
+- Toda `maisView` precisa de entrada em `MAIS_TITLES` (`app.js`), senão o topbar cai em "Mais".

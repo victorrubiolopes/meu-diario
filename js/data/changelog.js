@@ -1,5 +1,8 @@
 // Lista de atualizações recentes do app, mais recente primeiro. Editável manualmente a cada mudança.
 const CHANGELOG = [
+  { date: '2026-08-28', texto: 'Novo alimento: Strogonoff de frango com arroz Swift Prato Feito, cadastrado pela embalagem inteira (300g = 324 kcal, 18g de proteína). Se comer só parte, é só ajustar as gramas' },
+  { date: '2026-08-28', texto: 'Correção: a tela de Refeição Livre mostrava "Mais" no topo em vez do próprio nome' },
+  { date: '2026-08-28', texto: 'Mesmo padrão dos Planos de Treino aplicado no resto do app: Biblioteca de Alimentos, Biblioteca de Exercícios, Combos e Minhas Dietas agora abrem direto na lista, e cadastrar algo é uma tela própria com botão voltar. Antes era preciso rolar por formulários longos pra chegar na busca. Em Minhas Dietas os dois caminhos ficaram explícitos: "Usar uma dieta pronta" e "Criar minha própria dieta"' },
   { date: '2026-08-25', texto: 'Comida: novo modo "Só macros" ao adicionar refeição — dá pra lançar calorias, proteína, carbo, gordura e fibra direto, sem quebrar item a item. Serve pra restaurante, casa dos outros e marmita de terceiro. Só as calorias já bastam' },
   { date: '2026-08-25', texto: 'O botão voltar do celular agora sai da tela em vez de fechar o app. Só fecha quando não há mais tela aberta pra voltar' },
   { date: '2026-08-23', texto: 'Planos de Treino refeito: em vez de um dropdown escondido, agora aparecem dois caminhos claros — "Usar um pacote pronto" e "Criar meu próprio treino". Cada um abre a própria tela, com botão voltar, e os pacotes são cards com descrição em vez de uma lista suspensa. Cada treino também abre em tela própria pra editar' },
