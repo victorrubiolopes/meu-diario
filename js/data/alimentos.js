@@ -518,6 +518,12 @@ const ALIMENTOS_PADRAO = [
   // (128kcal/100g contra 143 deste). Nome diferente pra conviverem sem colidir no
   // mergeSeeds — o "61% menos gordura" é a alegação impressa no pote.
   { name: 'Requeijão light 61% menos gordura', categoria: 'outro', portionLabel: '1 colher de sopa (30g)', portionGrams: 30, kcal: 43, carbs: 1.2, sugars: 1.2, protein: 3.3, fat: 2.8, satFat: 1.8, transFat: 0.1, fiber: 0, sodium: 162 },
+  // Prato pronto congelado: o rótulo declara por 100g, mas a unidade real de consumo é a
+  // embalagem inteira (300g = 3 porções), então os valores aqui são o rótulo x3. Confere com
+  // os "18g de proteína por embalagem" da frente do pacote (6g x 3).
+  // Nome traz a marca porque já existe um "Strogonoff de frango" caseiro na biblioteca, com
+  // outros valores (155 kcal/100g contra 108 deste, que vem com o arroz junto).
+  { name: 'Strogonoff de frango com arroz Swift Prato Feito', categoria: 'outro', portionLabel: '1 embalagem (300g)', portionGrams: 300, kcal: 324, carbs: 24, sugars: 6.3, protein: 18, fat: 18.9, satFat: 9, transFat: 1.2, fiber: 0, sodium: 1200 },
 ];
 
 // Categoria de cada alimento é uma propriedade de código (não persistida em Storage),
