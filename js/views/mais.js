@@ -22,18 +22,45 @@ const ViewMais = (() => {
       case 'historico': return ViewHistorico.render($app, state, api);
       case 'perfil': return renderPerfil($app, state, api);
       case 'biblioteca-alimentos': return renderBibliotecaAlimentos($app, state, api);
+      case 'alimento-novo': return renderAlimentoNovo($app, state, api);
+      case 'receita-sugerir': return renderReceitaSugerir($app, state, api);
       case 'biblioteca-exercicios': return renderBibliotecaExercicios($app, state, api);
+      case 'exercicio-novo': return renderExercicioNovo($app, state, api);
       case 'planos-treino': return renderPlanosTreino($app, state, api);
       case 'treino-pacotes': return renderTreinoPacotes($app, state, api);
       case 'plano-editar': return renderPlanoEditar($app, state, api);
       case 'combos': return renderCombos($app, state, api);
+      case 'combo-novo': return renderComboNovo($app, state, api);
       case 'dietas-custom': return renderDietasCustom($app, state, api);
+      case 'dieta-pacotes': return renderDietaPacotes($app, state, api);
+      case 'dieta-nova': return renderDietaNova($app, state, api);
       case 'refeicao-livre': return renderRegrasRefeicaoLivre($app, state, api);
       case 'backup': return renderBackup($app, state, api);
       case 'admin': return renderAdmin($app, state, api);
       case 'notificacoes': return renderNotificacoes($app, state, api);
       default: return renderMenu($app, state, api);
     }
+  }
+
+  // ---------------- LINHA QUE ABRE OUTRA TELA ----------------
+  // Mesmo desenho do menu raiz de Mais: ícone, título, uma linha explicando e a seta. Quem já
+  // usou o app uma vez reconhece que ali se clica e vai pra algum lugar — por isso os
+  // formulários de cadastro (alimento, exercício, combo, dieta) viraram destinos em vez de
+  // ficarem empilhados acima da lista que a pessoa veio consultar.
+  function escolhaHtml(attr, icone, titulo, sub) {
+    return `
+      <button class="menu-item" ${attr} style="align-items:flex-start;text-align:left">
+        <span class="icon">${icone}</span>
+        <div style="flex:1">
+          <div><strong>${titulo}</strong></div>
+          <div class="meta">${sub}</div>
+        </div>
+        <span class="chev">›</span>
+      </button>`;
+  }
+
+  function menuCardHtml(itens) {
+    return `<div class="card" style="padding:4px 16px"><div class="menu-list">${itens.join('')}</div></div>`;
   }
 
   // ---------------- NOTIFICAÇÕES (avisos do profissional pro paciente) ----------------
@@ -500,68 +527,73 @@ const ViewMais = (() => {
   }
 
   // ---------------- MINHAS DIETAS (personalizadas nomeadas) ----------------
+  // Pacote pessoal do dono do app (mesma regra de visibilidade da ficha do Bronyer em
+  // Planos de Treino): carrega metas + as refeições como combos de uma vez.
+  function souDonoDoApp() {
+    return typeof Cloud === 'undefined' || !Cloud.isEnabled()
+      || (typeof Cloud.isSuperAdmin === 'function' && Cloud.isSuperAdmin());
+  }
+  function temDietaPronta() {
+    return souDonoDoApp() && (typeof DIETA_VICTOR !== 'undefined' || typeof META_VICTOR !== 'undefined');
+  }
+
+  // Tela raiz: os dois caminhos (pacote pronto ou digitar as metas) e as dietas já salvas.
+  // Mesmo desenho de Planos de Treino — a escolha vem antes do formulário, não depois de
+  // rolar por ele.
   function renderDietasCustom($app, state, api) {
     const dietas = Storage.getAll('dietas_custom');
     const perfil = Storage.getPerfil();
 
-    // Pacote pessoal do dono do app (mesma regra de visibilidade da ficha do Bronyer em
-    // Planos de Treino): carrega metas + as refeições como combos de uma vez.
-    const souDono = typeof Cloud === 'undefined' || !Cloud.isEnabled()
-      || (typeof Cloud.isSuperAdmin === 'function' && Cloud.isSuperAdmin());
-    const temPacote = typeof DIETA_VICTOR !== 'undefined';
-    const pacoteJaCarregado = temPacote && dietas.some(d => d.fonte === DIETA_VICTOR.fonte);
-
     $app.innerHTML = `
-      ${souDono && temPacote ? `
-        <div class="card">
-          <h2>📋 ${Util.escapeHtml(DIETA_VICTOR.dieta.nome)}</h2>
-          <p class="meta">${DIETA_VICTOR.dieta.kcal} kcal · P ${DIETA_VICTOR.dieta.protein}g · C ${DIETA_VICTOR.dieta.carb}g · G ${DIETA_VICTOR.dieta.fat}g · F ${DIETA_VICTOR.dieta.fiber}g · ${DIETA_VICTOR.aguaMetaMl / 1000}L de água</p>
-          <p class="meta">Por ${Util.escapeHtml(DIETA_VICTOR.profissional)}. Macros transcritos do PDF, alimento por alimento.</p>
-          <p class="meta" style="border-left:3px solid var(--accent);padding-left:8px">
-            A meta de ${DIETA_VICTOR.dieta.kcal} kcal é a <strong>média semanal</strong>: as 5 refeições somam
-            <strong>${DIETA_VICTOR.kcalDiaNormal} kcal</strong> e a refeição livre (${DIETA_VICTOR.refeicaoLivre.kcal} kcal, ${DIETA_VICTOR.refeicaoLivre.porSemana}x/semana)
-            entra diluída por 7 dias. Em dia normal você fecha em ${DIETA_VICTOR.kcalDiaNormal} kcal.
-            A livre <strong>substitui</strong> uma das 5 refeições, não se soma a elas.
-          </p>
-          <p class="meta">Carrega a dieta como objetivo e cria as ${DIETA_VICTOR.combos.length} refeições como combos, prontos pra lançar em um toque.</p>
-          <button class="${pacoteJaCarregado ? 'secondary' : 'primary'}" id="carregar-dieta-victor" style="margin-top:8px">
-            ${pacoteJaCarregado ? 'Recarregar (atualiza o que já existe)' : 'Carregar minha dieta'}
-          </button>
-          <p class="meta" id="dieta-victor-msg" style="margin-top:6px"></p>
-          <details style="margin-top:10px">
-            <summary class="meta">Suplementação</summary>
-            <ul class="meta" style="margin:6px 0 0;padding-left:18px;line-height:1.5">
-              ${DIETA_VICTOR.suplementos.map(s => `<li>${Util.escapeHtml(s)}</li>`).join('')}
-            </ul>
-          </details>
-          <details style="margin-top:6px">
-            <summary class="meta">Substituições e observações do plano</summary>
-            <ul class="meta" style="margin:6px 0 0;padding-left:18px;line-height:1.5">
-              ${DIETA_VICTOR.observacoes.map(o => `<li>${Util.escapeHtml(o)}</li>`).join('')}
-            </ul>
-          </details>
-        </div>
-      ` : ''}
-      ${souDono && typeof META_VICTOR !== 'undefined' ? `
-        <div class="card">
-          <h2>🧮 ${Util.escapeHtml(META_VICTOR.meta.nome)}</h2>
-          <p class="meta">${META_VICTOR.meta.kcal} kcal · P ${META_VICTOR.meta.protein}g · C ${META_VICTOR.meta.carb}g · G ${META_VICTOR.meta.fat}g</p>
-          <p class="meta" style="border-left:3px solid var(--accent);padding-left:8px">${Util.escapeHtml(META_VICTOR.disclaimer)}</p>
-          <p class="meta">Carrega a meta como objetivo e atualiza as 5 refeições (mesmos horários da dieta do Matheus, porções ajustadas) como combos.</p>
-          <button class="${dietas.some(d => d.fonte === META_VICTOR.fonte) ? 'secondary' : 'primary'}" id="carregar-meta-victor" style="margin-top:8px">
-            ${dietas.some(d => d.fonte === META_VICTOR.fonte) ? 'Recarregar (atualiza o que já existe)' : 'Carregar minha meta'}
-          </button>
-          <p class="meta" id="meta-victor-msg" style="margin-top:6px"></p>
-          <details style="margin-top:10px">
-            <summary class="meta">Como cheguei nesses números</summary>
-            <ul class="meta" style="margin:6px 0 0;padding-left:18px;line-height:1.5">
-              ${META_VICTOR.baseCalculo.map(o => `<li>${Util.escapeHtml(o)}</li>`).join('')}
-            </ul>
-          </details>
-        </div>
-      ` : ''}
       <div class="card">
-        <h2>Nova dieta</h2>
+        <p class="meta">Uma dieta salva vira opção no <strong>Objetivo</strong> do seu Perfil — é ela que passa a definir as metas de calorias e macros do seu dia.</p>
+      </div>
+      ${menuCardHtml([
+        ...(temDietaPronta() ? [escolhaHtml('id="ir-dieta-pacotes"', '📦', 'Usar uma dieta pronta', 'Carrega as metas e já cria as refeições como combos.')] : []),
+        escolhaHtml('id="ir-dieta-nova"', '✏️', 'Criar minha própria dieta', 'Você digita as metas de calorias e macros.'),
+      ])}
+      <div class="card">
+        <h2>Dietas salvas (${dietas.length})</h2>
+        <div id="dietas-custom-list">
+          ${dietas.length === 0 ? '<div class="empty">Nenhuma dieta salva ainda. Escolha uma das opções acima pra começar.</div>' : dietas.map(d => `
+            <div class="list-item" data-id="${d.id}">
+              <div>
+                <div>${Util.escapeHtml(d.nome)} ${perfil.dietaCustomId === d.id ? '<span class="badge pr">Em uso</span>' : ''}</div>
+                <div class="meta">${d.kcal} kcal · P ${d.protein}g · C ${d.carb}g · G ${d.fat}g${d.fiber ? ` · Fibras ${d.fiber}g` : ''}</div>
+              </div>
+              <div style="display:flex;gap:6px">
+                <button class="secondary" data-usar="${d.id}" style="font-size:0.75rem;padding:6px 10px">Usar</button>
+                <button class="link" data-remove-dieta="${d.id}">✕</button>
+              </div>
+            </div>
+          `).join('')}
+        </div>
+      </div>
+    `;
+
+    const btnPacotes = document.getElementById('ir-dieta-pacotes');
+    if (btnPacotes) btnPacotes.addEventListener('click', () => api.goToMais('dieta-pacotes'));
+    document.getElementById('ir-dieta-nova').addEventListener('click', () => api.goToMais('dieta-nova'));
+
+    $app.querySelectorAll('[data-usar]').forEach(btn => {
+      btn.addEventListener('click', () => {
+        Storage.savePerfil({ ...perfil, dietaTemplate: null, metaCustom: null, dietaCustomId: btn.dataset.usar });
+        alert('Dieta selecionada como objetivo atual!');
+        api.render();
+      });
+    });
+
+    $app.querySelectorAll('[data-remove-dieta]').forEach(btn => {
+      btn.addEventListener('click', () => {
+        Storage.remove('dietas_custom', btn.dataset.removeDieta);
+        api.render();
+      });
+    });
+  }
+
+  function renderDietaNova($app, state, api) {
+    $app.innerHTML = `
+      <div class="card">
         <p class="meta">Salve um plano recebido de nutricionista (ou outra meta fixa) com um nome, pra escolher depois no Objetivo do seu Perfil.</p>
         <label>Nome</label>
         <input type="text" id="dc-nome" placeholder="Ex: Dieta do mês 08/2026">
@@ -577,23 +609,76 @@ const ViewMais = (() => {
         <input type="number" id="dc-fiber">
         <button class="primary" id="save-dieta-custom" style="margin-top:10px">Salvar dieta</button>
       </div>
-      <div class="card">
-        <h2>Dietas salvas (${dietas.length})</h2>
-        <div id="dietas-custom-list">
-          ${dietas.length === 0 ? '<div class="empty">Nenhuma dieta salva ainda</div>' : dietas.map(d => `
-            <div class="list-item" data-id="${d.id}">
-              <div>
-                <div>${Util.escapeHtml(d.nome)} ${perfil.dietaCustomId === d.id ? '<span class="badge pr">Em uso</span>' : ''}</div>
-                <div class="meta">${d.kcal} kcal · P ${d.protein}g · C ${d.carb}g · G ${d.fat}g${d.fiber ? ` · Fibras ${d.fiber}g` : ''}</div>
-              </div>
-              <div style="display:flex;gap:6px">
-                <button class="secondary" data-usar="${d.id}" style="font-size:0.75rem;padding:6px 10px">Usar</button>
-                <button class="link" data-remove-dieta="${d.id}">✕</button>
-              </div>
-            </div>
-          `).join('')}
+    `;
+
+    document.getElementById('save-dieta-custom').addEventListener('click', () => {
+      const nome = document.getElementById('dc-nome').value.trim();
+      const kcal = Number(document.getElementById('dc-kcal').value) || null;
+      if (!nome || !kcal) return;
+      Storage.add('dietas_custom', {
+        nome,
+        kcal,
+        protein: Number(document.getElementById('dc-protein').value) || null,
+        carb: Number(document.getElementById('dc-carb').value) || null,
+        fat: Number(document.getElementById('dc-fat').value) || null,
+        fiber: Number(document.getElementById('dc-fiber').value) || null,
+      });
+      api.back();
+    });
+  }
+
+  function renderDietaPacotes($app, state, api) {
+    const dietas = Storage.getAll('dietas_custom');
+    const temPacote = typeof DIETA_VICTOR !== 'undefined';
+    const pacoteJaCarregado = temPacote && dietas.some(d => d.fonte === DIETA_VICTOR.fonte);
+
+    $app.innerHTML = `
+      ${temPacote ? `
+        <div class="card">
+          <h2>📋 ${Util.escapeHtml(DIETA_VICTOR.dieta.nome)}</h2>
+          <p class="meta">${DIETA_VICTOR.dieta.kcal} kcal · P ${DIETA_VICTOR.dieta.protein}g · C ${DIETA_VICTOR.dieta.carb}g · G ${DIETA_VICTOR.dieta.fat}g · F ${DIETA_VICTOR.dieta.fiber}g · ${DIETA_VICTOR.aguaMetaMl / 1000}L de água</p>
+          <p class="meta">Por ${Util.escapeHtml(DIETA_VICTOR.profissional)}. Macros transcritos do PDF, alimento por alimento.</p>
+          <p class="meta" style="border-left:3px solid var(--accent);padding-left:8px">
+            A meta de ${DIETA_VICTOR.dieta.kcal} kcal é a <strong>média semanal</strong>: as 5 refeições somam
+            <strong>${DIETA_VICTOR.kcalDiaNormal} kcal</strong> e a refeição livre (${DIETA_VICTOR.refeicaoLivre.kcal} kcal, ${DIETA_VICTOR.refeicaoLivre.porSemana}x/semana)
+            entra diluída por 7 dias. Em dia normal você fecha em ${DIETA_VICTOR.kcalDiaNormal} kcal.
+            A livre <strong>substitui</strong> uma das 5 refeições, não se soma a elas.
+          </p>
+          <p class="meta">Carrega a dieta como objetivo e cria as ${DIETA_VICTOR.combos.length} refeições como combos, prontos pra lançar em um toque.</p>
+          <button class="${pacoteJaCarregado ? 'secondary' : 'primary'}" id="carregar-dieta-victor" style="margin-top:8px">
+            ${pacoteJaCarregado ? 'Recarregar (atualiza o que já existe)' : 'Carregar minha dieta'}
+          </button>
+          <details style="margin-top:10px">
+            <summary class="meta">Suplementação</summary>
+            <ul class="meta" style="margin:6px 0 0;padding-left:18px;line-height:1.5">
+              ${DIETA_VICTOR.suplementos.map(s => `<li>${Util.escapeHtml(s)}</li>`).join('')}
+            </ul>
+          </details>
+          <details style="margin-top:6px">
+            <summary class="meta">Substituições e observações do plano</summary>
+            <ul class="meta" style="margin:6px 0 0;padding-left:18px;line-height:1.5">
+              ${DIETA_VICTOR.observacoes.map(o => `<li>${Util.escapeHtml(o)}</li>`).join('')}
+            </ul>
+          </details>
         </div>
-      </div>
+      ` : ''}
+      ${typeof META_VICTOR !== 'undefined' ? `
+        <div class="card">
+          <h2>🧮 ${Util.escapeHtml(META_VICTOR.meta.nome)}</h2>
+          <p class="meta">${META_VICTOR.meta.kcal} kcal · P ${META_VICTOR.meta.protein}g · C ${META_VICTOR.meta.carb}g · G ${META_VICTOR.meta.fat}g</p>
+          <p class="meta" style="border-left:3px solid var(--accent);padding-left:8px">${Util.escapeHtml(META_VICTOR.disclaimer)}</p>
+          <p class="meta">Carrega a meta como objetivo e atualiza as 5 refeições (mesmos horários da dieta do Matheus, porções ajustadas) como combos.</p>
+          <button class="${dietas.some(d => d.fonte === META_VICTOR.fonte) ? 'secondary' : 'primary'}" id="carregar-meta-victor" style="margin-top:8px">
+            ${dietas.some(d => d.fonte === META_VICTOR.fonte) ? 'Recarregar (atualiza o que já existe)' : 'Carregar minha meta'}
+          </button>
+          <details style="margin-top:10px">
+            <summary class="meta">Como cheguei nesses números</summary>
+            <ul class="meta" style="margin:6px 0 0;padding-left:18px;line-height:1.5">
+              ${META_VICTOR.baseCalculo.map(o => `<li>${Util.escapeHtml(o)}</li>`).join('')}
+            </ul>
+          </details>
+        </div>
+      ` : ''}
     `;
 
     const btnPacote = document.getElementById('carregar-dieta-victor');
@@ -623,9 +708,11 @@ const ViewMais = (() => {
         const p = Storage.getPerfil();
         Storage.savePerfil({ ...p, dietaTemplate: null, metaCustom: null, dietaCustomId: dietaId, aguaMetaCustom: DIETA_VICTOR.aguaMetaMl });
 
-        const msg = document.getElementById('dieta-victor-msg');
-        if (msg) msg.textContent = `✅ Dieta aplicada como objetivo, ${DIETA_VICTOR.combos.length} combos criados e meta de água em ${DIETA_VICTOR.aguaMetaMl / 1000}L.`;
-        api.render();
+        // O resumo saía num <p> da própria tela — que o api.render() seguinte repintava no
+        // mesmo instante, então nunca chegava a ser lido. Agora avisa e volta pra lista, onde
+        // a dieta aparece marcada como "Em uso".
+        alert(`✅ Dieta aplicada como objetivo, ${DIETA_VICTOR.combos.length} combos criados e meta de água em ${DIETA_VICTOR.aguaMetaMl / 1000}L.`);
+        api.back();
       });
     }
 
@@ -667,49 +754,55 @@ const ViewMais = (() => {
         const p = Storage.getPerfil();
         Storage.savePerfil({ ...p, dietaTemplate: null, metaCustom: null, dietaCustomId: dietaId });
 
-        const msg = document.getElementById('meta-victor-msg');
-        if (msg) msg.textContent = `✅ Meta aplicada como objetivo e ${META_VICTOR.combos.length} refeições atualizadas como combos.`;
-        api.render();
+        alert(`✅ Meta aplicada como objetivo e ${META_VICTOR.combos.length} refeições atualizadas como combos.`);
+        api.back();
       });
     }
-
-    document.getElementById('save-dieta-custom').addEventListener('click', () => {
-      const nome = document.getElementById('dc-nome').value.trim();
-      const kcal = Number(document.getElementById('dc-kcal').value) || null;
-      if (!nome || !kcal) return;
-      Storage.add('dietas_custom', {
-        nome,
-        kcal,
-        protein: Number(document.getElementById('dc-protein').value) || null,
-        carb: Number(document.getElementById('dc-carb').value) || null,
-        fat: Number(document.getElementById('dc-fat').value) || null,
-        fiber: Number(document.getElementById('dc-fiber').value) || null,
-      });
-      api.render();
-    });
-
-    $app.querySelectorAll('[data-usar]').forEach(btn => {
-      btn.addEventListener('click', () => {
-        Storage.savePerfil({ ...perfil, dietaTemplate: null, metaCustom: null, dietaCustomId: btn.dataset.usar });
-        alert('Dieta selecionada como objetivo atual!');
-        api.render();
-      });
-    });
-
-    $app.querySelectorAll('[data-remove-dieta]').forEach(btn => {
-      btn.addEventListener('click', () => {
-        Storage.remove('dietas_custom', btn.dataset.removeDieta);
-        api.render();
-      });
-    });
   }
 
   // ---------------- BIBLIOTECA DE ALIMENTOS ----------------
+  // Tela raiz é a LISTA: 99% das visitas aqui são pra consultar ou apagar algo. Os dois
+  // formulários (cadastrar com a tabela inteira, sugerir receita pro nutri) saíram de cima
+  // da lista e viraram telas próprias — antes era preciso rolar dois formulários longos
+  // pra chegar na busca.
   function renderBibliotecaAlimentos($app, state, api) {
     const lib = Storage.getAll('alimentos_biblioteca').sort((a, b) => a.name.localeCompare(b.name));
     $app.innerHTML = `
+      ${menuCardHtml([
+        escolhaHtml('id="ir-alimento-novo"', '✏️', 'Cadastrar um alimento', 'Você copia a tabela nutricional do rótulo.'),
+        escolhaHtml('id="ir-receita"', '🍲', 'Sugerir uma receita', 'Escreva os ingredientes e seu profissional monta a conta.'),
+      ])}
       <div class="card">
-        <h2>Adicionar alimento</h2>
+        <h2>Alimentos cadastrados (${lib.length})</h2>
+        <input type="text" id="food-filter" placeholder="Buscar..." style="margin-bottom:10px">
+        <div id="food-lib-list">${libListHtml(lib)}</div>
+      </div>
+    `;
+
+    document.getElementById('ir-alimento-novo').addEventListener('click', () => api.goToMais('alimento-novo'));
+    document.getElementById('ir-receita').addEventListener('click', () => api.goToMais('receita-sugerir'));
+
+    document.getElementById('food-filter').addEventListener('input', e => {
+      const q = e.target.value.trim().toLowerCase();
+      document.getElementById('food-lib-list').innerHTML = libListHtml(lib.filter(f => f.name.toLowerCase().includes(q)));
+      attachDelete();
+    });
+
+    function attachDelete() {
+      $app.querySelectorAll('[data-del-food]').forEach(btn => {
+        btn.addEventListener('click', () => {
+          Storage.remove('alimentos_biblioteca', btn.dataset.delFood);
+          api.render();
+        });
+      });
+    }
+    attachDelete();
+  }
+
+  function renderAlimentoNovo($app, state, api) {
+    $app.innerHTML = `
+      <div class="card">
+        <p class="meta">Copie os valores como estão no rótulo e informe a que porção eles se referem — o app reescala sozinho quando você pesar outra quantidade.</p>
         <label>Nome</label>
         <input type="text" id="f-name" placeholder="Ex: Arroz branco cozido">
         <div class="row">
@@ -730,37 +823,7 @@ const ViewMais = (() => {
         </div>
         <button class="primary" id="add-food">Adicionar à biblioteca</button>
       </div>
-      <div class="card">
-        <h2>🍲 Sugerir uma receita</h2>
-        <p class="meta">Escreva o nome e a lista de ingredientes (com quantidade, se souber) — seu profissional revisa, monta a conta certinha e adiciona à biblioteca. Assim que atendida, ela avisa.</p>
-        <label>Nome da receita</label>
-        <input type="text" id="rc-nome" placeholder="Ex: Frango com quinoa da vovó">
-        <label>Ingredientes</label>
-        <textarea id="rc-ingredientes" rows="5" placeholder="Ex:&#10;200g de peito de frango&#10;1 xícara de quinoa cozida&#10;1 colher de azeite&#10;..."></textarea>
-        <button class="primary" id="rc-enviar" style="margin-top:8px">Enviar sugestão</button>
-      </div>
-      <div class="card">
-        <h2>Alimentos cadastrados (${lib.length})</h2>
-        <input type="text" id="food-filter" placeholder="Buscar..." style="margin-bottom:10px">
-        <div id="food-lib-list">${libListHtml(lib)}</div>
-      </div>
     `;
-
-    document.getElementById('food-filter').addEventListener('input', e => {
-      const q = e.target.value.trim().toLowerCase();
-      document.getElementById('food-lib-list').innerHTML = libListHtml(lib.filter(f => f.name.toLowerCase().includes(q)));
-      attachDelete();
-    });
-
-    function attachDelete() {
-      $app.querySelectorAll('[data-del-food]').forEach(btn => {
-        btn.addEventListener('click', () => {
-          Storage.remove('alimentos_biblioteca', btn.dataset.delFood);
-          api.render();
-        });
-      });
-    }
-    attachDelete();
 
     document.getElementById('add-food').addEventListener('click', () => {
       const name = document.getElementById('f-name').value.trim();
@@ -772,12 +835,27 @@ const ViewMais = (() => {
         entry[k] = Number(document.getElementById(`f-${k}`).value) || 0;
       });
       Storage.add('alimentos_biblioteca', entry);
-      api.render();
+      // Volta pra lista: é lá que dá pra ver o alimento cadastrado, e ficar num formulário
+      // já limpo não dá nenhum sinal de que deu certo.
+      api.back();
     });
+  }
 
-    // ---- Sugerir receita: o paciente só escreve nome + ingredientes. Quem monta a conta
-    // (ingrediente por ingrediente + peso final) e decide o que entra na biblioteca é o
-    // admin/nutri, no painel dele — ver renderAdmin/carregarReceitas.
+  // Sugerir receita: o paciente só escreve nome + ingredientes. Quem monta a conta
+  // (ingrediente por ingrediente + peso final) e decide o que entra na biblioteca é o
+  // admin/nutri, no painel dele — ver renderAdmin/carregarReceitas.
+  function renderReceitaSugerir($app, state, api) {
+    $app.innerHTML = `
+      <div class="card">
+        <p class="meta">Escreva o nome e a lista de ingredientes (com quantidade, se souber) — seu profissional revisa, monta a conta certinha e adiciona à biblioteca. Assim que atendida, ela avisa.</p>
+        <label>Nome da receita</label>
+        <input type="text" id="rc-nome" placeholder="Ex: Frango com quinoa da vovó">
+        <label>Ingredientes</label>
+        <textarea id="rc-ingredientes" rows="5" placeholder="Ex:&#10;200g de peito de frango&#10;1 xícara de quinoa cozida&#10;1 colher de azeite&#10;..."></textarea>
+        <button class="primary" id="rc-enviar" style="margin-top:8px">Enviar sugestão</button>
+      </div>
+    `;
+
     document.getElementById('rc-enviar').addEventListener('click', async () => {
       const nome = document.getElementById('rc-nome').value.trim();
       const ingredientes = document.getElementById('rc-ingredientes').value.trim();
@@ -792,8 +870,7 @@ const ViewMais = (() => {
       try {
         await Cloud.sugerirReceita(nome, ingredientes);
         alert('Receita enviada! Assim que ela for montada e aprovada, você recebe aviso.');
-        document.getElementById('rc-nome').value = '';
-        document.getElementById('rc-ingredientes').value = '';
+        api.back();
       } catch (e) {
         alert('Não deu pra enviar agora — tenta de novo em instantes.');
       }
@@ -821,21 +898,9 @@ const ViewMais = (() => {
   function renderBibliotecaExercicios($app, state, api) {
     const lib = Storage.getAll('exercicios_biblioteca').sort((a, b) => a.grupo.localeCompare(b.grupo) || a.name.localeCompare(b.name));
     $app.innerHTML = `
-      <div class="card">
-        <h2>Adicionar exercício</h2>
-        <label>Nome</label>
-        <input type="text" id="e-name" placeholder="Ex: Supino reto com barra">
-        <div class="row">
-          <div>
-            <label>Grupo muscular</label>
-            <select id="e-grupo">${GRUPOS_MUSCULARES.map(g => `<option value="${g}">${g}</option>`).join('')}</select>
-          </div>
-          <div><label>Equipamento</label><input type="text" id="e-equipamento" placeholder="Ex: Barra"></div>
-        </div>
-        <label>Link do vídeo (opcional)</label>
-        <input type="text" id="e-video" placeholder="Cole aqui um link do YouTube ou outro site">
-        <button class="primary" id="add-exercicio">Adicionar à biblioteca</button>
-      </div>
+      ${menuCardHtml([
+        escolhaHtml('id="ir-exercicio-novo"', '✏️', 'Cadastrar um exercício', 'Nome, grupo muscular, equipamento e link do vídeo.'),
+      ])}
       <div class="card">
         <h2>Exercícios cadastrados (${lib.length})</h2>
         <div class="chip-group" id="grupo-filter">
@@ -882,16 +947,7 @@ const ViewMais = (() => {
       });
     });
 
-    document.getElementById('add-exercicio').addEventListener('click', () => {
-      const name = document.getElementById('e-name').value.trim();
-      const grupo = document.getElementById('e-grupo').value;
-      const equipamento = document.getElementById('e-equipamento').value.trim();
-      const videoUrl = document.getElementById('e-video').value.trim();
-      if (!name) return;
-      Storage.add('exercicios_biblioteca', { name, grupo, equipamento, videoUrl, custom: true });
-      if (videoUrl && typeof Cloud !== 'undefined' && Cloud.isEnabled() && Cloud.sugerirVideo) Cloud.sugerirVideo(name, videoUrl);
-      api.render();
-    });
+    document.getElementById('ir-exercicio-novo').addEventListener('click', () => api.goToMais('exercicio-novo'));
 
     function attachEditLink() {
       $app.querySelectorAll('[data-edit-link]').forEach(btn => {
@@ -908,6 +964,37 @@ const ViewMais = (() => {
       });
     }
     attachEditLink();
+  }
+
+  function renderExercicioNovo($app, state, api) {
+    $app.innerHTML = `
+      <div class="card">
+        <p class="meta">O grupo muscular define a ilustração que aparece no treino. Sem link de vídeo, o app cai numa busca automática pelo nome no YouTube.</p>
+        <label>Nome</label>
+        <input type="text" id="e-name" placeholder="Ex: Supino reto com barra">
+        <div class="row">
+          <div>
+            <label>Grupo muscular</label>
+            <select id="e-grupo">${GRUPOS_MUSCULARES.map(g => `<option value="${g}">${g}</option>`).join('')}</select>
+          </div>
+          <div><label>Equipamento</label><input type="text" id="e-equipamento" placeholder="Ex: Barra"></div>
+        </div>
+        <label>Link do vídeo (opcional)</label>
+        <input type="text" id="e-video" placeholder="Cole aqui um link do YouTube ou outro site">
+        <button class="primary" id="add-exercicio">Adicionar à biblioteca</button>
+      </div>
+    `;
+
+    document.getElementById('add-exercicio').addEventListener('click', () => {
+      const name = document.getElementById('e-name').value.trim();
+      const grupo = document.getElementById('e-grupo').value;
+      const equipamento = document.getElementById('e-equipamento').value.trim();
+      const videoUrl = document.getElementById('e-video').value.trim();
+      if (!name) return;
+      Storage.add('exercicios_biblioteca', { name, grupo, equipamento, videoUrl, custom: true });
+      if (videoUrl && typeof Cloud !== 'undefined' && Cloud.isEnabled() && Cloud.sugerirVideo) Cloud.sugerirVideo(name, videoUrl);
+      api.back();
+    });
   }
 
   function exercicioListHtml(list) {
@@ -944,9 +1031,7 @@ const ViewMais = (() => {
   // As fichas pessoais do Victor (Bronyer, MFIT) só aparecem pra ele — não são pacotes
   // genéricos do app (flag pessoal: true na entrada de TREINOS_PREDEFINIDOS).
   function pacotesVisiveis() {
-    const souDono = typeof Cloud === 'undefined' || !Cloud.isEnabled()
-      || (typeof Cloud.isSuperAdmin === 'function' && Cloud.isSuperAdmin());
-    return Object.keys(TREINOS_PREDEFINIDOS).filter(id => souDono || !TREINOS_PREDEFINIDOS[id].pessoal);
+    return Object.keys(TREINOS_PREDEFINIDOS).filter(id => souDonoDoApp() || !TREINOS_PREDEFINIDOS[id].pessoal);
   }
   function rotuloPacote(id) {
     const dieta = DIETA_TEMPLATES.find(d => d.id === id);
@@ -960,26 +1045,14 @@ const ViewMais = (() => {
   function renderPlanosTreino($app, state, api) {
     const planos = Storage.getAll('treino_planos').sort((a, b) => a.ordem - b.ordem);
 
-    const escolha = (id, icone, titulo, sub) => `
-      <button class="menu-item" id="${id}" style="align-items:flex-start;text-align:left">
-        <span class="icon">${icone}</span>
-        <div style="flex:1">
-          <div><strong>${titulo}</strong></div>
-          <div class="meta">${sub}</div>
-        </div>
-        <span class="chev">›</span>
-      </button>`;
-
     $app.innerHTML = `
       <div class="card">
         <p class="meta">Monte seus treinos (ex: A, B, C) e o app sugere automaticamente qual vem a seguir, em rotação, com base no último que você registrou — não importa o dia da semana.</p>
       </div>
-      <div class="card" style="padding:4px 16px">
-        <div class="menu-list">
-          ${escolha('ir-pacotes', '📦', 'Usar um pacote pronto', 'Treinos já montados por objetivo. Dá pra editar tudo depois.')}
-          ${escolha('criar-plano', '✏️', 'Criar meu próprio treino', 'Você escolhe os exercícios, séries e cargas do zero.')}
-        </div>
-      </div>
+      ${menuCardHtml([
+        escolhaHtml('id="ir-pacotes"', '📦', 'Usar um pacote pronto', 'Treinos já montados por objetivo. Dá pra editar tudo depois.'),
+        escolhaHtml('id="criar-plano"', '✏️', 'Criar meu próprio treino', 'Você escolhe os exercícios, séries e cargas do zero.'),
+      ])}
       ${planos.length ? `
         <div class="card" style="padding:4px 16px">
           <div class="menu-list">
@@ -1181,11 +1254,41 @@ const ViewMais = (() => {
 
   function renderCombos($app, state, api) {
     const combos = Storage.getAll('combos');
+
+    $app.innerHTML = `
+      ${menuCardHtml([
+        escolhaHtml('id="ir-combo-novo"', '✏️', 'Criar um combo', 'Junte os alimentos que você come sempre juntos.'),
+      ])}
+      <div class="card">
+        <h2>Combos salvos (${combos.length})</h2>
+        <div id="combos-list">${combosListHtml(combos)}</div>
+      </div>
+    `;
+
+    attachComboDelete();
+
+    document.getElementById('ir-combo-novo').addEventListener('click', () => api.goToMais('combo-novo'));
+    const emptyCta = document.getElementById('empty-cta-combo');
+    if (emptyCta) emptyCta.addEventListener('click', () => api.goToMais('combo-novo'));
+
+    function attachComboDelete() {
+      $app.querySelectorAll('[data-del-combo]').forEach(btn => {
+        btn.addEventListener('click', () => {
+          Storage.remove('combos', btn.dataset.delCombo);
+          api.render();
+        });
+      });
+    }
+  }
+
+  // Montagem do combo em tela própria. Os itens ficam numa lista local que só some quando a
+  // tela sai — por isso adicionar um item repinta só a lista (renderItensList), nunca a tela
+  // inteira: um api.render() aqui apagaria o que já foi montado.
+  function renderComboNovo($app, state, api) {
     let itensNovoCombo = [];
 
     $app.innerHTML = `
       <div class="card">
-        <h2>Novo combo</h2>
         <p class="meta">Salve alimentos que você come juntos com frequência (ex: seu café da manhã de sempre) para adicionar tudo com um clique depois.</p>
         <label>Nome do combo</label>
         <input type="text" id="combo-nome" placeholder="Ex: Café da manhã de sempre">
@@ -1200,18 +1303,7 @@ const ViewMais = (() => {
         <div id="combo-itens-list" style="margin-top:12px"></div>
         <button class="primary" id="save-combo" style="margin-top:12px">Salvar combo</button>
       </div>
-      <div class="card">
-        <h2>Combos salvos (${combos.length})</h2>
-        <div id="combos-list">${combosListHtml(combos)}</div>
-      </div>
     `;
-
-    attachComboDelete();
-
-    const emptyCta = document.getElementById('empty-cta-combo');
-    if (emptyCta) {
-      emptyCta.addEventListener('click', () => document.getElementById('combo-nome').focus());
-    }
 
     const searchInput = document.getElementById('combo-food-search');
     const resultsBox = document.getElementById('combo-food-results');
@@ -1296,19 +1388,13 @@ const ViewMais = (() => {
     document.getElementById('save-combo').addEventListener('click', () => {
       const nome = document.getElementById('combo-nome').value.trim();
       const horario = document.getElementById('combo-horario').value || null;
-      if (!nome || itensNovoCombo.length === 0) return;
+      if (!nome || itensNovoCombo.length === 0) {
+        alert('Dê um nome ao combo e adicione pelo menos um alimento.');
+        return;
+      }
       Storage.add('combos', { nome, horario, itens: itensNovoCombo });
-      api.render();
+      api.back();
     });
-
-    function attachComboDelete() {
-      $app.querySelectorAll('[data-del-combo]').forEach(btn => {
-        btn.addEventListener('click', () => {
-          Storage.remove('combos', btn.dataset.delCombo);
-          api.render();
-        });
-      });
-    }
   }
 
   function combosListHtml(combos) {
