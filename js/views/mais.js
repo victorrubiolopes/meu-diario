@@ -67,11 +67,11 @@ const ViewMais = (() => {
   // Bloco reaproveitado pelos dois formulários do painel (treino e plano alimentar). O
   // texto colado só PREENCHE a lista de montagem — quem envia pro paciente continua sendo
   // o botão "Enviar" de sempre, depois da conferência. Importar não prescreve.
-  function importadorHtml({ id, rotulo, separa, exemplo, avisos }) {
+  function importadorHtml({ id, rotulo, ajuda, exemplo, avisos }) {
     return `
       <details style="margin-bottom:10px">
         <summary class="meta" style="cursor:pointer;padding:4px 0"><strong>📋 ${rotulo}</strong></summary>
-        <p class="meta" style="margin:6px 0">Cole o plano como você já escreve. Uma linha em branco separa ${separa}. Nada vai pro paciente agora — o texto só monta a lista abaixo pra você conferir.</p>
+        <p class="meta" style="margin:6px 0">${ajuda}</p>
         <textarea id="${id}-texto" rows="8" placeholder="${Util.escapeHtml(exemplo)}"></textarea>
         <button class="secondary" id="${id}-ler" style="width:100%;margin-top:6px">Ler texto e montar</button>
         ${avisos && avisos.length ? `
@@ -98,6 +98,15 @@ Requeijão light 61% menos gordura 30g
 Almoço 12:00
 Arroz branco cozido 150g
 Peito de frango grelhado 120g`;
+
+  const EXEMPLO_MEDIDAS = `Data: 29/08/2026
+Peso: 88,4 kg
+Cintura: 92 cm
+Abdômen: 98 cm
+Quadril: 101 cm
+Braço: 33 cm
+Coxa: 58 cm
+% gordura: 28`;
 
   // ---------------- NOTIFICAÇÕES (avisos do profissional pro paciente) ----------------
   const NOTIF_ICONES = {
@@ -2154,13 +2163,22 @@ Peito de frango grelhado 120g`;
         .concat([{ id: 'am-altura', label: 'Altura (cm) — vai pro perfil', valor: perfil.altura != null ? perfil.altura : '' }]);
       const linhas = [];
       for (let i = 0; i < todos.length; i += 2) linhas.push(todos.slice(i, i + 2));
+      let avisosImport = [];
 
+      function paint() {
       cont.innerHTML = `
         <div class="card">
           <h3 style="font-size:0.92rem;margin:0 0 6px">📏 Medidas da consulta</h3>
           <p class="meta" style="margin-top:0">${ultima
             ? `Última do paciente: ${Util.escapeHtml(ultima.date)}${ultima.weight != null ? ` · ${ultima.weight}kg` : ''}. Os campos já vêm com ela — ajuste o que você mediu hoje.`
             : 'O paciente ainda não tem medidas registradas.'}</p>
+          ${importadorHtml({
+            id: 'am-imp',
+            rotulo: 'Colar a folha da consulta',
+            ajuda: 'Cole as medidas como você anotou, uma por linha. Elas só PREENCHEM os campos abaixo — nada é enviado até você conferir e apertar o botão no fim.',
+            exemplo: EXEMPLO_MEDIDAS,
+            avisos: avisosImport,
+          })}
           <label>Data da aferição</label>
           <input type="date" id="am-data" value="${Util.escapeHtml(Util.todayISO())}">
           ${linhas.map(par => `<div class="row">${par.map(c => input(c.id, c.label, c.valor)).join('')}</div>`).join('')}
@@ -2170,6 +2188,27 @@ Peito de frango grelhado 120g`;
           <p class="meta" id="am-msg" style="margin-top:8px">Peso e altura também atualizam o cadastro dele, não só o gráfico.</p>
         </div>
       `;
+
+      // Importar preenche os CAMPOS, não envia. Aqui isso é ainda mais literal que no
+      // treino e no plano alimentar: a nutri vê cada número no seu campo antes de mandar.
+      cont.querySelector('#am-imp-ler').addEventListener('click', () => {
+        const r = ParsePlano.parseMedidas(cont.querySelector('#am-imp-texto').value);
+        const texto = cont.querySelector('#am-imp-texto').value;
+        avisosImport = r.avisos;
+        paint();
+        cont.querySelector('#am-imp-texto').value = texto;
+        if (avisosImport.length) cont.querySelector('#am-imp-texto').closest('details').open = true;
+
+        let preenchidos = 0;
+        Object.keys(r.medida).forEach(k => {
+          if (k === 'date') { cont.querySelector('#am-data').value = r.medida.date; return; }
+          const el = cont.querySelector(`#am-${k}`);
+          if (el) { el.value = r.medida[k]; preenchidos++; }
+        });
+        cont.querySelector('#am-msg').textContent = preenchidos
+          ? `✅ ${preenchidos} campo(s) preenchido(s). Confira e envie.`
+          : '⚠️ Nenhum campo reconhecido — veja os avisos.';
+      });
 
       cont.querySelector('#am-enviar').addEventListener('click', async () => {
         const msg = cont.querySelector('#am-msg');
@@ -2193,6 +2232,8 @@ Peito de frango grelhado 120g`;
           msg.textContent = '✅ Enviado! Entra no diário dele na próxima vez que abrir o app.';
         } catch (e) { msg.textContent = '⚠️ Falha: ' + (e.message || ''); }
       });
+      }
+      paint();
     }
 
     // Promover/remover profissional (só super-admin). O papel de nutri é a existência do
@@ -2310,7 +2351,7 @@ Peito de frango grelhado 120g`;
         cont.innerHTML = `
           <div class="card">
             <h3 style="font-size:0.92rem;margin:0 0 8px">🍽️ Plano alimentar (refeição a refeição)</h3>
-            ${importadorHtml({ id: 'pl-imp', rotulo: 'Importar plano colado', separa: 'as refeições', exemplo: EXEMPLO_PLANO, avisos: avisosImport })}
+            ${importadorHtml({ id: 'pl-imp', rotulo: 'Importar plano colado', ajuda: 'Cole o plano como você já escreve. Uma linha em branco separa as refeições. Nada vai pro paciente agora — o texto só monta a lista abaixo pra você conferir.', exemplo: EXEMPLO_PLANO, avisos: avisosImport })}
             ${refeicoes.length === 0 ? '<p class="meta">Nenhuma refeição no plano ainda.</p>' : refeicoes.map((r, i) => `
               <div class="list-item">
                 <div>
@@ -2585,7 +2626,7 @@ Peito de frango grelhado 120g`;
         cont.innerHTML = `
           <div class="card">
             <h3 style="font-size:0.92rem;margin:0 0 8px">🏋️ Plano de treino (A/B/C)</h3>
-            ${importadorHtml({ id: 'pt-imp', rotulo: 'Importar treino colado', separa: 'os treinos', exemplo: EXEMPLO_TREINO, avisos: avisosImport })}
+            ${importadorHtml({ id: 'pt-imp', rotulo: 'Importar treino colado', ajuda: 'Cole o treino como você já escreve. Uma linha em branco separa os treinos. Nada vai pro paciente agora — o texto só monta a lista abaixo pra você conferir.', exemplo: EXEMPLO_TREINO, avisos: avisosImport })}
             <label>Carregar pacote pré-definido (ponto de partida, editável)</label>
             <select id="pt-pack-select">
               ${pacotesVisiveis.map(id => {
