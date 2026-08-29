@@ -37,6 +37,21 @@ const ViewMais = (() => {
       case 'refeicao-livre': return renderRegrasRefeicaoLivre($app, state, api);
       case 'backup': return renderBackup($app, state, api);
       case 'admin': return renderAdmin($app, state, api);
+      // Todas as telas do paciente passam pelo renderAdmin: as funções de montagem
+      // vivem lá dentro, e ele despacha pela maisView logo no começo.
+      case 'paciente':
+      case 'paciente-diario':
+      case 'paciente-medidas':
+      case 'paciente-dieta':
+      case 'paciente-plano':
+      case 'paciente-treino':
+      case 'paciente-corrida':
+      case 'paciente-lista':
+      case 'paciente-livre':
+      case 'paciente-solicitar':
+      case 'paciente-relatorio':
+      case 'paciente-papel':
+        return renderAdmin($app, state, api);
       case 'notificacoes': return renderNotificacoes($app, state, api);
       default: return renderMenu($app, state, api);
     }
@@ -63,15 +78,117 @@ const ViewMais = (() => {
     return `<div class="card" style="padding:4px 16px"><div class="menu-list">${itens.join('')}</div></div>`;
   }
 
+  // ---------------- PACIENTE NO PAINEL: CACHE, SEÇÕES E ADERÊNCIA ----------------
+  // Abrir um paciente custa duas consultas ao Firestore (diário + prescrição). Com cada
+  // seção virando tela própria, sem cache toda navegação recarregaria as duas. O cache
+  // guarda só o último paciente aberto; trocar de paciente o substitui.
+  let pacienteCache = { uid: null, info: null, dados: null, presc: null };
+
+  function invalidarPacienteCache() { pacienteCache = { uid: null, info: null, dados: null, presc: null }; }
+
+  async function carregarPaciente(uid, info) {
+    if (pacienteCache.uid === uid) {
+      if (info && !pacienteCache.info) pacienteCache.info = info;
+      return pacienteCache;
+    }
+    let dados = null; let presc = null;
+    try { dados = await Cloud.dadosUsuario(uid); } catch (e) { /* segue sem diário */ }
+    try { presc = await Cloud.prescricaoDe(uid); } catch (e) { /* segue sem prescrição */ }
+    pacienteCache = { uid, info: info || null, dados, presc };
+    return pacienteCache;
+  }
+
+  // Cada seção do paciente é uma tela própria. `alvo` é o id do container que o montarX
+  // correspondente procura — é assim que as funções de montagem seguem valendo sem mudar
+  // de assinatura: a tela pinta o container certo e elas se acham dentro dele.
+  const SECOES_PACIENTE = [
+    { view: 'paciente-diario', icone: '📅', titulo: 'Diário do paciente', sub: 'O que ele registrou em cada dia' },
+    { view: 'paciente-medidas', icone: '📏', titulo: 'Medidas da consulta', sub: 'Peso e circunferências — aceita a folha colada', alvo: 'admin-medidas' },
+    { view: 'paciente-dieta', icone: '🎯', titulo: 'Metas de dieta', sub: 'Calorias e macros do dia' },
+    { view: 'paciente-plano', icone: '🍽️', titulo: 'Plano alimentar', sub: 'Refeição a refeição — aceita texto colado', alvo: 'admin-plano' },
+    { view: 'paciente-treino', icone: '🏋️', titulo: 'Plano de treino', sub: 'A/B/C — aceita texto colado', alvo: 'admin-treino' },
+    { view: 'paciente-corrida', icone: '🏃', titulo: 'Treinos de corrida', sub: 'Planos de corrida do paciente', alvo: 'admin-corrida' },
+    { view: 'paciente-lista', icone: '🛒', titulo: 'Lista de compras', sub: 'Manda a lista da semana', alvo: 'admin-lista-compras' },
+    { view: 'paciente-livre', icone: '🍔', titulo: 'Refeição livre', sub: 'Regras e frequência permitidas', alvo: 'admin-refeicao-livre' },
+    { view: 'paciente-solicitar', icone: '📣', titulo: 'Pedir algo ao paciente', sub: 'Medidas, peso, fotos ou exames', alvo: 'admin-solicitar' },
+    { view: 'paciente-relatorio', icone: '📄', titulo: 'Relatório', sub: 'Resumo em texto de 15 a 90 dias' },
+    { view: 'paciente-papel', icone: '🎓', titulo: 'Papel e profissional', sub: 'Tornar profissional ou reatribuir', alvo: 'admin-papel', soSuper: true },
+  ];
+
+  function secaoPaciente(view) { return SECOES_PACIENTE.find(s => s.view === view) || null; }
+  function ehTelaPaciente(view) { return view === 'paciente' || !!secaoPaciente(view); }
+
+  // Aderência a partir só do que o paciente registrou. Cada número carrega a própria base
+  // ("22 de 30 dias"), porque uma porcentagem solta de "aderência" é um número bonito que
+  // ninguém sabe interpretar — e as bases aqui são diferentes entre si de propósito.
+  function aderenciaPaciente(dados, presc, dias) {
+    const fim = Util.todayISO();
+    const inicio = Util.addDaysISO(fim, -(dias - 1));
+    const noPeriodo = lista => (Array.isArray(lista) ? lista : [])
+      .filter(x => x && x.date && x.date >= inicio && x.date <= fim);
+
+    const refeicoes = noPeriodo(dados && dados.alimentacao);
+    const diasComComida = new Set(refeicoes.map(r => r.date)).size;
+    const treinos = noPeriodo(dados && dados.treino).filter(t => (t.exercises || []).length > 0);
+    const diasComTreino = new Set(treinos.map(t => t.date)).size;
+    const pesagens = noPeriodo(dados && dados.medidas).filter(m => m.weight != null).length;
+
+    // Dias dentro da meta só contam sobre os dias em que ele REGISTROU comida: num dia sem
+    // registro não dá pra saber se ele comeu fora da meta ou só não anotou. Misturar as
+    // duas coisas faria um paciente que parou de anotar parecer um que estourou a dieta.
+    let dentroMeta = null;
+    const metaKcal = presc && presc.kcal;
+    if (metaKcal) {
+      const porDia = {};
+      refeicoes.forEach(r => { porDia[r.date] = (porDia[r.date] || 0) + (r.kcal || 0); });
+      const comRegistro = Object.keys(porDia);
+      dentroMeta = {
+        ok: comRegistro.filter(d => Math.abs(porDia[d] - metaKcal) <= metaKcal * 0.1).length,
+        base: comRegistro.length,
+        metaKcal,
+      };
+    }
+    return { dias, diasComComida, diasComTreino, treinos: treinos.length, pesagens, dentroMeta };
+  }
+
+  function barraHtml(rotulo, feito, total, detalhe) {
+    const pct = total > 0 ? Math.min(100, Math.round((feito / total) * 100)) : 0;
+    return `
+      <div class="progress-block">
+        <div class="progress-label"><span>${rotulo}</span><span class="val">${feito}/${total}${detalhe ? ` · ${detalhe}` : ''}</span></div>
+        <div class="progress-track"><div class="progress-fill" style="width:${pct}%"></div></div>
+      </div>`;
+  }
+
+  // Classificação da OMS. Aparece embaixo do número porque "39,2" sozinho não diz nada pra
+  // quem não decorou as faixas — e é o profissional que lê isso.
+  function faixaImcTexto(imc) {
+    if (imc < 18.5) return 'abaixo do peso';
+    if (imc < 25) return 'peso adequado';
+    if (imc < 30) return 'sobrepeso';
+    if (imc < 35) return 'obesidade grau I';
+    if (imc < 40) return 'obesidade grau II';
+    return 'obesidade grau III';
+  }
+
+  function tileHtml(rotulo, valor, unidade, rodape) {
+    return `
+      <div class="macro-box">
+        <div class="macro-box-lbl">${rotulo}</div>
+        <div class="macro-box-val">${valor}${unidade ? `<span> ${unidade}</span>` : ''}</div>
+        ${rodape ? `<div class="macro-box-pct">${rodape}</div>` : ''}
+      </div>`;
+  }
+
   // ---------------- IMPORTAR PLANO COLADO (painel do profissional) ----------------
   // Bloco reaproveitado pelos dois formulários do painel (treino e plano alimentar). O
   // texto colado só PREENCHE a lista de montagem — quem envia pro paciente continua sendo
   // o botão "Enviar" de sempre, depois da conferência. Importar não prescreve.
-  function importadorHtml({ id, rotulo, separa, exemplo, avisos }) {
+  function importadorHtml({ id, rotulo, ajuda, exemplo, avisos }) {
     return `
       <details style="margin-bottom:10px">
         <summary class="meta" style="cursor:pointer;padding:4px 0"><strong>📋 ${rotulo}</strong></summary>
-        <p class="meta" style="margin:6px 0">Cole o plano como você já escreve. Uma linha em branco separa ${separa}. Nada vai pro paciente agora — o texto só monta a lista abaixo pra você conferir.</p>
+        <p class="meta" style="margin:6px 0">${ajuda}</p>
         <textarea id="${id}-texto" rows="8" placeholder="${Util.escapeHtml(exemplo)}"></textarea>
         <button class="secondary" id="${id}-ler" style="width:100%;margin-top:6px">Ler texto e montar</button>
         ${avisos && avisos.length ? `
@@ -98,6 +215,15 @@ Requeijão light 61% menos gordura 30g
 Almoço 12:00
 Arroz branco cozido 150g
 Peito de frango grelhado 120g`;
+
+  const EXEMPLO_MEDIDAS = `Data: 29/08/2026
+Peso: 88,4 kg
+Cintura: 92 cm
+Abdômen: 98 cm
+Quadril: 101 cm
+Braço: 33 cm
+Coxa: 58 cm
+% gordura: 28`;
 
   // ---------------- NOTIFICAÇÕES (avisos do profissional pro paciente) ----------------
   const NOTIF_ICONES = {
@@ -1648,6 +1774,14 @@ Peito de frango grelhado 120g`;
       return;
     }
     const souSuperAdmin = typeof Cloud.isSuperAdmin === 'function' && Cloud.isSuperAdmin();
+
+    // `detailEl` é a raiz onde os montarX() procuram seus containers por id. No painel ele é
+    // o bloco embaixo da lista; nas telas do paciente passa a ser a própria tela. Por isso é
+    // `let`: é o que permite reaproveitar as nove funções de montagem sem tocar em nenhuma.
+    let detailEl = null;
+
+    if (ehTelaPaciente(state.maisView)) { pintarTelaPaciente(); return; }
+
     $app.innerHTML = `
       <div class="card">
         <h2>🔗 Convidar paciente</h2>
@@ -1683,7 +1817,7 @@ Peito de frango grelhado 120g`;
       <div id="admin-detail"></div>
     `;
     const usersEl = $app.querySelector('#admin-users');
-    const detailEl = $app.querySelector('#admin-detail');
+    detailEl = $app.querySelector('#admin-detail');
     const videosEl = $app.querySelector('#admin-videos');
     const receitasEl = $app.querySelector('#admin-receitas');
 
@@ -1971,31 +2105,144 @@ Peito de frango grelhado 120g`;
       });
     }).catch(e => { usersEl.innerHTML = `<div class="empty">Erro ao listar: ${Util.escapeHtml(e.message || '')}</div>`; });
 
+    // Abrir um paciente virou navegar pra tela dele, em vez de despejar 12 cards embaixo da
+    // lista. Baixa aqui (com o "carregando" na lista, onde o dedo já está) e só então navega,
+    // pra tela do paciente abrir com conteúdo em vez de piscar vazia.
     async function abrirUsuario(uid, info) {
       detailEl.innerHTML = '<div class="card"><div class="empty">Carregando dados…</div></div>';
-      let dados = null; let presc = null;
-      try { dados = await Cloud.dadosUsuario(uid); } catch (e) { /* segue */ }
-      try { presc = await Cloud.prescricaoDe(uid); } catch (e) { /* segue */ }
-      const nTreino = dados && dados.treino ? dados.treino.length : 0;
-      const nRef = dados && dados.alimentacao ? dados.alimentacao.length : 0;
-      const medidas = dados && dados.medidas ? dados.medidas.filter(m => m.weight != null).sort((a, b) => b.date.localeCompare(a.date)) : [];
-      const peso = medidas.length ? medidas[0].weight : null;
+      invalidarPacienteCache();
+      await carregarPaciente(uid, info);
+      detailEl.innerHTML = '';
+      api.goToMais('paciente', uid);
+    }
+
+    // ---- Telas do paciente ----
+    function pintarTelaPaciente() {
+      const uid = state.maisParam;
+      const cache = pacienteCache;
+      if (!uid || cache.uid !== uid) {
+        // Sem cache (ex: recarregou a página no meio da navegação) não há como remontar a
+        // tela sem os dados; volta pra lista, que é de onde o paciente se abre.
+        $app.innerHTML = '<div class="card"><div class="empty">Abra o paciente pela lista do painel.</div></div>';
+        return;
+      }
+      const secao = secaoPaciente(state.maisView);
+      if (!secao) { pintarVisaoGeral(uid, cache); return; }
+      if (secao.soSuper && !souSuperAdmin) { api.back(); return; }
+
+      $app.innerHTML = `<div id="paciente-secao"></div>`;
+      detailEl = $app.querySelector('#paciente-secao');
+      const { dados, presc, info } = cache;
+
+      if (secao.view === 'paciente-diario') { montarDiario(dados); return; }
+      if (secao.view === 'paciente-relatorio') { montarRelatorio(dados); return; }
+      if (secao.view === 'paciente-dieta') { montarDieta(uid, presc); return; }
+
+      // Demais seções: pinta o container que o montarX correspondente procura.
+      detailEl.innerHTML = `<div id="${secao.alvo}"></div>${secao.view === 'paciente-papel' ? '<div id="admin-reatribuir"></div>' : ''}`;
+      if (secao.view === 'paciente-medidas') montarMedidasPaciente(uid, dados);
+      else if (secao.view === 'paciente-plano') montarPlano(uid, presc);
+      else if (secao.view === 'paciente-treino') montarTreino(uid, presc);
+      else if (secao.view === 'paciente-corrida') montarCorrida(uid, presc);
+      else if (secao.view === 'paciente-lista') montarListaCompras(uid, presc);
+      else if (secao.view === 'paciente-livre') montarRegrasRefeicaoLivre(uid, presc);
+      else if (secao.view === 'paciente-solicitar') montarSolicitacao(uid, presc);
+      else if (secao.view === 'paciente-papel') { montarPapel(uid, info); montarReatribuir(uid, info); }
+    }
+
+    function pintarVisaoGeral(uid, cache) {
+      const { dados, presc, info } = cache;
+      const perfil = (dados && dados.perfil) || {};
+      const nome = (info && (info.displayName || info.email)) || perfil.nome || uid;
+      const pesos = (dados && dados.medidas ? dados.medidas : [])
+        .filter(m => m.weight != null).sort((a, b) => a.date.localeCompare(b.date));
+      const atual = pesos.length ? pesos[pesos.length - 1] : null;
+      const primeiro = pesos.length ? pesos[0] : null;
+      const delta = atual && primeiro && pesos.length > 1
+        ? Math.round((atual.weight - primeiro.weight) * 10) / 10 : null;
+      const altura = perfil.altura ? Number(perfil.altura) : null;
+      const imc = atual && altura ? Math.round((atual.weight / Math.pow(altura / 100, 2)) * 10) / 10 : null;
+      const ad = aderenciaPaciente(dados, presc, 30);
       const p = presc || {};
+      const nRefPlano = Array.isArray(p.refeicoes) ? p.refeicoes.length : 0;
+      const nTreinoPlano = Array.isArray(p.planosTreino) ? p.planosTreino.length : 0;
+      const nCorridaPlano = Array.isArray(p.planosCorrida) ? p.planosCorrida.length : 0;
+
+      const secoesVisiveis = SECOES_PACIENTE.filter(s => !s.soSuper || souSuperAdmin);
+
+      $app.innerHTML = `
+        <div class="card">
+          <h2 style="margin-bottom:2px">${Util.escapeHtml(nome)}</h2>
+          <p class="meta" style="margin-top:0">${Util.escapeHtml((info && info.email) || perfil.email || '')}</p>
+          <div class="macro-box-row">
+            ${tileHtml('Peso', atual ? atual.weight : '—', atual ? 'kg' : '',
+              delta != null ? `${delta > 0 ? '+' : ''}${delta} kg desde ${Util.fmtDate(primeiro.date)}` : (atual ? `em ${Util.fmtDate(atual.date)}` : 'sem pesagem'))}
+            ${tileHtml('IMC', imc != null ? imc : '—', '', imc != null ? faixaImcTexto(imc) : 'falta altura')}
+            ${tileHtml('Treinos', ad.diasComTreino, '', 'dias nos últimos 30')}
+            ${tileHtml('Registrou', ad.diasComComida, '', 'dias com comida em 30')}
+          </div>
+        </div>
+
+        <div class="card">
+          <h3 style="font-size:0.92rem;margin:0 0 8px">📉 Evolução do peso</h3>
+          ${pesos.length >= 2
+            ? '<canvas id="pac-chart-peso"></canvas><p class="meta" style="font-size:0.76rem">Linha tracejada = tendência (média móvel)</p>'
+            : '<div class="empty">Precisa de pelo menos duas pesagens pra desenhar a evolução.</div>'}
+        </div>
+
+        <div class="card">
+          <h3 style="font-size:0.92rem;margin:0 0 4px">📊 Aderência — últimos 30 dias</h3>
+          <p class="meta" style="margin-top:0;font-size:0.76rem">Calculado só sobre o que ele registrou no app.</p>
+          ${barraHtml('Dias com comida registrada', ad.diasComComida, 30)}
+          ${barraHtml('Dias com treino registrado', ad.diasComTreino, 30)}
+          ${ad.dentroMeta && ad.dentroMeta.base > 0
+            ? barraHtml(`Dias dentro da meta (${ad.dentroMeta.metaKcal} kcal ±10%)`, ad.dentroMeta.ok, ad.dentroMeta.base, 'dias registrados')
+            : `<p class="meta">${p.kcal ? 'Sem dia registrado no período pra comparar com a meta.' : 'Envie uma meta de calorias pra medir isso.'}</p>`}
+          <p class="meta" style="font-size:0.76rem">${ad.pesagens} pesagem(ns) no período · ${ad.treinos} treino(s) no total</p>
+        </div>
+
+        <div class="card">
+          <h3 style="font-size:0.92rem;margin:0 0 8px">📋 O que está prescrito</h3>
+          <div class="stat-row" style="margin-bottom:10px">
+            <div class="stat-row-info">
+              <div class="stat-row-label">DIETA</div>
+              <div class="stat-row-value">${p.kcal ? `${p.kcal} kcal` : '—'} <span class="stat-row-unit">${p.nome ? Util.escapeHtml(p.nome) : 'nenhuma enviada'}</span></div>
+              ${p.kcal ? `<div class="meta">P ${p.protein || '—'}g · C ${p.carb || '—'}g · G ${p.fat || '—'}g</div>` : ''}
+            </div>
+          </div>
+          <p class="meta">🍽️ Plano alimentar: <strong>${nRefPlano}</strong> refeição(ões) · 🏋️ Treino: <strong>${nTreinoPlano}</strong> plano(s) · 🏃 Corrida: <strong>${nCorridaPlano}</strong></p>
+        </div>
+
+        ${menuCardHtml(secoesVisiveis.map(s => escolhaHtml(`data-secao="${s.view}"`, s.icone, s.titulo, s.sub)))}
+      `;
+
+      if (pesos.length >= 2) {
+        const points = pesos.map(m => ({ label: Util.fmtDate(m.date).slice(0, 5), value: m.weight }));
+        const trend = points.length >= 3 ? Util.movingAverage(points, 5) : null;
+        drawLineChart(document.getElementById('pac-chart-peso'), points, { trend });
+      }
+      $app.querySelectorAll('[data-secao]').forEach(btn => {
+        btn.addEventListener('click', () => api.goToMais(btn.dataset.secao, uid));
+      });
+    }
+
+    function montarDiario(dados) {
       detailEl.innerHTML = `
         <div class="card">
-          <h2>${Util.escapeHtml((info && (info.displayName || info.email)) || uid)}</h2>
-          <p class="meta">${Util.escapeHtml((info && info.email) || '')}</p>
-          <p class="meta">ID: <code style="font-size:0.72rem">${Util.escapeHtml(uid)}</code></p>
-          <p class="meta">Treinos: ${nTreino} · Refeições lançadas: ${nRef} · Peso atual: ${peso != null ? peso + 'kg' : '—'}</p>
-        </div>
-        <div class="card">
-          <h3 style="font-size:0.92rem;margin:0 0 8px">📅 Diário do paciente</h3>
           <label>Escolha o dia</label>
           <input type="date" id="ad-diario-data" value="${Util.todayISO()}">
           <div id="ad-diario-conteudo" style="margin-top:10px"></div>
-        </div>
+        </div>`;
+      const conteudo = detailEl.querySelector('#ad-diario-conteudo');
+      const data = detailEl.querySelector('#ad-diario-data');
+      const pintar = () => { conteudo.innerHTML = renderDiarioDia(dados || {}, data.value); };
+      data.addEventListener('change', pintar);
+      pintar();
+    }
+
+    function montarRelatorio(dados) {
+      detailEl.innerHTML = `
         <div class="card">
-          <h3 style="font-size:0.92rem;margin:0 0 8px">📄 Relatório do paciente</h3>
           <p class="meta">Mesmo relatório que o paciente pode gerar em Mais → Backup — resumo em texto pronto pra colar numa IA ou pra sua própria análise.</p>
           <label>Período</label>
           <select id="ad-report-periodo">
@@ -2007,9 +2254,23 @@ Peito de frango grelhado 120g`;
           <button class="secondary" id="ad-gen-report" style="margin-top:10px">Gerar relatório</button>
           <textarea id="ad-report-box" readonly style="min-height:280px;margin-top:10px;display:none;font-family:monospace;font-size:0.8rem"></textarea>
           <button class="secondary" id="ad-copy-report" style="display:none;margin-top:8px">Copiar</button>
-        </div>
+        </div>`;
+      detailEl.querySelector('#ad-gen-report').addEventListener('click', () => {
+        const diasRel = Number(detailEl.querySelector('#ad-report-periodo').value) || 15;
+        const box = detailEl.querySelector('#ad-report-box');
+        box.value = gerarRelatorio(diasRel, dados || {});
+        box.style.display = '';
+        detailEl.querySelector('#ad-copy-report').style.display = '';
+      });
+      detailEl.querySelector('#ad-copy-report').addEventListener('click', () => {
+        navigator.clipboard.writeText(detailEl.querySelector('#ad-report-box').value);
+      });
+    }
+
+    function montarDieta(uid, presc) {
+      const p = presc || {};
+      detailEl.innerHTML = `
         <div class="card">
-          <h3 style="font-size:0.92rem;margin:0 0 8px">Enviar / atualizar dieta</h3>
           ${presc ? `<p class="meta">Dieta atual: <strong>${Util.escapeHtml(p.nome || '')}</strong> · ${p.kcal || '—'} kcal</p>` : '<p class="meta">Nenhuma dieta enviada ainda.</p>'}
           <label>Nome da dieta</label>
           <input type="text" id="ad-nome" value="${Util.escapeHtml(p.nome || '')}" placeholder="Ex: Dieta agosto">
@@ -2025,42 +2286,7 @@ Peito de frango grelhado 120g`;
           <input type="number" id="ad-fiber" value="${p.fiber || ''}">
           <button class="primary" id="ad-enviar" style="margin-top:10px">Enviar dieta para este usuário</button>
           <p class="meta" id="ad-msg" style="margin-top:8px"></p>
-        </div>
-        <div id="admin-plano"></div>
-        <div id="admin-lista-compras"></div>
-        <div id="admin-refeicao-livre"></div>
-        <div id="admin-treino"></div>
-        <div id="admin-corrida"></div>
-        <div id="admin-medidas"></div>
-        <div id="admin-solicitar"></div>
-        <div id="admin-papel"></div>
-        <div id="admin-reatribuir"></div>
-      `;
-      montarPlano(uid, presc);
-      montarListaCompras(uid, presc);
-      montarRegrasRefeicaoLivre(uid, presc);
-      montarTreino(uid, presc);
-      montarCorrida(uid, presc);
-      montarMedidasPaciente(uid, dados);
-      montarSolicitacao(uid, presc);
-      montarPapel(uid, info);
-      montarReatribuir(uid, info);
-      const diarioConteudo = detailEl.querySelector('#ad-diario-conteudo');
-      const diarioData = detailEl.querySelector('#ad-diario-data');
-      const pintarDiario = () => { diarioConteudo.innerHTML = renderDiarioDia(dados || {}, diarioData.value); };
-      diarioData.addEventListener('change', pintarDiario);
-      pintarDiario();
-      detailEl.querySelector('#ad-gen-report').addEventListener('click', () => {
-        const diasRel = Number(detailEl.querySelector('#ad-report-periodo').value) || 15;
-        const report = gerarRelatorio(diasRel, dados || {});
-        const box = detailEl.querySelector('#ad-report-box');
-        box.value = report;
-        box.style.display = '';
-        detailEl.querySelector('#ad-copy-report').style.display = '';
-      });
-      detailEl.querySelector('#ad-copy-report').addEventListener('click', () => {
-        navigator.clipboard.writeText(detailEl.querySelector('#ad-report-box').value);
-      });
+        </div>`;
       detailEl.querySelector('#ad-enviar').addEventListener('click', async () => {
         const msg = detailEl.querySelector('#ad-msg');
         const nome = detailEl.querySelector('#ad-nome').value.trim();
@@ -2074,8 +2300,13 @@ Peito de frango grelhado 120g`;
           fiber: Number(detailEl.querySelector('#ad-fiber').value) || null,
         };
         msg.textContent = 'Enviando…';
-        try { await Cloud.enviarDieta(uid, dieta); msg.textContent = '✅ Dieta enviada! O usuário verá ao abrir/entrar no app.'; }
-        catch (e) { msg.textContent = '⚠️ Falha ao enviar: ' + (e.message || ''); }
+        try {
+          await Cloud.enviarDieta(uid, dieta);
+          // A visão geral lê a prescrição do cache; sem atualizar, voltar mostraria a dieta
+          // velha e daria a impressão de que o envio não pegou.
+          pacienteCache.presc = Object.assign({}, pacienteCache.presc || {}, dieta);
+          msg.textContent = '✅ Dieta enviada! O usuário verá ao abrir/entrar no app.';
+        } catch (e) { msg.textContent = '⚠️ Falha ao enviar: ' + (e.message || ''); }
       });
     }
 
@@ -2154,13 +2385,22 @@ Peito de frango grelhado 120g`;
         .concat([{ id: 'am-altura', label: 'Altura (cm) — vai pro perfil', valor: perfil.altura != null ? perfil.altura : '' }]);
       const linhas = [];
       for (let i = 0; i < todos.length; i += 2) linhas.push(todos.slice(i, i + 2));
+      let avisosImport = [];
 
+      function paint() {
       cont.innerHTML = `
         <div class="card">
           <h3 style="font-size:0.92rem;margin:0 0 6px">📏 Medidas da consulta</h3>
           <p class="meta" style="margin-top:0">${ultima
             ? `Última do paciente: ${Util.escapeHtml(ultima.date)}${ultima.weight != null ? ` · ${ultima.weight}kg` : ''}. Os campos já vêm com ela — ajuste o que você mediu hoje.`
             : 'O paciente ainda não tem medidas registradas.'}</p>
+          ${importadorHtml({
+            id: 'am-imp',
+            rotulo: 'Colar a folha da consulta',
+            ajuda: 'Cole as medidas como você anotou, uma por linha. Elas só PREENCHEM os campos abaixo — nada é enviado até você conferir e apertar o botão no fim.',
+            exemplo: EXEMPLO_MEDIDAS,
+            avisos: avisosImport,
+          })}
           <label>Data da aferição</label>
           <input type="date" id="am-data" value="${Util.escapeHtml(Util.todayISO())}">
           ${linhas.map(par => `<div class="row">${par.map(c => input(c.id, c.label, c.valor)).join('')}</div>`).join('')}
@@ -2168,8 +2408,30 @@ Peito de frango grelhado 120g`;
           <textarea id="am-notes" placeholder="Ex: retorno em 30 dias, manter o treino atual..."></textarea>
           <button class="primary" id="am-enviar" style="margin-top:10px">Enviar medidas para o paciente</button>
           <p class="meta" id="am-msg" style="margin-top:8px">Peso e altura também atualizam o cadastro dele, não só o gráfico.</p>
+          <p class="meta" style="font-size:0.74rem">A medida entra no diário dele — e no gráfico daqui — na próxima vez que ele abrir o app.</p>
         </div>
       `;
+
+      // Importar preenche os CAMPOS, não envia. Aqui isso é ainda mais literal que no
+      // treino e no plano alimentar: a nutri vê cada número no seu campo antes de mandar.
+      cont.querySelector('#am-imp-ler').addEventListener('click', () => {
+        const r = ParsePlano.parseMedidas(cont.querySelector('#am-imp-texto').value);
+        const texto = cont.querySelector('#am-imp-texto').value;
+        avisosImport = r.avisos;
+        paint();
+        cont.querySelector('#am-imp-texto').value = texto;
+        if (avisosImport.length) cont.querySelector('#am-imp-texto').closest('details').open = true;
+
+        let preenchidos = 0;
+        Object.keys(r.medida).forEach(k => {
+          if (k === 'date') { cont.querySelector('#am-data').value = r.medida.date; return; }
+          const el = cont.querySelector(`#am-${k}`);
+          if (el) { el.value = r.medida[k]; preenchidos++; }
+        });
+        cont.querySelector('#am-msg').textContent = preenchidos
+          ? `✅ ${preenchidos} campo(s) preenchido(s). Confira e envie.`
+          : '⚠️ Nenhum campo reconhecido — veja os avisos.';
+      });
 
       cont.querySelector('#am-enviar').addEventListener('click', async () => {
         const msg = cont.querySelector('#am-msg');
@@ -2193,6 +2455,8 @@ Peito de frango grelhado 120g`;
           msg.textContent = '✅ Enviado! Entra no diário dele na próxima vez que abrir o app.';
         } catch (e) { msg.textContent = '⚠️ Falha: ' + (e.message || ''); }
       });
+      }
+      paint();
     }
 
     // Promover/remover profissional (só super-admin). O papel de nutri é a existência do
@@ -2310,7 +2574,7 @@ Peito de frango grelhado 120g`;
         cont.innerHTML = `
           <div class="card">
             <h3 style="font-size:0.92rem;margin:0 0 8px">🍽️ Plano alimentar (refeição a refeição)</h3>
-            ${importadorHtml({ id: 'pl-imp', rotulo: 'Importar plano colado', separa: 'as refeições', exemplo: EXEMPLO_PLANO, avisos: avisosImport })}
+            ${importadorHtml({ id: 'pl-imp', rotulo: 'Importar plano colado', ajuda: 'Cole o plano como você já escreve. Uma linha em branco separa as refeições. Nada vai pro paciente agora — o texto só monta a lista abaixo pra você conferir.', exemplo: EXEMPLO_PLANO, avisos: avisosImport })}
             ${refeicoes.length === 0 ? '<p class="meta">Nenhuma refeição no plano ainda.</p>' : refeicoes.map((r, i) => `
               <div class="list-item">
                 <div>
@@ -2370,7 +2634,11 @@ Peito de frango grelhado 120g`;
           const msg = cont.querySelector('#pl-msg');
           if (refeicoes.length === 0) { msg.textContent = 'Adicione ao menos uma refeição.'; return; }
           msg.textContent = 'Enviando…';
-          try { await Cloud.enviarPlano(uid, refeicoes); msg.textContent = '✅ Plano alimentar enviado! O paciente recebe como refeições prontas.'; }
+          try {
+            await Cloud.enviarPlano(uid, refeicoes);
+            pacienteCache.presc = Object.assign({}, pacienteCache.presc || {}, { refeicoes });
+            msg.textContent = '✅ Plano alimentar enviado! O paciente recebe como refeições prontas.';
+          }
           catch (e) { msg.textContent = '⚠️ Falha: ' + (e.message || ''); }
         });
       }
@@ -2585,7 +2853,7 @@ Peito de frango grelhado 120g`;
         cont.innerHTML = `
           <div class="card">
             <h3 style="font-size:0.92rem;margin:0 0 8px">🏋️ Plano de treino (A/B/C)</h3>
-            ${importadorHtml({ id: 'pt-imp', rotulo: 'Importar treino colado', separa: 'os treinos', exemplo: EXEMPLO_TREINO, avisos: avisosImport })}
+            ${importadorHtml({ id: 'pt-imp', rotulo: 'Importar treino colado', ajuda: 'Cole o treino como você já escreve. Uma linha em branco separa os treinos. Nada vai pro paciente agora — o texto só monta a lista abaixo pra você conferir.', exemplo: EXEMPLO_TREINO, avisos: avisosImport })}
             <label>Carregar pacote pré-definido (ponto de partida, editável)</label>
             <select id="pt-pack-select">
               ${pacotesVisiveis.map(id => {
@@ -2666,7 +2934,11 @@ Peito de frango grelhado 120g`;
           const msg = cont.querySelector('#pt-msg');
           if (planosTreino.length === 0) { msg.textContent = 'Adicione ao menos um plano de treino.'; return; }
           msg.textContent = 'Enviando…';
-          try { await Cloud.enviarTreino(uid, planosTreino); msg.textContent = '✅ Treino enviado! O paciente recebe como planos prontos.'; }
+          try {
+            await Cloud.enviarTreino(uid, planosTreino);
+            pacienteCache.presc = Object.assign({}, pacienteCache.presc || {}, { planosTreino });
+            msg.textContent = '✅ Treino enviado! O paciente recebe como planos prontos.';
+          }
           catch (e) { msg.textContent = '⚠️ Falha: ' + (e.message || ''); }
         });
       }
@@ -2851,7 +3123,11 @@ Peito de frango grelhado 120g`;
           const msg = cont.querySelector('#pc-msg');
           if (planosCorrida.length === 0) { msg.textContent = 'Adicione ao menos um treino de corrida.'; return; }
           msg.textContent = 'Enviando…';
-          try { await Cloud.enviarCorrida(uid, planosCorrida); msg.textContent = '✅ Treinos de corrida enviados! O paciente vê na aba Treino → Corrida.'; }
+          try {
+            await Cloud.enviarCorrida(uid, planosCorrida);
+            pacienteCache.presc = Object.assign({}, pacienteCache.presc || {}, { planosCorrida });
+            msg.textContent = '✅ Treinos de corrida enviados! O paciente vê na aba Treino → Corrida.';
+          }
           catch (e) { msg.textContent = '⚠️ Falha: ' + (e.message || ''); }
         });
       }
@@ -2860,5 +3136,9 @@ Peito de frango grelhado 120g`;
     }
   }
 
-  return { render };
+  // aderenciaPaciente e faixaImcTexto saem no export por serem as duas funções de cálculo
+  // puro daqui — dá pra testá-las com node, sem DOM, como o ParsePlano.
+  return { render, aderenciaPaciente, faixaImcTexto };
 })();
+
+if (typeof module !== 'undefined' && module.exports) module.exports = ViewMais;

@@ -143,6 +143,18 @@ const App = (() => {
     backup: 'Backup',
     notificacoes: 'Notificações',
     admin: 'Painel profissional',
+    'paciente': 'Paciente',
+    'paciente-diario': 'Diário do paciente',
+    'paciente-medidas': 'Medidas da consulta',
+    'paciente-dieta': 'Metas de dieta',
+    'paciente-plano': 'Plano alimentar',
+    'paciente-treino': 'Plano de treino',
+    'paciente-corrida': 'Treinos de corrida',
+    'paciente-lista': 'Lista de compras',
+    'paciente-livre': 'Refeição livre',
+    'paciente-solicitar': 'Pedir ao paciente',
+    'paciente-relatorio': 'Relatório do paciente',
+    'paciente-papel': 'Papel e profissional',
   };
 
   const api = { goTo, goToMais, back, render, get state() { return state; } };

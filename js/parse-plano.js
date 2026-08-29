@@ -204,8 +204,110 @@ const ParsePlano = (() => {
     return { refeicoes, avisos };
   }
 
+  // ---------------- MEDIDAS DA CONSULTA ----------------
+  // A nutri anota as circunferências no papel durante a consulta e depois redigita uma a
+  // uma no painel. Aqui ela cola a folha inteira.
+  //
+  // Cada termo é escrito como a pessoa escreve mesmo (sem acento no dicionário porque a
+  // comparação é normalizada). 'altura' não é medida — não muda com o tempo e vai pro
+  // perfil — mas é reconhecida aqui porque aparece na mesma folha.
+  const MEDIDA_TERMOS = [
+    { key: 'weight', termos: ['peso atual', 'peso'] },
+    { key: 'waist', termos: ['cintura'] },
+    { key: 'neck', termos: ['pescoco'] },
+    { key: 'abdomen', termos: ['abdomen', 'barriga'] },
+    { key: 'chest', termos: ['peito', 'torax', 'busto'] },
+    { key: 'hip', termos: ['quadril'] },
+    { key: 'arm', termos: ['braco relaxado', 'braco contraido', 'braco'] },
+    { key: 'thigh', termos: ['coxa'] },
+    { key: 'bodyFat', termos: ['percentual de gordura', 'gordura corporal', 'gordura', 'bf'] },
+    { key: 'leanMass', termos: ['massa magra'] },
+    { key: 'altura', termos: ['altura'] },
+  ];
+
+  // Faixas de plausibilidade. Existem por um motivo concreto: peso e altura daqui também
+  // atualizam o CADASTRO do paciente, então um 15 digitado no lugar de 105 corromperia o
+  // gráfico e o perfil dele em silêncio. Fora da faixa vira aviso e o valor não entra.
+  const MEDIDA_FAIXAS = {
+    weight: [25, 350], waist: [30, 250], neck: [20, 80], abdomen: [30, 250],
+    chest: [40, 250], hip: [40, 250], arm: [15, 120], thigh: [20, 120],
+    bodyFat: [3, 70], leanMass: [15, 150], altura: [100, 250],
+  };
+
+  const MEDIDA_UNIDADE = { weight: 'kg', leanMass: 'kg', bodyFat: '%', altura: 'cm' };
+
+  function unidadeDe(key) { return MEDIDA_UNIDADE[key] || 'cm'; }
+
+  // Data solta na folha: "28/08/2026", "28-08-26" ou já em ISO.
+  function parseDataMedida(linha) {
+    const iso = linha.match(/(\d{4})-(\d{2})-(\d{2})/);
+    if (iso) return iso[0];
+    const br = linha.match(/(\d{1,2})[/.-](\d{1,2})[/.-](\d{2,4})/);
+    if (!br) return null;
+    const dia = Number(br[1]), mes = Number(br[2]);
+    let ano = Number(br[3]);
+    if (ano < 100) ano += 2000;
+    if (dia < 1 || dia > 31 || mes < 1 || mes > 12) return null;
+    return `${ano}-${String(mes).padStart(2, '0')}-${String(dia).padStart(2, '0')}`;
+  }
+
+  // Devolve { medida, avisos }. medida traz só os campos reconhecidos e plausíveis, mais
+  // 'date' se a folha trouxer uma. Uma linha nunca some calada.
+  function parseMedidas(texto) {
+    const medida = {};
+    const avisos = [];
+    const vistos = {};
+
+    (texto || '').split('\n').forEach(bruta => {
+      const linha = semMarcador(bruta.trim());
+      if (!linha || linha.startsWith('//')) return;
+
+      // O valor é o PRIMEIRO número da linha, e o rótulo é o que vem antes dele. Pegar o
+      // último quebraria em "IMC: 39,2 kg/m2", onde o 2 do m² viraria o valor.
+      const m = linha.match(/(-?\d+(?:[.,]\d+)?)/);
+      if (!m) { avisos.push(`Linha sem número, ignorada: "${bruta.trim()}"`); return; }
+
+      const rotulo = normalizar(linha.slice(0, m.index).replace(/[:=–—-]+\s*$/, ''));
+      const valor = Number(m[1].replace(',', '.'));
+
+      if (!rotulo) {
+        const data = parseDataMedida(linha);
+        if (data) { medida.date = data; return; }
+        avisos.push(`Linha sem nome de medida, ignorada: "${bruta.trim()}"`);
+        return;
+      }
+      if (/^data\b/.test(rotulo)) {
+        const data = parseDataMedida(linha);
+        if (data) medida.date = data;
+        else avisos.push(`Não entendi a data em "${bruta.trim()}". Use dia/mês/ano.`);
+        return;
+      }
+
+      const achado = MEDIDA_TERMOS.find(t => t.termos.some(termo => rotulo.includes(termo)));
+      if (!achado) { avisos.push(`"${linha.slice(0, m.index).trim()}" não é um campo de medida conhecido — ignorada.`); return; }
+
+      const [min, max] = MEDIDA_FAIXAS[achado.key];
+      if (!(valor >= min && valor <= max)) {
+        avisos.push(`${valor} está fora do esperado para ${achado.key} (${min}–${max}${unidadeDe(achado.key)}) — confira, não foi importado.`);
+        return;
+      }
+      // Folha com "Braço relaxado" e "Braço contraído" traz o mesmo campo duas vezes.
+      // Fica o primeiro, e o segundo é avisado em vez de sobrescrever calado.
+      if (medida[achado.key] != null) {
+        avisos.push(`"${linha.slice(0, m.index).trim()}" repete ${achado.key}, que já tinha ${medida[achado.key]}${unidadeDe(achado.key)} de "${vistos[achado.key]}". Mantido o primeiro.`);
+        return;
+      }
+      medida[achado.key] = valor;
+      vistos[achado.key] = linha.slice(0, m.index).trim();
+    });
+
+    const campos = Object.keys(medida).filter(k => k !== 'date');
+    if (campos.length === 0 && avisos.length === 0) avisos.push('Nada reconhecido no texto.');
+    return { medida, avisos };
+  }
+
   return {
-    parseTreino, parsePlanoAlimentar,
+    parseTreino, parsePlanoAlimentar, parseMedidas, parseDataMedida,
     parseExercicio, parseQuantidade, parseCabecalhoRefeicao, acharAlimento,
     normalizar, blocos, montarItem,
   };
