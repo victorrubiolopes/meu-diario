@@ -120,6 +120,28 @@ const EXERCICIOS_PADRAO = [
   { name: 'Panturrilha sentado', grupo: 'Panturrilha', equipamento: 'Máquina' },
   { name: 'Panturrilha no leg press', grupo: 'Panturrilha', equipamento: 'Máquina' },
   { name: 'Panturrilha unilateral', grupo: 'Panturrilha', equipamento: 'Halteres' },
+
+  // Cardio. Entram como 'Outro' porque não há ilustração de músculo pra eles — o grupo
+  // 'Outro' já existe justamente pra isso e fica sem arte, sem quebrar nada. Sem essas
+  // entradas, o aquecimento e a volta à calma de um plano ficavam como texto solto, sem
+  // aparecer na biblioteca nem no autocomplete de quem monta treino.
+  { name: 'Bicicleta ergométrica horizontal', grupo: 'Outro', equipamento: 'Máquina' },
+  { name: 'Bicicleta ergométrica vertical', grupo: 'Outro', equipamento: 'Máquina' },
+  { name: 'Esteira (caminhada)', grupo: 'Outro', equipamento: 'Máquina' },
+  { name: 'Elíptico', grupo: 'Outro', equipamento: 'Máquina' },
+  { name: 'Caminhada ao ar livre', grupo: 'Outro', equipamento: 'Peso do corpo' },
+
+  // Exercícios de baixa exigência técnica, pra quem está saindo do sedentarismo ou tem
+  // restrição articular: dá pra fazer sem acompanhante e sem carga, e vários poupam o
+  // joelho (quadril em pé, ponte) ou permitem regular a dificuldade sozinho (altura da
+  // cadeira, distância da parede).
+  { name: 'Levantar e sentar na cadeira', grupo: 'Quadríceps', equipamento: 'Peso do corpo' },
+  { name: 'Abdução de quadril em pé', grupo: 'Perna', equipamento: 'Peso do corpo' },
+  { name: 'Extensão de quadril em pé', grupo: 'Perna', equipamento: 'Peso do corpo' },
+  { name: 'Ponte de glúteo no chão', grupo: 'Perna', equipamento: 'Peso do corpo' },
+  { name: 'Flexão de braço na parede', grupo: 'Peito', equipamento: 'Peso do corpo' },
+  { name: 'Remada com elástico', grupo: 'Costas', equipamento: 'Elástico' },
+  { name: 'Prancha na bancada', grupo: 'Abdômen', equipamento: 'Peso do corpo' },
 ];
 
 const GRUPOS_MUSCULARES = [
