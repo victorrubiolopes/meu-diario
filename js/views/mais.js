@@ -63,6 +63,42 @@ const ViewMais = (() => {
     return `<div class="card" style="padding:4px 16px"><div class="menu-list">${itens.join('')}</div></div>`;
   }
 
+  // ---------------- IMPORTAR PLANO COLADO (painel do profissional) ----------------
+  // Bloco reaproveitado pelos dois formulários do painel (treino e plano alimentar). O
+  // texto colado só PREENCHE a lista de montagem — quem envia pro paciente continua sendo
+  // o botão "Enviar" de sempre, depois da conferência. Importar não prescreve.
+  function importadorHtml({ id, rotulo, separa, exemplo, avisos }) {
+    return `
+      <details style="margin-bottom:10px">
+        <summary class="meta" style="cursor:pointer;padding:4px 0"><strong>📋 ${rotulo}</strong></summary>
+        <p class="meta" style="margin:6px 0">Cole o plano como você já escreve. Uma linha em branco separa ${separa}. Nada vai pro paciente agora — o texto só monta a lista abaixo pra você conferir.</p>
+        <textarea id="${id}-texto" rows="8" placeholder="${Util.escapeHtml(exemplo)}"></textarea>
+        <button class="secondary" id="${id}-ler" style="width:100%;margin-top:6px">Ler texto e montar</button>
+        ${avisos && avisos.length ? `
+          <div class="meta" style="margin-top:8px;border-left:3px solid var(--danger);padding-left:8px">
+            <strong>${avisos.length} linha(s) não entraram:</strong>
+            <ul style="margin:4px 0 0;padding-left:16px;line-height:1.5">${avisos.map(a => `<li>${Util.escapeHtml(a)}</li>`).join('')}</ul>
+          </div>` : ''}
+      </details>`;
+  }
+
+  const EXEMPLO_TREINO = `Treino A - Peito e tríceps
+Supino reto com barra 4x10 20kg 90s
+Supino inclinado com halteres 3x12 14kg
+Tríceps corda 3x15 // cotovelo parado
+
+Treino B - Costas e bíceps
+Puxada frontal 4x10 35kg
+Remada curvada 4x12 30kg`;
+
+  const EXEMPLO_PLANO = `Café da manhã 07:00
+Pão para hambúrguer 1un
+Requeijão light 61% menos gordura 30g
+
+Almoço 12:00
+Arroz branco cozido 150g
+Peito de frango grelhado 120g`;
+
   // ---------------- NOTIFICAÇÕES (avisos do profissional pro paciente) ----------------
   const NOTIF_ICONES = {
     dieta: '🥗', plano: '🍽️', treino: '🏋️', corrida: '🏃',
@@ -2268,11 +2304,13 @@ const ViewMais = (() => {
         ? presc.refeicoes.map(r => ({ ...r, itens: (r.itens || []).map(i => ({ ...i })) })) : [];
       let itensNovo = [];
       let plSelectedFood = null;
+      let avisosImport = [];
 
       function paint() {
         cont.innerHTML = `
           <div class="card">
             <h3 style="font-size:0.92rem;margin:0 0 8px">🍽️ Plano alimentar (refeição a refeição)</h3>
+            ${importadorHtml({ id: 'pl-imp', rotulo: 'Importar plano colado', separa: 'as refeições', exemplo: EXEMPLO_PLANO, avisos: avisosImport })}
             ${refeicoes.length === 0 ? '<p class="meta">Nenhuma refeição no plano ainda.</p>' : refeicoes.map((r, i) => `
               <div class="list-item">
                 <div>
@@ -2304,6 +2342,22 @@ const ViewMais = (() => {
         pintarItens();
         cont.querySelectorAll('[data-del-ref]').forEach(b => b.addEventListener('click', () => { refeicoes.splice(Number(b.dataset.delRef), 1); paint(); }));
         wireFoodSearch();
+
+        cont.querySelector('#pl-imp-ler').addEventListener('click', () => {
+          const texto = cont.querySelector('#pl-imp-texto').value;
+          // Casa contra a MESMA biblioteca que o autocomplete usa logo abaixo, pra não
+          // haver alimento que a busca acha e a importação não.
+          const r = ParsePlano.parsePlanoAlimentar(texto, biblioteca);
+          avisosImport = r.avisos;
+          r.refeicoes.forEach(ref => refeicoes.push(ref));
+          const msgTexto = r.refeicoes.length
+            ? `✅ ${r.refeicoes.length} refeição(ões) lida(s). Confira abaixo e envie.`
+            : '⚠️ Nenhuma refeição reconhecida — veja os avisos.';
+          paint();
+          const ta = cont.querySelector('#pl-imp-texto');
+          if (ta && avisosImport.length) ta.closest('details').open = true;
+          cont.querySelector('#pl-msg').textContent = msgTexto;
+        });
         cont.querySelector('#pl-add-ref').addEventListener('click', () => {
           const nome = cont.querySelector('#pl-nome').value.trim();
           const horario = cont.querySelector('#pl-hora').value || null;
@@ -2519,6 +2573,7 @@ const ViewMais = (() => {
       let planosTreino = (presc && Array.isArray(presc.planosTreino))
         ? presc.planosTreino.map(p => ({ ...p, exercises: (p.exercises || []).map(e => ({ ...e })) })) : [];
       let rows = [{ name: '', sets: '', reps: '', weight: '', descanso: '', obs: '' }];
+      let avisosImport = [];
 
       // Mesma regra de visibilidade dos pacotes pessoais usada em Planos de Treino:
       // só o dono do app vê as próprias fichas de personal no seletor.
@@ -2530,6 +2585,7 @@ const ViewMais = (() => {
         cont.innerHTML = `
           <div class="card">
             <h3 style="font-size:0.92rem;margin:0 0 8px">🏋️ Plano de treino (A/B/C)</h3>
+            ${importadorHtml({ id: 'pt-imp', rotulo: 'Importar treino colado', separa: 'os treinos', exemplo: EXEMPLO_TREINO, avisos: avisosImport })}
             <label>Carregar pacote pré-definido (ponto de partida, editável)</label>
             <select id="pt-pack-select">
               ${pacotesVisiveis.map(id => {
@@ -2572,6 +2628,22 @@ const ViewMais = (() => {
           const pack = TREINOS_PREDEFINIDOS[packSelect.value];
           pack.planos.forEach(p => { planosTreino.push({ nome: p.nome, exercises: p.exercises.map(e => ({ ...e })) }); });
           paint();
+        });
+
+        cont.querySelector('#pt-imp-ler').addEventListener('click', () => {
+          const texto = cont.querySelector('#pt-imp-texto').value;
+          const r = ParsePlano.parseTreino(texto);
+          avisosImport = r.avisos;
+          // Acrescenta ao que já estava montado em vez de substituir: dá pra colar o
+          // treino em duas partes, ou colar por cima de um pacote carregado.
+          r.planos.forEach(p => planosTreino.push(p));
+          const msgTexto = r.planos.length
+            ? `✅ ${r.planos.length} treino(s) lido(s). Confira abaixo e envie.`
+            : '⚠️ Nenhum treino reconhecido — veja os avisos.';
+          paint();
+          const det = cont.querySelector('#pt-imp-texto');
+          if (det && avisosImport.length) det.closest('details').open = true;
+          cont.querySelector('#pt-msg').textContent = msgTexto;
         });
 
         cont.querySelector('#pt-add-exercicio').addEventListener('click', () => {

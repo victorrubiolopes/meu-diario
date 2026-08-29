@@ -20,6 +20,10 @@ Tudo em **português (pt-BR)**: interface, comentários, mensagens de commit e c
 - `js/util.js` — helpers. Datas em **fuso LOCAL** via `toLocalISO` (nunca `toISOString`, que é UTC).
 - `js/storage.js` — CRUD localStorage: `getAll/getByDate/add/update/remove/saveAll`, `getPerfil/savePerfil`, `mergeSeeds`, `KEYS`.
 - `js/db.js` — `PhotoDB` (fotos no IndexedDB).
+- `js/parse-plano.js` — `ParsePlano`: lê treino/plano alimentar colados em texto no painel do
+  profissional. Funções puras (sem DOM), testáveis com `node`. Regra: erra alto — linha não
+  entendida ou alimento fora da biblioteca vira aviso, **nunca some**. Importar só preenche a
+  lista de montagem; quem prescreve continua sendo o botão "Enviar".
 - `js/cloud.js` — módulo `Cloud`: login, sync, coleções compartilhadas, operações de nutri/admin.
 - `js/firebase-config.js` — `FIREBASE_CONFIG` (chaves públicas, ok versionar).
 - `js/data/*.js` — catálogos semente: `alimentos`, `exercicios`, `dietas`, `combos`, `treinosPredefinidos`, `planoVictor`, `changelog`.

@@ -1,5 +1,6 @@
 // Lista de atualizações recentes do app, mais recente primeiro. Editável manualmente a cada mudança.
 const CHANGELOG = [
+  { date: '2026-08-29', texto: 'Painel do profissional: dá pra colar o treino e o plano alimentar prontos, em texto, em vez de digitar exercício por exercício e alimento por alimento. Aceita o jeito que você já escreve ("Supino reto 4x10 20kg 90s", "Arroz branco cozido 150g"). O texto só monta a lista pra você conferir — nada vai pro paciente antes de você apertar Enviar. Linha que o app não entender, ou alimento que não estiver na biblioteca, aparece avisada em vermelho em vez de sumir' },
   { date: '2026-08-28', texto: 'Novo alimento: Strogonoff de frango com arroz Swift Prato Feito, cadastrado pela embalagem inteira (300g = 324 kcal, 18g de proteína). Se comer só parte, é só ajustar as gramas' },
   { date: '2026-08-28', texto: 'Correção: a tela de Refeição Livre mostrava "Mais" no topo em vez do próprio nome' },
   { date: '2026-08-28', texto: 'Mesmo padrão dos Planos de Treino aplicado no resto do app: Biblioteca de Alimentos, Biblioteca de Exercícios, Combos e Minhas Dietas agora abrem direto na lista, e cadastrar algo é uma tela própria com botão voltar. Antes era preciso rolar por formulários longos pra chegar na busca. Em Minhas Dietas os dois caminhos ficaram explícitos: "Usar uma dieta pronta" e "Criar minha própria dieta"' },
