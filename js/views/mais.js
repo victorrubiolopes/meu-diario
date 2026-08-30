@@ -850,7 +850,7 @@ Coxa: 58 cm
           <h2>🧮 ${Util.escapeHtml(META_VICTOR.meta.nome)}</h2>
           <p class="meta">${META_VICTOR.meta.kcal} kcal · P ${META_VICTOR.meta.protein}g · C ${META_VICTOR.meta.carb}g · G ${META_VICTOR.meta.fat}g</p>
           <p class="meta" style="border-left:3px solid var(--accent);padding-left:8px">${Util.escapeHtml(META_VICTOR.disclaimer)}</p>
-          <p class="meta">Carrega a meta como objetivo e atualiza as 5 refeições (mesmos horários da dieta do Matheus, porções ajustadas) como combos.</p>
+          <p class="meta">Carrega a meta como objetivo e atualiza as ${META_VICTOR.combos.length} refeições como combos (mesmos horários da dieta do Matheus, com variantes intercambiáveis em cada um). Refeição que saiu do cardápio some da lista.</p>
           <button class="${dietas.some(d => d.fonte === META_VICTOR.fonte) ? 'secondary' : 'primary'}" id="carregar-meta-victor" style="margin-top:8px">
             ${dietas.some(d => d.fonte === META_VICTOR.fonte) ? 'Recarregar (atualiza o que já existe)' : 'Carregar minha meta'}
           </button>
@@ -931,7 +931,13 @@ Coxa: 58 cm
           // rouba o id dela em vez de criar a sua própria.
           idsUsadosNesteCarregamento.add(novo.id);
         });
-        Storage.saveAll('combos', combos);
+        // Tira da lista o que sobrou de cargas anteriores DESTA fonte e não existe mais no
+        // cardápio (ex: as três variantes antigas de jantar com tilápia, aposentadas em
+        // 30/08). Sem isso o upsert só cria e atualiza, e o menu ia acumulando refeição
+        // velha pra sempre. Só mexe nos combos desta fonte — os do Matheus e os que o
+        // Victor montou na mão ficam intactos.
+        const limpos = combos.filter(x => x.fonte !== META_VICTOR.fonte || idsUsadosNesteCarregamento.has(x.id));
+        Storage.saveAll('combos', limpos);
 
         // Não mexe na meta de água — essa decisão é independente da meta calórica.
         const p = Storage.getPerfil();
