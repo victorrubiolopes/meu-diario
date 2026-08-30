@@ -118,6 +118,25 @@ const ViewMais = (() => {
   function secaoPaciente(view) { return SECOES_PACIENTE.find(s => s.view === view) || null; }
   function ehTelaPaciente(view) { return view === 'paciente' || !!secaoPaciente(view); }
 
+  // As medidas que a nutri envia ficam em prescricoes/{uid} e só entram no diário do paciente
+  // (users/{uid}) quando ELE abre o app — users/{uid} só o dono escreve. Mas pro painel as
+  // duas listas são a mesma coisa: aferições daquela pessoa. Sem juntar, a nutri lançava as
+  // medidas na consulta e voltava depois numa tela zerada, como se nada tivesse sido enviado.
+  function medidasDoPaciente(dados, presc) {
+    const doDiario = (dados && Array.isArray(dados.medidas)) ? dados.medidas : [];
+    const daNutri = (presc && Array.isArray(presc.medidas)) ? presc.medidas : [];
+    const juntas = doDiario.slice();
+    daNutri.forEach(m => {
+      if (!m || !m.date) return;
+      // Mesma regra de casamento que o paciente usa ao aplicar (Cloud.aplicarPrescricao):
+      // origemId primeiro, data como reserva. Assim uma aferição já aplicada não aparece
+      // duas vezes, e a versão do paciente (que é a que vale) ganha.
+      const jaEsta = doDiario.some(d => (m.id && d.origemId === m.id) || d.date === m.date);
+      if (!jaEsta) juntas.push(m);
+    });
+    return juntas.sort((a, b) => (a.date || '').localeCompare(b.date || ''));
+  }
+
   // Aderência a partir só do que o paciente registrou. Cada número carrega a própria base
   // ("22 de 30 dias"), porque uma porcentagem solta de "aderência" é um número bonito que
   // ninguém sabe interpretar — e as bases aqui são diferentes entre si de propósito.
@@ -131,7 +150,7 @@ const ViewMais = (() => {
     const diasComComida = new Set(refeicoes.map(r => r.date)).size;
     const treinos = noPeriodo(dados && dados.treino).filter(t => (t.exercises || []).length > 0);
     const diasComTreino = new Set(treinos.map(t => t.date)).size;
-    const pesagens = noPeriodo(dados && dados.medidas).filter(m => m.weight != null).length;
+    const pesagens = noPeriodo(medidasDoPaciente(dados, presc)).filter(m => m.weight != null).length;
 
     // Dias dentro da meta só contam sobre os dias em que ele REGISTROU comida: num dia sem
     // registro não dá pra saber se ele comeu fora da meta ou só não anotou. Misturar as
@@ -2140,7 +2159,7 @@ Coxa: 58 cm
 
       // Demais seções: pinta o container que o montarX correspondente procura.
       detailEl.innerHTML = `<div id="${secao.alvo}"></div>${secao.view === 'paciente-papel' ? '<div id="admin-reatribuir"></div>' : ''}`;
-      if (secao.view === 'paciente-medidas') montarMedidasPaciente(uid, dados);
+      if (secao.view === 'paciente-medidas') montarMedidasPaciente(uid, dados, presc);
       else if (secao.view === 'paciente-plano') montarPlano(uid, presc);
       else if (secao.view === 'paciente-treino') montarTreino(uid, presc);
       else if (secao.view === 'paciente-corrida') montarCorrida(uid, presc);
@@ -2154,13 +2173,15 @@ Coxa: 58 cm
       const { dados, presc, info } = cache;
       const perfil = (dados && dados.perfil) || {};
       const nome = (info && (info.displayName || info.email)) || perfil.nome || uid;
-      const pesos = (dados && dados.medidas ? dados.medidas : [])
-        .filter(m => m.weight != null).sort((a, b) => a.date.localeCompare(b.date));
+      const pesos = medidasDoPaciente(dados, presc).filter(m => m.weight != null);
       const atual = pesos.length ? pesos[pesos.length - 1] : null;
       const primeiro = pesos.length ? pesos[0] : null;
       const delta = atual && primeiro && pesos.length > 1
         ? Math.round((atual.weight - primeiro.weight) * 10) / 10 : null;
-      const altura = perfil.altura ? Number(perfil.altura) : null;
+      // A nutri manda a altura junto da folha da consulta; ela só cai no perfil do paciente
+      // quando ele abre o app. Até lá, vale a última enviada — senão o IMC fica sem base.
+      const alturaEnviada = medidasDoPaciente(dados, presc).filter(m => m.altura != null).pop();
+      const altura = perfil.altura ? Number(perfil.altura) : (alturaEnviada ? Number(alturaEnviada.altura) : null);
       const imc = atual && altura ? Math.round((atual.weight / Math.pow(altura / 100, 2)) * 10) / 10 : null;
       const ad = aderenciaPaciente(dados, presc, 30);
       const p = presc || {};
@@ -2362,14 +2383,14 @@ Coxa: 58 cm
     // users/{uid} — as regras dão essa escrita só ao dono do diário, e o app dele aplica
     // no login seguinte. Campos vêm de ViewMedidas.FIELDS pra tela da nutri e a do paciente
     // nunca divergirem.
-    function montarMedidasPaciente(uid, dados) {
+    function montarMedidasPaciente(uid, dados, presc) {
       const cont = detailEl.querySelector('#admin-medidas');
       if (!cont) return;
       if (typeof Cloud.enviarMedidas !== 'function') return;
       const campos = (typeof ViewMedidas !== 'undefined' && Array.isArray(ViewMedidas.FIELDS)) ? ViewMedidas.FIELDS : [];
       if (!campos.length) return;
 
-      const medidas = (dados && Array.isArray(dados.medidas) ? dados.medidas : [])
+      const medidas = medidasDoPaciente(dados, presc)
         .slice().sort((a, b) => (b.date || '').localeCompare(a.date || ''));
       const ultima = medidas[0] || null;
       const perfil = (dados && dados.perfil) || {};
@@ -2408,7 +2429,7 @@ Coxa: 58 cm
           <textarea id="am-notes" placeholder="Ex: retorno em 30 dias, manter o treino atual..."></textarea>
           <button class="primary" id="am-enviar" style="margin-top:10px">Enviar medidas para o paciente</button>
           <p class="meta" id="am-msg" style="margin-top:8px">Peso e altura também atualizam o cadastro dele, não só o gráfico.</p>
-          <p class="meta" style="font-size:0.74rem">A medida entra no diário dele — e no gráfico daqui — na próxima vez que ele abrir o app.</p>
+          <p class="meta" style="font-size:0.74rem">Aqui no painel a medida já vale na hora. No diário DELE ela entra quando ele abrir o app.</p>
         </div>
       `;
 
@@ -2451,7 +2472,11 @@ Coxa: 58 cm
         if (Object.keys(medida).length <= 1) { msg.textContent = '⚠️ Preencha pelo menos um campo.'; return; }
         msg.textContent = 'Enviando…';
         try {
-          await Cloud.enviarMedidas(uid, medida);
+          const nova = await Cloud.enviarMedidas(uid, medida);
+          // Sem isso, sair da tela e voltar mostraria o formulário zerado de novo: a lista
+          // que alimenta o pré-preenchimento vem do cache, não de uma nova consulta.
+          const p = pacienteCache.presc || {};
+          pacienteCache.presc = Object.assign({}, p, { medidas: (p.medidas || []).concat([nova || medida]) });
           msg.textContent = '✅ Enviado! Entra no diário dele na próxima vez que abrir o app.';
         } catch (e) { msg.textContent = '⚠️ Falha: ' + (e.message || ''); }
       });
@@ -3138,7 +3163,7 @@ Coxa: 58 cm
 
   // aderenciaPaciente e faixaImcTexto saem no export por serem as duas funções de cálculo
   // puro daqui — dá pra testá-las com node, sem DOM, como o ParsePlano.
-  return { render, aderenciaPaciente, faixaImcTexto };
+  return { render, aderenciaPaciente, faixaImcTexto, medidasDoPaciente };
 })();
 
 if (typeof module !== 'undefined' && module.exports) module.exports = ViewMais;
