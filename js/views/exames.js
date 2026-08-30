@@ -3,15 +3,17 @@ const ViewExames = (() => {
     const exames = Storage.getAll('exames_meta').sort((a, b) => b.date.localeCompare(a.date));
 
     $app.innerHTML = `
+      ${ViewExamesTendencia.atalhoHtml()}
       <div class="card">
-        <h2>Adicionar exame</h2>
+        <h2>Guardar o laudo</h2>
+        <p class="meta">O arquivo fica só no aparelho. Pra ver evolução, lance os valores em "Resultados e tendência".</p>
         <label>Data</label>
         <input type="date" id="exame-date" value="${state.date}">
         <label>Tipo / nome do exame</label>
         <input type="text" id="exame-tipo" placeholder="Ex: Hemograma, Colesterol...">
         <label>Arquivo (foto ou PDF)</label>
         <input type="file" id="exame-file" accept="image/*,application/pdf">
-        <button class="primary" id="save-exame" style="margin-top:10px">Salvar exame</button>
+        <button class="primary" id="save-exame" style="margin-top:10px">Salvar laudo</button>
       </div>
       <div class="card">
         <h2>Exames salvos</h2>
@@ -31,6 +33,8 @@ const ViewExames = (() => {
         </div>
       </div>
     `;
+
+    ViewExamesTendencia.bindAtalho($app, api);
 
     document.getElementById('save-exame').addEventListener('click', async () => {
       const file = document.getElementById('exame-file').files[0];
