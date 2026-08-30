@@ -19,6 +19,8 @@ const ViewMais = (() => {
       case 'tarefas': return ViewTarefas.render($app, state, api);
       case 'fotos': return ViewFotos.render($app, state, api);
       case 'exames': return ViewExames.render($app, state, api);
+      case 'exames-tendencia': return ViewExamesTendencia.render($app, state, api);
+      case 'exame-lancar': return ViewExamesTendencia.renderLancar($app, state, api);
       case 'historico': return ViewHistorico.render($app, state, api);
       case 'perfil': return renderPerfil($app, state, api);
       case 'biblioteca-alimentos': return renderBibliotecaAlimentos($app, state, api);

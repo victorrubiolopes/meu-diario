@@ -124,6 +124,8 @@ const App = (() => {
     tarefas: 'Tarefas',
     fotos: 'Fotos',
     exames: 'Exames Médicos',
+    'exames-tendencia': 'Resultados e tendência',
+    'exame-lancar': 'Lançar resultados',
     historico: 'Histórico',
     perfil: 'Meu Perfil',
     'biblioteca-alimentos': 'Biblioteca de Alimentos',

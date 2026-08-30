@@ -12,6 +12,7 @@ const Cloud = (() => {
   const SYNC_KEYS = [
     'treino', 'corridas', 'alimentacao', 'medidas', 'tarefas', 'tarefas_conclusoes',
     'dietas_custom', 'treino_planos', 'corrida_planos', 'combos', 'agua', 'gastos', 'refeicao_fotos', 'refeicoes_livres',
+    'exames_resultados',
     'notificacoes',
   ];
 
