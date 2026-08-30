@@ -931,7 +931,13 @@ Coxa: 58 cm
           // rouba o id dela em vez de criar a sua própria.
           idsUsadosNesteCarregamento.add(novo.id);
         });
-        Storage.saveAll('combos', combos);
+        // Tira da lista o que sobrou de cargas anteriores DESTA fonte e não existe mais no
+        // cardápio (ex: as três variantes antigas de jantar com tilápia, aposentadas em
+        // 30/08). Sem isso o upsert só cria e atualiza, e o menu ia acumulando refeição
+        // velha pra sempre. Só mexe nos combos desta fonte — os do Matheus e os que o
+        // Victor montou na mão ficam intactos.
+        const limpos = combos.filter(x => x.fonte !== META_VICTOR.fonte || idsUsadosNesteCarregamento.has(x.id));
+        Storage.saveAll('combos', limpos);
 
         // Não mexe na meta de água — essa decisão é independente da meta calórica.
         const p = Storage.getPerfil();
