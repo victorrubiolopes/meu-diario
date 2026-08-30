@@ -143,5 +143,28 @@ const META_VICTOR = {
         { foodName: 'Tilápia 150g (peso cozido)', qty: 1, kcal: 226, carbs: 0, sugars: 0, protein: 48, fat: 3.8, satFat: 1.1, transFat: 0, fiber: 0, sodium: 84 },
       ],
     },
+    {
+      // Marmita da semana (30/08). Nasceu de três buracos que o registro dos 14 dias
+      // mostrou: proteína em 144g contra meta de 171, fibra em 17g contra 27 e saturada
+      // em 11,3% das kcal contra alvo de 7%. Esta refeição ataca os três de uma vez —
+      // 59g de proteína, 8,6g de fibra e saturada em 5% das próprias calorias.
+      //
+      // Pesos em COZIDO de propósito: ele cozinha pra duas pessoas, então o peso cru é da
+      // panela inteira e não da porção. Batata cozida e assada têm valores diferentes por
+      // rendimento (100g crua vira 123g cozida ou 69g assada), não por fonte — as duas
+      // conservam as 64 kcal da batata crua.
+      //
+      // O azeite vai no cozimento e não dá pra medir por marmita; 8g é estimativa
+      // deliberadamente generosa pra dourar 400g de batata. Errar pra cima aqui é o lado
+      // seguro: o problema atual é peso parado com 1875 kcal registradas.
+      nome: 'R5 · Jantar — Marmita tilápia, batata e brócolis (20:00)',
+      horario: '20:00',
+      itens: [
+        { foodName: 'Tilápia grelhada 200g', qty: 1, kcal: 256, carbs: 0, sugars: 0, protein: 52.4, fat: 5.4, satFat: 1.8, transFat: 0, fiber: 0, sodium: 112 },
+        { foodName: 'Batata inglesa cozida 400g', qty: 1, kcal: 208, carbs: 47.6, sugars: 2, protein: 4.8, fat: 0, satFat: 0, transFat: 0, fiber: 5.2, sodium: 8 },
+        { foodName: 'Brócolis cozido 100g', qty: 1, kcal: 25, carbs: 4.4, sugars: 1.2, protein: 2.1, fat: 0.5, satFat: 0.1, transFat: 0, fiber: 3.4, sodium: 20 },
+        { foodName: 'Azeite de oliva 8g (do cozimento)', qty: 1, kcal: 73, carbs: 0, sugars: 0, protein: 0, fat: 8.3, satFat: 1.2, transFat: 0, fiber: 0, sodium: 0 },
+      ],
+    },
   ],
 };
