@@ -1,93 +1,103 @@
 // Meta própria do Victor, calculada em conversa com a IA a partir dos dados registrados no
-// app — NÃO é prescrição de nutricionista. Aplicada em 18/08/2026, quando ele decidiu se
-// afastar do gasto calórico estimado pelo Matheus (GorgoTeam) e recalcular do zero em cima do
-// que os próprios dados de treino/corrida/peso mostravam, mais o relato de que a rotina real é
-// "~4 dias na linha, 3 dias com desvio" — não os 7 dias parelhos que a dieta original assumia.
-// Mesmo modelo do DIETA_VICTOR (upsert por fonte, só aparece pro dono do app).
+// app — NÃO é prescrição de nutricionista. Nasceu em 18/08/2026 e foi REVISADA em 31/08,
+// no fechamento dos 14 dias de teste. Mesmo modelo do DIETA_VICTOR (upsert por fonte, só
+// aparece pro dono do app).
 //
-// COMO CHEGOU NESSES NÚMEROS:
-// TMB por Katch-McArdle (usa a massa magra medida, 68,4kg, mais apropriada que Mifflin pra
-// quem tem FFMI alto) = ~1847 kcal. Somado ao gasto médio de exercício das últimas 8 semanas
-// (corrida + musculação, ~380 kcal/dia), ao efeito térmico da comida (~240) e a uma faixa de
-// NEAT (250-400), o TDEE reconstruído fica em 2650-2870 — bem perto do 2780 que o Matheus
-// tinha calculado (a diferença nunca foi o gasto, foi o tamanho do déficit puxado em cima dele).
+// ======================= O QUE OS 14 DIAS MOSTRARAM (31/08) =======================
 //
-// O peso caiu de 85,3 para 83,7kg em 162 dias — um déficit real médio de só ~76 kcal/dia,
-// o que implica ingestão real de ~2670 kcal/dia (bem acima do que o app tinha registrado).
-// Pelo relato do Victor, os 4 dias "na linha" já entregam esse resultado sozinhos — quem
-// apaga o déficit são os outros 3. Por isso a meta abaixo não aperta os dias que já
-// funcionam: ela é desenhada como o piso pros dias que hoje saem da linha, mirando uma
-// perda de ~0,4-0,5% do peso/semana (faixa associada a preservar massa magra em déficit,
-// Garthe et al. 2011) sem exigir nenhum dia mais restrito do que os que ele já cumpre.
+// A versão de 18/08 mirava 1940 kcal/dia e ERRAVA em duas coisas:
 //
-// Proteína em 1,8-2,2 g/kg (faixa recomendada em déficit com treino de força, Helms et al.
-// 2014) — por coincidência bem próxima tanto da prescrição do Matheus (172,9g) quanto da
-// regra do vídeo do Leandro Twin (168g). Esse é o número mais assentado da conta toda.
+// 1. TIRAVA A REFEIÇÃO LIVRE. A prescrição do Matheus tinha 1050 kcal, 1x/semana,
+//    SUBSTITUINDO uma refeição — média semanal de 1665. Esta meta simplesmente não tinha
+//    o campo. O Victor manteve o hábito (que estava certo) e as duas livres do período
+//    caíram INTEIRAS por cima de um alvo sem espaço pra elas: saíram em 2859 e 2689 kcal,
+//    contra os ~2065 previstos. E o app não avisou, porque a régua tinha sido removida.
 //
-// ---------------------------------------------------------------------------------------
-// REVISÃO DE 30/08/2026 — cardápio refeito a pedido do Victor, depois dos 14 dias de registro.
+// 2. O ALVO ERA ALTO DEMAIS. 1940 sem previsão de livre, com as livres acontecendo,
+//    implicava ~2060 kcal/dia de média real.
 //
-// 1. TODOS os itens passaram a ser DERIVADOS DA BIBLIOTECA (js/data/alimentos.js), escalando
-//    a porção da biblioteca pelas gramas da refeição. Antes os números eram digitados à mão e
-//    tinham divergido: "Tilápia 150g (peso cozido)" trazia 226 kcal / 48g de proteína, valores
-//    idênticos aos do frango na mesma linha — era o frango copiado e renomeado, não um
-//    rendimento de cocção diferente. Pela biblioteca (128 kcal / 26,2g por 100g), 150g de
-//    tilápia são 192 kcal / 39,3g. Eram ~9g de proteína fantasma por refeição.
-//    O DIETA_VICTOR (prescrição do Matheus) NÃO foi tocado — é documento dele.
+// Resultado dos 14 dias: peso 83,7 -> 84,3 kg. MAS o ganho quase certamente não é gordura.
+// O carboidrato subiu de 110 pra 179 g/dia; glicogênio carrega ~3g de água por grama, e
+// reabastecer de um estado depletado adiciona 1,3-1,5 kg na balança sem uma grama de
+// gordura. Com TDEE realista de ~2350, comer 1875 dá déficit de ~475/dia = -0,86 kg de
+// gordura em 14 dias. -0,86 de gordura mais +1,4 de água dá exatamente o +0,6 medido.
 //
-// 2. Estrutura nova, com variantes intercambiáveis em cada horário:
-//    - R1 pré-treino: 4 paçoquitas às 5h30 não desce. Ganhou opção com banana e com
-//      bananinha. A versão com banana troca metade do açúcar ADICIONADO da paçoca por
-//      açúcar intrínseco de fruta e dobra a fibra (5,2g contra 2,4g).
-//    - R2 café: ovo em gramas (100g = 2 unidades) e escolha entre mussarela e queijo branco.
-//      Os dois são praticamente iguais em saturada (4,1 vs 4,2g por 30g) — "queijo branco"
-//      não é a opção leve que costuma parecer.
-//    - R3 almoço: ceviche de tilápia (a entrada "Ceviche" da biblioteca é o prato inteiro,
-//      95 kcal / 15g de proteína por 100g — peixe cru diluído em cebola e limão, por isso a
-//      porção precisa ser grande pra fechar a proteína). Frango ficou como terceira variante
-//      pros dias sem peixe.
-//    - R4 lanche: whey + leite + banana como ele já faz, e uma segunda versão com 20g de
-//      aveia — melhor fibra por caloria que qualquer outra coisa que caiba num shake.
-//    - R5 jantar: só a marmita, que é o que ele está fazendo. As três variantes antigas de
-//      tilápia saíram (eram as que carregavam os números errados).
+// ATENÇÃO PRA QUEM LER DEPOIS: não dá pra derivar TDEE de peso de balança em 2 semanas
+// com o carboidrato mudando. Eu tentei três vezes nesta conversa e produzi três respostas
+// diferentes (1530, 2700, 2350) — o erro estava no método, não nos dados. Peso de balança
+// nesse prazo mede hidratação, não balanço energético.
 //
-// 3. O cardápio agora soma ~2100 kcal/dia contra a meta de 1940 fixada em 18/08. Está ACIMA
-//    de propósito e é para ser revisto: os 14 dias fecharam com o peso parado a 1875 kcal
-//    REGISTRADAS, o que só se explica por ingestão real maior que a anotada. A meta numérica
-//    abaixo fica como está até a pesagem e as medidas de 31/08 dizerem qual é o TDEE real.
-//    Proteína (173g), fibra (29g) e saturada (5,7% das kcal) já batem os alvos.
+// ======================= POR QUE 1750 E NÃO 1515 =======================
+//
+// Voltar pro 1515 do Matheus seria over-correction: contra TDEE de ~2350 é déficit de
+// 835/dia, mais de 1% do peso por semana. É o tipo de aperto associado a adaptação
+// metabólica — e os exames do Victor já mostram T4 livre em 0,98 (piso da faixa é 0,75)
+// com TSH subindo de 2,56 pra 3,3 em três anos. Foram também as duas semanas a ~1290 kcal
+// que precederam os dias de 2859 e 2689: restrição forte cobra o preço depois.
+//
+// 1750 é o meio entre as duas configurações que ele JÁ rodou (1515 do Matheus e 1940 meu),
+// com a régua da refeição livre de volta. Média semanal ~1840, déficit de ~510/dia.
+//
+// ======================= A PRIORIDADE MUDOU =======================
+//
+// O peso está entre 83,7 e 85,4 kg desde março e a gordura entre 18,3% e 19,6% — seis meses
+// de composição parada. No mesmo período os lipídios pioraram de forma monotônica:
+// LDL 101 -> 111 -> 120 -> 137 (nunca desceu), HDL 40 -> 45 -> 54 -> 38 (caiu 30% em um ano),
+// colesterol total 160 -> 198. Ele tem 29 anos.
+//
+// Por isso o alvo primário deste ciclo NÃO é a balança, é a GORDURA SATURADA: estava em
+// 20,5-23,5 g/dia (11-12% das kcal) e o cardápio abaixo entrega 10,4-11,2 g (5,4-5,5%).
+// Saturada é o fator dietético com relação causal mais estabelecida com LDL, e não depende
+// de resolver nenhuma dúvida sobre o metabolismo dele.
+//
+// Os ~10g de excesso não vinham do cardápio prescrito — vinham de fora dele (mussarela em
+// porção maior que a prescrita, requeijão, pizza, pipoca de cinema).
+//
+// ======================= REGRA DE MÉTODO =======================
+//
+// Em 18/08 eu mudei TRÊS variáveis de uma vez (alvo, refeição livre e estrutura das
+// refeições). Testar três juntas significa que nenhuma foi testada. Neste ciclo muda UMA:
+// a saturada. As calorias voltam pra um ponto defensável e ficam lá.
 const META_VICTOR = {
   fonte: 'meta-victor-ea-2026-08-18',
   meta: {
-    nome: 'Meta própria — disponibilidade energética (18/08/2026)',
-    kcal: 1940,
-    protein: 171,
-    carb: 225,
-    fat: 42,
+    nome: 'Meta própria — revisão pós-14 dias (31/08/2026)',
+    kcal: 1750,
+    protein: 160,
+    carb: 195,
+    fat: 38,
+    fiber: 25,
   },
+  // Estava na prescrição do Matheus e eu tinha removido em 18/08. Volta com o mesmo valor:
+  // SUBSTITUI uma refeição do dia, não soma às cinco. Com ela, a média da semana fica em
+  // ~1840 kcal. As duas livres dos 14 dias saíram em 2859 e 2689 — é esse número que o app
+  // volta a conseguir apontar.
+  refeicaoLivre: { kcal: 1050, carbs: 120, fat: 50, protein: 30, fiber: 5, porSemana: 1 },
+  kcalDiaNormal: 1750,
   baseCalculo: [
-    'TMB (Katch-McArdle, massa magra medida 68,4kg): ~1847 kcal.',
-    'TDEE reconstruído (TMB + exercício últimas 8 semanas ~380 + efeito térmico ~240 + NEAT 250-400): ~2650-2870 kcal — perto do 2780 que o Matheus tinha calculado.',
-    'Ingestão real implícita pelo peso (85,3→83,7kg em 162 dias, déficit real de ~76 kcal/dia): ~2670 kcal/dia — a maior parte disso nos dias que saem da dieta.',
-    'Meta original pensada pra ser o piso dos dias "fora da linha" (2210 kcal / 71g gordura), sem apertar os 4 dias que já funcionam: ~0,4-0,5% do peso/semana, faixa que preserva massa magra em déficit (Garthe et al. 2011).',
-    'Proteína 1,8-2,2 g/kg (Helms et al. 2014) — 170-177g bate perto da prescrição do Matheus (172,9g) e da regra do vídeo do Leandro Twin (168g).',
-    'Revisão de 30/08: cardápio refeito a pedido do Victor e com todos os itens derivados da biblioteca de alimentos, não mais digitados à mão. Um dia típico (paçoca com banana, café com mussarela, ceviche com batata assada, whey com banana e a marmita de tilápia) fecha em ~2100 kcal / 173g de proteína / 29g de fibra / saturada em 5,7% das kcal. As calorias estão ~160 acima da meta de 18/08 de propósito: os 14 dias fecharam com o peso parado a 1875 kcal registradas, o que indica ingestão real maior que a anotada. A meta numérica só muda depois da pesagem e das medidas de 31/08.',
+    'TMB (Katch-McArdle, massa magra medida 68,7kg): ~1847 kcal.',
+    'Exercício líquido calculado sobre os registros reais dos 14 dias (44,1 km de corrida a ~1,03 kcal/kg/km e 6 sessões de musculação a 3,5-4 METs médios, contando os descansos): ~332 kcal/dia brutos, ~230 depois de compensação de NEAT.',
+    'TDEE resultante: ~2350 kcal/dia. As estimativas anteriores (2650-2870 em 18/08) superestimavam a musculação usando 5 METs, que ignora que metade da sessão é descanso.',
+    'Alvo de 1750 nos dias normais + 1 refeição livre de 1050/semana substituindo uma refeição = média semanal ~1840, déficit de ~510 kcal/dia (~0,45 kg/semana).',
+    'Proteína 160g = 1,9 g/kg, dentro da faixa de 1,8-2,2 recomendada em déficit com treino de força (Helms et al. 2014).',
+    'ALVO PRIMÁRIO DO CICLO: gordura saturada abaixo de 17 g/dia. Estava em 20,5-23,5g (11-12% das kcal) com LDL em 137 e HDL em 38 no exame de 28/08. O cardápio abaixo entrega 10,4-11,2g.',
+    'O peso NÃO é critério de sucesso deste ciclo: 15 dias com o carboidrato se estabilizando não separam gordura de glicogênio. O que o ciclo precisa entregar é 8 pesagens (2x/semana) e 15 de 15 dias registrados — sem isso toda média depende de qual subconjunto de dias se escolhe.',
   ],
-  disclaimer: 'Estimativa própria a partir dos dados registrados no app, feita em conversa com IA — não é prescrição de nutricionista nem substitui avaliação profissional. Recalibrar depois dos 14 dias de registro completo.',
+  disclaimer: 'Estimativa própria a partir dos dados registrados no app, feita em conversa com IA — não é prescrição de nutricionista nem substitui avaliação profissional. Os achados de exame (LDL 137, HDL 38, T4 livre 0,98, creatinina 1,23, ferritina 269) são pra discutir com médico, não pra conduta por conta própria.',
   combos: [
-    {
-      nome: 'R1 · Pré-treino — Paçoquita (05:30)',
-      horario: '05:30',
-      itens: [
-        { foodName: 'Paçoquita (4 unidades, 60g)', qty: 1, kcal: 320, carbs: 30, sugars: 28.8, protein: 10.8, fat: 16.8, satFat: 2.4, transFat: 0, fiber: 2.4, sodium: 112 },
-      ],
-    },
     {
       nome: 'R1 · Pré-treino — Paçoca e banana (05:30)',
       horario: '05:30',
       itens: [
+        { foodName: 'Paçoquita (1 unidade, 15g)', qty: 1, kcal: 80, carbs: 7.5, sugars: 7.2, protein: 2.7, fat: 4.2, satFat: 0.6, transFat: 0, fiber: 0.6, sodium: 28 },
+        { foodName: 'Banana prata (1 unidade, 90g)', qty: 1, kcal: 80, carbs: 20, sugars: 12, protein: 1, fat: 0.2, satFat: 0, transFat: 0, fiber: 2, sodium: 1 },
+      ],
+    },
+    {
+      nome: 'R1 · Pré-treino — Paçoquita (05:30)',
+      horario: '05:30',
+      itens: [
         { foodName: 'Paçoquita (2 unidades, 30g)', qty: 1, kcal: 160, carbs: 15, sugars: 14.4, protein: 5.4, fat: 8.4, satFat: 1.2, transFat: 0, fiber: 1.2, sodium: 56 },
-        { foodName: 'Banana prata (2 unidades, 180g)', qty: 1, kcal: 160, carbs: 40, sugars: 24, protein: 2, fat: 0.4, satFat: 0, transFat: 0, fiber: 4, sodium: 2 },
       ],
     },
     {
@@ -95,7 +105,7 @@ const META_VICTOR = {
       horario: '05:30',
       itens: [
         { foodName: 'Banana nanica (1 unidade, 120g)', qty: 1, kcal: 110, carbs: 28.6, sugars: 20, protein: 1.7, fat: 0.1, satFat: 0, transFat: 0, fiber: 2.3, sodium: 1 },
-        { foodName: 'Bala de banana (3 unidades, 78g)', qty: 1, kcal: 162, carbs: 39, sugars: 33, protein: 0, fat: 0, satFat: 0, transFat: 0, fiber: 0, sodium: 0 },
+        { foodName: 'Bala de banana (1 unidade, 26g)', qty: 1, kcal: 54, carbs: 13, sugars: 11, protein: 0, fat: 0, satFat: 0, transFat: 0, fiber: 0, sodium: 0 },
       ],
     },
     {
@@ -103,9 +113,9 @@ const META_VICTOR = {
       horario: '08:00',
       itens: [
         { foodName: 'Tapioca (goma hidratada) 50g', qty: 1, kcal: 89, carbs: 22, sugars: 0.2, protein: 0.1, fat: 0, satFat: 0, transFat: 0, fiber: 0.3, sodium: 1 },
-        { foodName: 'Mel 15g', qty: 1, kcal: 45.8, carbs: 12.4, sugars: 12.3, protein: 0.1, fat: 0, satFat: 0, transFat: 0, fiber: 0, sodium: 0.8 },
+        { foodName: 'Mel 10g', qty: 1, kcal: 30.5, carbs: 8.3, sugars: 8.2, protein: 0.1, fat: 0, satFat: 0, transFat: 0, fiber: 0, sodium: 0.5 },
         { foodName: 'Ovo 100g (2 unidades)', qty: 1, kcal: 146, carbs: 0.6, sugars: 0.6, protein: 13.4, fat: 9.6, satFat: 2.8, transFat: 0, fiber: 0, sodium: 146 },
-        { foodName: 'Queijo mussarela 30g', qty: 1, kcal: 90, carbs: 0.6, sugars: 0.6, protein: 6.6, fat: 6.9, satFat: 4.1, transFat: 0, fiber: 0, sodium: 176 },
+        { foodName: 'Queijo mussarela 20g', qty: 1, kcal: 60, carbs: 0.4, sugars: 0.4, protein: 4.4, fat: 4.6, satFat: 2.7, transFat: 0, fiber: 0, sodium: 117.3 },
       ],
     },
     {
@@ -113,24 +123,17 @@ const META_VICTOR = {
       horario: '08:00',
       itens: [
         { foodName: 'Tapioca (goma hidratada) 50g', qty: 1, kcal: 89, carbs: 22, sugars: 0.2, protein: 0.1, fat: 0, satFat: 0, transFat: 0, fiber: 0.3, sodium: 1 },
-        { foodName: 'Mel 15g', qty: 1, kcal: 45.8, carbs: 12.4, sugars: 12.3, protein: 0.1, fat: 0, satFat: 0, transFat: 0, fiber: 0, sodium: 0.8 },
+        { foodName: 'Mel 10g', qty: 1, kcal: 30.5, carbs: 8.3, sugars: 8.2, protein: 0.1, fat: 0, satFat: 0, transFat: 0, fiber: 0, sodium: 0.5 },
         { foodName: 'Ovo 100g (2 unidades)', qty: 1, kcal: 146, carbs: 0.6, sugars: 0.6, protein: 13.4, fat: 9.6, satFat: 2.8, transFat: 0, fiber: 0, sodium: 146 },
-        { foodName: 'Queijo branco (minas frescal) 30g', qty: 1, kcal: 87, carbs: 1, sugars: 1, protein: 5.4, fat: 6.6, satFat: 4.2, transFat: 0, fiber: 0, sodium: 130 },
+        { foodName: 'Queijo branco (minas frescal) 20g', qty: 1, kcal: 58, carbs: 0.7, sugars: 0.7, protein: 3.6, fat: 4.4, satFat: 2.8, transFat: 0, fiber: 0, sodium: 86.7 },
       ],
     },
     {
-      // Ceviche é o PRATO INTEIRO na biblioteca (95 kcal / 15g de proteína por 100g): peixe
-      // cru diluído em cebola, limão e tempero. Por isso 300g aqui rendem 45g de proteína,
-      // enquanto 300g de tilápia grelhada renderiam 79g. A porção parece grande no papel e é
-      // uma travessa normal na mesa.
-      //
-      // Sódio: 350mg por 100g na biblioteca, então 300g já são 1050mg — sozinho, mais da
-      // metade do dia. Se salgar por cima, passa. É o ponto fraco desta variante.
       nome: 'R3 · Almoço — Ceviche e batata assada (12:30)',
       horario: '12:30',
       itens: [
         { foodName: 'Ceviche de tilápia 300g', qty: 1, kcal: 285, carbs: 13.5, sugars: 4.5, protein: 45, fat: 5.4, satFat: 1.2, transFat: 0, fiber: 1.8, sodium: 1050 },
-        { foodName: 'Batata inglesa assada 225g', qty: 1, kcal: 209.3, carbs: 47.3, sugars: 2.7, protein: 5.6, fat: 0.2, satFat: 0, transFat: 0, fiber: 5, sodium: 11.3 },
+        { foodName: 'Batata inglesa assada 175g', qty: 1, kcal: 162.8, carbs: 36.8, sugars: 2.1, protein: 4.4, fat: 0.2, satFat: 0, transFat: 0, fiber: 3.9, sodium: 8.8 },
         { foodName: 'Brócolis cozido 100g', qty: 1, kcal: 25, carbs: 4.4, sugars: 0, protein: 2.1, fat: 0.5, satFat: 0.1, transFat: 0, fiber: 3.4, sodium: 10 },
         { foodName: 'Cenoura cozida 80g', qty: 1, kcal: 24, carbs: 5, sugars: 3.2, protein: 0.6, fat: 0.2, satFat: 0, transFat: 0, fiber: 2.3, sodium: 28 },
       ],
@@ -139,8 +142,8 @@ const META_VICTOR = {
       nome: 'R3 · Almoço — Ceviche, arroz e feijão (12:30)',
       horario: '12:30',
       itens: [
-        { foodName: 'Ceviche de tilápia 250g', qty: 1, kcal: 237.5, carbs: 11.3, sugars: 3.8, protein: 37.5, fat: 4.5, satFat: 1, transFat: 0, fiber: 1.5, sodium: 875 },
-        { foodName: 'Arroz branco cozido 130g', qty: 1, kcal: 166.4, carbs: 36.4, sugars: 0, protein: 3.3, fat: 0.3, satFat: 0, transFat: 0, fiber: 0.5, sodium: 1.3 },
+        { foodName: 'Ceviche de tilápia 280g', qty: 1, kcal: 266, carbs: 12.6, sugars: 4.2, protein: 42, fat: 5, satFat: 1.1, transFat: 0, fiber: 1.7, sodium: 980 },
+        { foodName: 'Arroz branco cozido 100g', qty: 1, kcal: 128, carbs: 28, sugars: 0, protein: 2.5, fat: 0.2, satFat: 0, transFat: 0, fiber: 0.4, sodium: 1 },
         { foodName: 'Feijão carioca cozido 120g', qty: 1, kcal: 91.2, carbs: 16.3, sugars: 0.4, protein: 5.8, fat: 0.6, satFat: 0.1, transFat: 0, fiber: 10.2, sodium: 2.4 },
         { foodName: 'Brócolis cozido 100g', qty: 1, kcal: 25, carbs: 4.4, sugars: 0, protein: 2.1, fat: 0.5, satFat: 0.1, transFat: 0, fiber: 3.4, sodium: 10 },
         { foodName: 'Cenoura cozida 80g', qty: 1, kcal: 24, carbs: 5, sugars: 3.2, protein: 0.6, fat: 0.2, satFat: 0, transFat: 0, fiber: 2.3, sodium: 28 },
@@ -151,7 +154,7 @@ const META_VICTOR = {
       horario: '12:30',
       itens: [
         { foodName: 'Peito de frango grelhado 150g', qty: 1, kcal: 238.5, carbs: 0, sugars: 0, protein: 48, fat: 3.8, satFat: 1.2, transFat: 0, fiber: 0, sodium: 75 },
-        { foodName: 'Batata inglesa assada 250g', qty: 1, kcal: 232.5, carbs: 52.5, sugars: 3, protein: 6.3, fat: 0.3, satFat: 0, transFat: 0, fiber: 5.5, sodium: 12.5 },
+        { foodName: 'Batata inglesa assada 175g', qty: 1, kcal: 162.8, carbs: 36.8, sugars: 2.1, protein: 4.4, fat: 0.2, satFat: 0, transFat: 0, fiber: 3.9, sodium: 8.8 },
         { foodName: 'Brócolis cozido 100g', qty: 1, kcal: 25, carbs: 4.4, sugars: 0, protein: 2.1, fat: 0.5, satFat: 0.1, transFat: 0, fiber: 3.4, sodium: 10 },
         { foodName: 'Cenoura cozida 80g', qty: 1, kcal: 24, carbs: 5, sugars: 3.2, protein: 0.6, fat: 0.2, satFat: 0, transFat: 0, fiber: 2.3, sodium: 28 },
       ],
@@ -171,26 +174,18 @@ const META_VICTOR = {
       itens: [
         { foodName: 'Whey protein 30g', qty: 1, kcal: 120, carbs: 3, sugars: 2, protein: 24, fat: 1.5, satFat: 0.5, transFat: 0, fiber: 0, sodium: 50 },
         { foodName: 'Leite desnatado 200ml', qty: 1, kcal: 70, carbs: 9.8, sugars: 9.8, protein: 6.8, fat: 0.4, satFat: 0.2, transFat: 0, fiber: 0, sodium: 80 },
-        { foodName: 'Banana nanica (1 unidade, 120g)', qty: 1, kcal: 110, carbs: 28.6, sugars: 20, protein: 1.7, fat: 0.1, satFat: 0, transFat: 0, fiber: 2.3, sodium: 1 },
+        { foodName: 'Banana prata (1 unidade, 90g)', qty: 1, kcal: 80, carbs: 20, sugars: 12, protein: 1, fat: 0.2, satFat: 0, transFat: 0, fiber: 2, sodium: 1 },
         { foodName: 'Aveia em flocos 20g', qty: 1, kcal: 78, carbs: 13.3, sugars: 0.3, protein: 2.8, fat: 1.5, satFat: 0.3, transFat: 0, fiber: 2, sodium: 1.3 },
       ],
     },
     {
-      // Pesos em COZIDO de propósito: ele cozinha pra duas pessoas, então o peso cru é da
-      // panela inteira e não da porção. Batata cozida e assada têm valores diferentes por
-      // rendimento (100g crua vira 123g cozida ou 69g assada), não por fonte — as duas
-      // conservam as 64 kcal da batata crua.
-      //
-      // O azeite vai no cozimento e não dá pra medir por marmita; 8g é estimativa
-      // deliberadamente generosa pra dourar 400g de batata. Errar pra cima aqui é o lado
-      // seguro: o problema atual é peso parado com 1875 kcal registradas.
       nome: 'R5 · Jantar — Marmita tilápia, batata e brócolis (20:00)',
       horario: '20:00',
       itens: [
         { foodName: 'Tilápia grelhada 200g', qty: 1, kcal: 256, carbs: 0, sugars: 0, protein: 52.4, fat: 5.4, satFat: 1.8, transFat: 0, fiber: 0, sodium: 112 },
-        { foodName: 'Batata inglesa cozida 400g', qty: 1, kcal: 208, carbs: 47.6, sugars: 3.2, protein: 4.8, fat: 0, satFat: 0, transFat: 0, fiber: 5.2, sodium: 8 },
+        { foodName: 'Batata inglesa cozida 300g', qty: 1, kcal: 156, carbs: 35.7, sugars: 2.4, protein: 3.6, fat: 0, satFat: 0, transFat: 0, fiber: 3.9, sodium: 6 },
         { foodName: 'Brócolis cozido 100g', qty: 1, kcal: 25, carbs: 4.4, sugars: 0, protein: 2.1, fat: 0.5, satFat: 0.1, transFat: 0, fiber: 3.4, sodium: 10 },
-        { foodName: 'Azeite de oliva 8g (do cozimento)', qty: 1, kcal: 73.2, carbs: 0, sugars: 0, protein: 0, fat: 8.3, satFat: 1.2, transFat: 0, fiber: 0, sodium: 0 },
+        { foodName: 'Azeite de oliva 6g (do cozimento)', qty: 1, kcal: 54.9, carbs: 0, sugars: 0, protein: 0, fat: 6.2, satFat: 0.9, transFat: 0, fiber: 0, sodium: 0 },
       ],
     },
   ],
