@@ -848,7 +848,13 @@ Coxa: 58 cm
       ${typeof META_VICTOR !== 'undefined' ? `
         <div class="card">
           <h2>🧮 ${Util.escapeHtml(META_VICTOR.meta.nome)}</h2>
-          <p class="meta">${META_VICTOR.meta.kcal} kcal · P ${META_VICTOR.meta.protein}g · C ${META_VICTOR.meta.carb}g · G ${META_VICTOR.meta.fat}g</p>
+          <p class="meta">${META_VICTOR.meta.kcal} kcal · P ${META_VICTOR.meta.protein}g · C ${META_VICTOR.meta.carb}g · G ${META_VICTOR.meta.fat}g${META_VICTOR.meta.fiber ? ` · F ${META_VICTOR.meta.fiber}g` : ''}</p>
+          ${META_VICTOR.refeicaoLivre ? `
+            <p class="meta" style="border-left:3px solid var(--accent);padding-left:8px">
+              As ${META_VICTOR.meta.kcal} kcal são do <strong>dia normal</strong>. A refeição livre
+              (<strong>${META_VICTOR.refeicaoLivre.kcal} kcal</strong>, ${META_VICTOR.refeicaoLivre.porSemana}x/semana)
+              <strong>substitui</strong> uma das refeições, não se soma a elas — com ela, a média da semana fica em ~1840 kcal.
+            </p>` : ''}
           <p class="meta" style="border-left:3px solid var(--accent);padding-left:8px">${Util.escapeHtml(META_VICTOR.disclaimer)}</p>
           <p class="meta">Carrega a meta como objetivo e atualiza as ${META_VICTOR.combos.length} refeições como combos (mesmos horários da dieta do Matheus, com variantes intercambiáveis em cada um). Refeição que saiu do cardápio some da lista.</p>
           <button class="${dietas.some(d => d.fonte === META_VICTOR.fonte) ? 'secondary' : 'primary'}" id="carregar-meta-victor" style="margin-top:8px">
