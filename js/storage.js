@@ -33,8 +33,45 @@ const Storage = (() => {
     }
   }
 
+  // Carimba `_upd` em quem mudou de conteúdo desde o que está gravado.
+  //
+  // Existe porque nem toda escrita passa por add/update: várias telas montam a lista nova
+  // na mão e chamam saveAll direto (marcar notificação como lida, concluir tarefa, lançar
+  // exame, recarregar os combos da meta). Sem carimbo, esses registros empatam em `_upd`
+  // entre dois aparelhos, a mesclagem devolve o empate pro lado local, e a edição feita no
+  // outro aparelho é desfeita silenciosamente na sincronização seguinte — a mesma perda
+  // que a mesclagem foi feita pra impedir, só que mais estreita.
+  //
+  // Carimbar aqui, e não em cada chamada, é o que faz valer também pra tela que ainda não
+  // foi escrita.
+  function carimbarAlterados(key, items) {
+    if (!Array.isArray(items)) return items;
+    let anteriores;
+    try {
+      anteriores = new Map(
+        (JSON.parse(localStorage.getItem(KEYS[key]) || '[]') || [])
+          .filter(i => i && i.id)
+          .map(i => [i.id, semCarimbo(i)])
+      );
+    } catch {
+      anteriores = new Map();
+    }
+    const agora = Date.now();
+    return items.map(i => {
+      if (!i || typeof i !== 'object') return i;
+      const antes = i.id ? anteriores.get(i.id) : undefined;
+      if (antes !== undefined && antes === semCarimbo(i) && i._upd) return i;
+      return { ...i, _upd: agora };
+    });
+  }
+
+  function semCarimbo(item) {
+    const { _upd, ...resto } = item;
+    return JSON.stringify(resto);
+  }
+
   function saveAll(key, items) {
-    localStorage.setItem(KEYS[key], JSON.stringify(items));
+    localStorage.setItem(KEYS[key], JSON.stringify(carimbarAlterados(key, items)));
   }
 
   function getByDate(key, date) {

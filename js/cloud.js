@@ -252,6 +252,9 @@ const Cloud = (() => {
 
     if (cloudHas && !localHas) {
       writeLocalRaw(cloudData);
+      // Aparelho novo também precisa herdar as lápides: sem elas, ao mesclar depois com
+      // outro aparelho que ainda tenha o registro apagado, ele voltaria à vida aqui.
+      if (Array.isArray(cloudData._apagados)) Storage.salvarApagados(cloudData._apagados);
       marcarSincronizado(cloudData._updatedAt);
     } else if (!cloudHas && localHas) {
       await push();

@@ -119,5 +119,40 @@ check(Storage.copiasSeguranca()[0].registros === 2, 'e a copia guardada tem os 2
 Object.keys(store).forEach(k => delete store[k]);
 check(Storage.salvarCopiaSeguranca('vazio') === null, 'nao guarda copia de diario vazio');
 
+// ---------- CARIMBO EM ESCRITA QUE NAO PASSA POR add/update ----------
+console.log('\nCENARIO 9 — saveAll direto (tela que monta a lista na mao) carimba _upd');
+Object.keys(store).forEach(k => delete store[k]);
+const n9 = Storage.add('notificacoes', { texto: 'oi', lida: false });
+const updAntes = Storage.getAll('notificacoes')[0]._upd;
+// simula "marcar todas como lidas" do mais.js:313 — saveAll direto, sem update()
+const depois = Storage.getAll('notificacoes').map(x => ({ ...x, lida: true }));
+// garante que o relogio andou, senao o teste nao distingue
+const alvo = Date.now() + 2; while (Date.now() < alvo) { /* espera 2ms */ }
+Storage.saveAll('notificacoes', depois);
+const updDepois = Storage.getAll('notificacoes')[0]._upd;
+check(updDepois > updAntes, 'mudou o conteudo -> _upd novo (' + updAntes + ' -> ' + updDepois + ')');
+
+console.log('\nCENARIO 10 — saveAll sem mudanca NAO mexe no carimbo');
+const iguais = Storage.getAll('notificacoes');
+const alvo2 = Date.now() + 2; while (Date.now() < alvo2) { /* espera 2ms */ }
+Storage.saveAll('notificacoes', iguais);
+check(Storage.getAll('notificacoes')[0]._upd === updDepois, 'conteudo igual -> _upd preservado');
+
+console.log('\nCENARIO 11 — sem o carimbo do saveAll, a edicao do outro aparelho era desfeita');
+Object.keys(store).forEach(k => delete store[k]);
+const c11 = Storage.add('combos', { nome: 'R2 Cafe', itens: ['antigo'] });
+const copiaB = JSON.parse(JSON.stringify(Storage.getAll('combos')));  // aparelho B, versao antiga
+const alvo3 = Date.now() + 2; while (Date.now() < alvo3) { /* espera 2ms */ }
+// aparelho A recarrega a meta: monta o combo na mao e grava com saveAll (mais.js:894)
+Storage.saveAll('combos', [{ ...c11, itens: ['novo'] }]);
+const nuvemA = JSON.parse(JSON.stringify({ combos: Storage.getAll('combos'), _apagados: [] }));
+// Aparelho B abre. A versao velha dele JA ESTAVA no disco — escrever de volta pelo saveAll
+// carimbaria como recente (e estaria certo: reescrever conteudo diferente E uma edicao).
+// Pra simular "ja estava la", grava direto no localStorage, sem passar pelo saveAll.
+localStorage.setItem(Storage.KEYS.combos, JSON.stringify(copiaB));
+check(Storage.getAll('combos')[0].itens[0] === 'antigo', 'B esta com a versao antiga antes de mesclar');
+const m11 = mesclarSnapshot(nuvemA);
+check(m11.combos[0].itens[0] === 'novo', 'a versao editada em A vence em B: ' + m11.combos[0].itens[0]);
+
 console.log('\n' + (falhas === 0 ? 'TODOS OS TESTES PASSARAM' : falhas + ' TESTE(S) FALHARAM'));
 process.exit(falhas ? 1 : 0);
