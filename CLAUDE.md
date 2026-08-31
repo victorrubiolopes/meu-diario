@@ -65,26 +65,36 @@ Tudo em **português (pt-BR)**: interface, comentários, mensagens de commit e c
 - `aplicarSeeds()` em `app.js` roda migrações one-shot (ex: renomes de grupo muscular, níveis de emagrecimento).
 
 ### Navegação (`app.js`)
-- 5 abas fixas na barra de baixo (`state.tab`). Dentro da aba **Mais** existem telas próprias,
-  com botão voltar e título no topbar (`MAIS_TITLES`).
-- Telas de Mais são **encadeáveis**: `state.maisView` é a tela atual, `state.maisParam` o argumento
-  dela (ex: id do plano em edição) e `state.maisStack` as anteriores.
-  `api.goToMais(view, param)` empilha, `api.back()` desempilha, `goTo(tab)` zera a pilha.
-  Chamada a partir do menu raiz não empilha nada — abrir uma tela e voltar cai no menu, como antes.
+- 5 abas fixas na barra de baixo (`state.tab`). **Qualquer aba** pode ter subtelas próprias, com
+  botão voltar e título no topbar (`SUB_TITLES`). Nasceu dentro de Mais (e por isso já se chamou
+  `maisView`), mas o mecanismo nunca teve nada de específico daquela aba; Medidas usa o mesmo.
+- Subtelas são **encadeáveis**: `state.subView` é a tela atual, `state.subParam` o argumento dela
+  (ex: id do plano em edição) e `state.subStack` as anteriores.
+  `api.goToSub(view, param)` empilha, `api.back()` desempilha, `goTo(tab)` zera a pilha.
+  Chamada a partir do menu raiz não empilha nada — abrir uma tela e voltar cai no menu.
+- **`goToSub` resolve a aba sozinho** por `SUB_TAB` (padrão `'mais'`; só as exceções entram lá).
+  NÃO ajustar `state.tab` na mão antes de chamar: era assim que um chamador esquecia e a subtela
+  abria com o roteador ainda renderizando a aba anterior. Trocar de aba zera a pilha, porque
+  voltar de uma subtela de Medidas pra uma de Mais não é caminho que o usuário percorreu.
 - **Botão voltar do celular**: o app mantém UMA entrada sentinela no `history` enquanto houver tela
   aberta; o `popstate` vira `back()` e o `render()` repõe a sentinela se ainda sobrou tela. Sair das
   telas sem usar o voltar (trocar de aba) consome a sentinela na mão, senão o próximo voltar do
   aparelho seria engolido. Tudo isso fica em `sincronizarHistorico()`, chamado no fim do `render()`.
 - Padrão de UI pra lista-que-abre-tela: `.menu-list` + `.menu-item` + `.chev`, montado pelos helpers
-  `escolhaHtml()` / `menuCardHtml()` de `mais.js`. Não inventar CSS novo nem remontar o markup na mão.
+  `Util.escolhaHtml()` / `Util.menuCardHtml()`. Não inventar CSS novo nem remontar o markup na mão.
 - Onde vale tela própria: escolher algo de uma lista, montar/editar (planos de treino, biblioteca,
-  dietas, painel do profissional). Onde NÃO vale: o registro diário (comida, treino, peso) — é o que
-  o usuário faz várias vezes por dia e hoje sai em 2 toques; navegação ali só adiciona atrito.
-- **Já aplicado em**: Planos de Treino, Biblioteca de Alimentos, Biblioteca de Exercícios, Combos e
-  Minhas Dietas. A regra em todas: a **tela raiz é a lista** (é o que a pessoa vem consultar), com os
-  caminhos de criação como `.menu-item` acima dela; cada formulário é uma tela-filha que fecha em
-  `api.back()`, nunca em `api.render()` — voltar pra lista é o que mostra que a ação deu certo.
+  dietas, painel do profissional, avaliação corporal). Onde NÃO vale: o registro diário (comida,
+  treino, **peso**) — é o que o usuário faz toda hora e sai em 2 toques; navegação ali só adiciona
+  atrito. Medidas é o caso que mostra os dois lados: pesar é 2x/semana e fica inline na raiz, a
+  avaliação completa é mensal e virou tela.
+- **Já aplicado em**: Planos de Treino, Biblioteca de Alimentos, Biblioteca de Exercícios, Combos,
+  Minhas Dietas e Medidas. A regra em todas: a **tela raiz é o que a pessoa vem consultar** (a lista;
+  em Medidas, a composição corporal), com os caminhos de criação como `.menu-item` abaixo dela; cada
+  formulário é uma tela-filha que fecha em `api.back()`, nunca em `api.render()` — voltar pra raiz é
+  o que mostra que a ação deu certo.
 - Formulário que acumula estado local antes de salvar (itens de um combo, exercícios de um plano)
   repinta só a sub-lista, nunca a tela toda: `api.render()` no meio do preenchimento apaga o que a
   pessoa já montou.
-- Toda `maisView` precisa de entrada em `MAIS_TITLES` (`app.js`), senão o topbar cai em "Mais".
+- Toda `subView` precisa de entrada em `SUB_TITLES` (`app.js`), senão o topbar cai no título da aba.
+- `node testes/navegacao.test.js` checa isso estaticamente, mais o dono declarado em `SUB_TAB`, mais
+  a ausência de ajuste manual de aba. Rodar depois de mexer em roteamento.

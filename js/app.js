@@ -4,9 +4,14 @@ const App = (() => {
     date: Util.todayISO(),
     treinoSub: 'musculacao',
     historicoSub: 'peso',
-    maisView: null,
-    maisParam: null,  // argumento da tela atual (ex: id do plano em edição)
-    maisStack: [],    // telas anteriores dentro de Mais, pro botão voltar
+    // Subtela aberta por cima da aba atual. Nasceu dentro de Mais e por isso se chamava
+    // maisView, mas o mecanismo nunca teve nada de específico daquela aba — só o
+    // roteamento é que checava `tab === 'mais'`. Medidas passou a usar o mesmo caminho
+    // (peso rápido na raiz, avaliação completa em tela própria), então o nome e as
+    // checagens deixaram de mencionar Mais.
+    subView: null,
+    subParam: null,  // argumento da tela atual (ex: id do plano em edição)
+    subStack: [],    // telas anteriores, pro botão voltar
   };
 
   const $app = document.getElementById('app');
@@ -26,48 +31,65 @@ const App = (() => {
   };
 
   const DATE_TABS = ['inicio', 'treino', 'alimentacao', 'medidas'];
-  const MAIS_DATE_VIEWS = ['tarefas'];
+  const SUB_DATE_VIEWS = ['tarefas'];
 
   function goTo(tab) {
     state.tab = tab;
-    state.maisView = null;
-    state.maisParam = null;
-    state.maisStack = [];
+    state.subView = null;
+    state.subParam = null;
+    state.subStack = [];
     render();
   }
 
   // Antes só existia UMA tela dentro de Mais, então voltar sempre caía no menu. Agora a
   // tela atual é empilhada antes de abrir a próxima, o que permite telas encadeadas
   // (Planos de Treino → escolher pacote → voltar pra Planos de Treino).
-  // Chamada a partir do menu raiz (maisView null) não empilha nada, então o caminho antigo
+  // Chamada a partir do menu raiz (subView null) não empilha nada, então o caminho antigo
   // — abrir uma tela de Mais e voltar pro menu — continua idêntico.
-  function goToMais(view, param) {
-    if (state.maisView) state.maisStack.push({ view: state.maisView, param: state.maisParam });
-    state.maisView = view;
-    state.maisParam = param != null ? param : null;
+  // Qual aba é dona de cada subtela. Quase todas moram em Mais, então ela é o padrão e só
+  // as exceções aparecem aqui.
+  //
+  // Existe porque goToSub dependia de o CHAMADOR ter ajustado state.tab antes — e um dos
+  // seis chamadores não ajustava: o botão de perfil da tela Hoje (inicio.js) abria
+  // subView='perfil' com tab='inicio', e o roteador continuava renderizando Hoje. Passava
+  // despercebido porque o topbar também checava tab==='mais', então nada mudava na tela;
+  // ao desacoplar o topbar da aba, o mesmo clique viraria título "Perfil" e botão voltar
+  // por cima do conteúdo de Hoje. Definir a aba aqui mata a classe inteira do problema.
+  const SUB_TAB = { avaliacao: 'medidas' };
+
+  function goToSub(view, param) {
+    const tab = SUB_TAB[view] || 'mais';
+    // Trocar de aba zera a pilha: encadear vale dentro da mesma aba, e voltar de uma
+    // subtela de Medidas pra uma de Mais não seria um caminho que o usuário percorreu.
+    if (tab !== state.tab) { state.tab = tab; state.subStack = []; }
+    else if (state.subView) state.subStack.push({ view: state.subView, param: state.subParam });
+    state.subView = view;
+    state.subParam = param != null ? param : null;
     render();
   }
 
   function back() {
-    const anterior = state.maisStack.pop();
-    state.maisView = anterior ? anterior.view : null;
-    state.maisParam = anterior ? anterior.param : null;
+    const anterior = state.subStack.pop();
+    state.subView = anterior ? anterior.view : null;
+    state.subParam = anterior ? anterior.param : null;
     render();
   }
 
   function render() {
     atualizarSino();
-    const showDate = DATE_TABS.includes(state.tab) || (state.tab === 'mais' && MAIS_DATE_VIEWS.includes(state.maisView));
+    const showDate = DATE_TABS.includes(state.tab) || SUB_DATE_VIEWS.includes(state.subView);
     $dateNav.style.display = showDate ? '' : 'none';
     $datePillLabel.textContent = Util.fmtDatePill(state.date);
-    $backBtn.style.display = state.tab === 'mais' && state.maisView ? '' : 'none';
+    $backBtn.style.display = state.subView ? '' : 'none';
 
     document.querySelectorAll('.nav-btn').forEach(b => {
       b.classList.toggle('active', b.dataset.tab === state.tab);
     });
 
-    $title.textContent = state.tab === 'mais' && state.maisView
-      ? (MAIS_TITLES[state.maisView] || 'Mais')
+    // Subtela sem título cadastrado cai no título da PRÓPRIA aba, não num "Mais" fixo —
+    // senão uma subtela de Medidas sem entrada em SUB_TITLES apareceria como "Mais".
+    $title.textContent = state.subView
+      ? (SUB_TITLES[state.subView] || TITLES[state.tab])
       : TITLES[state.tab];
 
     switch (state.tab) {
@@ -93,7 +115,7 @@ const App = (() => {
   let sentinelaAtiva = false;
   let ignorarProximoPop = false;
 
-  function profundidade() { return state.maisView ? state.maisStack.length + 1 : 0; }
+  function profundidade() { return state.subView ? state.subStack.length + 1 : 0; }
 
   function sincronizarHistorico() {
     const precisa = profundidade() > 0;
@@ -120,7 +142,8 @@ const App = (() => {
     back();
   });
 
-  const MAIS_TITLES = {
+  const SUB_TITLES = {
+    avaliacao: 'Avaliação completa',
     tarefas: 'Tarefas',
     fotos: 'Fotos',
     exames: 'Exames Médicos',
@@ -159,7 +182,7 @@ const App = (() => {
     'paciente-papel': 'Papel e profissional',
   };
 
-  const api = { goTo, goToMais, back, render, get state() { return state; } };
+  const api = { goTo, goToSub, back, render, get state() { return state; } };
 
   // Sino: badge com o número de não lidas. Vive no topbar, fora do ciclo de render das views,
   // então é atualizado junto do render() e sempre que a nuvem emitir mudança (a prescrição
@@ -179,7 +202,7 @@ const App = (() => {
     if (!btn) return;
     btn.addEventListener('click', () => {
       state.tab = 'mais';
-      state.maisView = 'notificacoes';
+      state.subView = 'notificacoes';
       render();
     });
     atualizarSino();

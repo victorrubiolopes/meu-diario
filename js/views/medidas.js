@@ -84,12 +84,77 @@ const ViewMedidas = (() => {
     `;
   }
 
+  // Campos além do peso — o que separa uma pesagem de uma avaliação completa.
+  const FIELDS_AVALIACAO = FIELDS.filter(f => f.key !== 'weight');
+
+  function temAvaliacao(m) {
+    return !!m && FIELDS_AVALIACAO.some(f => m[f.key] != null);
+  }
+
   function render($app, state, api) {
+    if (state.subView === 'avaliacao') return renderAvaliacao($app, state, api);
+    return renderRaiz($app, state, api);
+  }
+
+  // Tela raiz: consultar a composição e pesar. Pesar é o que ele faz 2x por semana e sai
+  // em dois toques; a avaliação completa é mensal e vai pra tela própria — mesma regra que
+  // vale pro resto do app (registro diário fica inline, montar/editar vira tela).
+  function renderRaiz($app, state, api) {
     const existing = Storage.getByDate('medidas', state.date)[0];
+    const anteriores = Storage.getAll('medidas')
+      .filter(m => m.weight != null && m.date < state.date)
+      .sort((a, b) => b.date.localeCompare(a.date));
+    const ultima = anteriores[0];
+    const completa = temAvaliacao(existing);
+    const delta = existing && existing.weight != null && ultima ? existing.weight - ultima.weight : null;
+
     $app.innerHTML = `
       ${composicaoHtml()}
       <div class="card">
+        <h2>Pesagem</h2>
+        ${ultima ? `<p class="meta">Última: <strong>${ultima.weight.toFixed(1)} kg</strong> em ${Util.fmtDatePill(ultima.date)}</p>` : ''}
+        ${Util.inputGroup({
+          id: 'f-weight',
+          label: 'Peso (kg)',
+          type: 'number',
+          step: '0.1',
+          value: existing && existing.weight != null ? existing.weight : '',
+        })}
+        ${delta != null ? `<p class="meta">${delta > 0 ? '+' : ''}${delta.toFixed(1)} kg desde a última</p>` : ''}
+        <button class="primary" id="save-peso">${existing && existing.weight != null ? 'Atualizar peso' : 'Salvar peso'}</button>
+      </div>
+      ${Util.menuCardHtml([
+        Util.escolhaHtml(
+          'id="ir-avaliacao"',
+          '📏',
+          completa ? 'Ver a avaliação deste dia' : 'Fazer avaliação completa',
+          completa
+            ? 'Cintura, abdômen, quadril, braço, coxa e composição já lançados.'
+            : 'Cintura, abdômen, quadril, braço, coxa, % de gordura e notas.'
+        ),
+      ])}
+    `;
+
+    document.getElementById('save-peso').addEventListener('click', () => {
+      const v = document.getElementById('f-weight').value;
+      if (v === '') { alert('Preencha o peso.'); return; }
+      // Grava SÓ o peso: um update parcial preserva o que a avaliação completa já tiver
+      // deixado no mesmo dia. Escrever o formulário inteiro aqui zeraria cintura, abdômen
+      // e o resto toda vez que ele subisse na balança.
+      if (existing) Storage.update('medidas', existing.id, { weight: Number(v) });
+      else Storage.add('medidas', { date: state.date, weight: Number(v) });
+      api.render();
+    });
+
+    document.getElementById('ir-avaliacao').addEventListener('click', () => api.goToSub('avaliacao'));
+  }
+
+  function renderAvaliacao($app, state, api) {
+    const existing = Storage.getByDate('medidas', state.date)[0];
+    $app.innerHTML = `
+      <div class="card">
         <h2>Medidas corporais</h2>
+        <p class="meta">Meça sempre no mesmo ponto e nas mesmas condições — no seu histórico a coxa oscila 10 cm entre aferições, o que é o ponto de medida mudando, não a perna.</p>
         ${pares(FIELDS).map(par => `
           <div class="row">
             ${par.map(f => fieldHtml(f, existing)).join('')}
@@ -113,7 +178,9 @@ const ViewMedidas = (() => {
       } else {
         Storage.add('medidas', { date: state.date, ...data });
       }
-      api.render();
+      // Volta pra raiz em vez de repintar: ver a composição corporal recalculada é o que
+      // mostra que a avaliação entrou.
+      api.back();
     });
 
     // Estimativa de % de gordura pra quem não tem esse número medido — só aparece

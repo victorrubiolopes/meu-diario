@@ -45,7 +45,7 @@ const ViewExamesTendencia = (() => {
 
   function bindAtalho($app, api) {
     const btn = $app.querySelector('#ir-exames-tendencia');
-    if (btn) btn.addEventListener('click', () => api.goToMais('exames-tendencia'));
+    if (btn) btn.addEventListener('click', () => api.goToSub('exames-tendencia'));
   }
 
   // ---- Tela de tendência ----
@@ -175,7 +175,7 @@ const ViewExamesTendencia = (() => {
 
   function bindMenu($app, api) {
     const lancar = $app.querySelector('#ir-exame-lancar');
-    if (lancar) lancar.addEventListener('click', () => api.goToMais('exame-lancar'));
+    if (lancar) lancar.addEventListener('click', () => api.goToSub('exame-lancar'));
 
     const carregar = $app.querySelector('#carregar-exames-victor');
     if (carregar) {

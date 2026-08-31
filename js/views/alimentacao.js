@@ -395,8 +395,7 @@ const ViewAlimentacao = (() => {
     }
 
     document.getElementById('go-combos').addEventListener('click', () => {
-      state.tab = 'mais';
-      api.goToMais('combos');
+      api.goToSub('combos');
     });
 
     const addProximaBtn = document.getElementById('add-proxima-refeicao');
@@ -433,8 +432,7 @@ const ViewAlimentacao = (() => {
 
     if (document.getElementById('go-perfil')) {
       document.getElementById('go-perfil').addEventListener('click', () => {
-        state.tab = 'mais';
-        api.goToMais('perfil');
+        api.goToSub('perfil');
       });
     }
     const infoNutricBtn = $app.querySelector('[data-toggle-info-nutric]');
@@ -445,8 +443,7 @@ const ViewAlimentacao = (() => {
       });
     }
     document.getElementById('go-biblioteca').addEventListener('click', () => {
-      state.tab = 'mais';
-      api.goToMais('biblioteca-alimentos');
+      api.goToSub('biblioteca-alimentos');
     });
 
     $app.querySelectorAll('[data-modo]').forEach(btn => {
