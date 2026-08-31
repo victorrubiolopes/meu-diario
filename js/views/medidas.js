@@ -138,9 +138,10 @@ const ViewMedidas = (() => {
     document.getElementById('save-peso').addEventListener('click', () => {
       const v = document.getElementById('f-weight').value;
       if (v === '') { alert('Preencha o peso.'); return; }
-      // Grava SÓ o peso: um update parcial preserva o que a avaliação completa já tiver
-      // deixado no mesmo dia. Escrever o formulário inteiro aqui zeraria cintura, abdômen
-      // e o resto toda vez que ele subisse na balança.
+      // Update PARCIAL, só com o peso. Esta tela não tem os campos da avaliação, então
+      // montar um objeto com todos eles (como faz a tela de avaliação, onde os campos
+      // existem e vazio significa "não medi") mandaria null pra cintura, abdômen e o resto
+      // toda vez que ele subisse na balança.
       if (existing) Storage.update('medidas', existing.id, { weight: Number(v) });
       else Storage.add('medidas', { date: state.date, weight: Number(v) });
       api.render();
