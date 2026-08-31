@@ -1626,6 +1626,30 @@ Coxa: 58 cm
         <label style="margin-top:14px">Importar backup</label>
         <input type="file" id="import-json" accept="application/json">
       </div>
+      ${(() => {
+        // Cópias que o próprio app guarda antes de sobrescrever o diário inteiro
+        // (sincronização com a nuvem, importação de backup). O card só aparece quando
+        // existe alguma — em aparelho novo não há o que mostrar.
+        const copias = Storage.copiasSeguranca();
+        if (!copias.length) return '';
+        return `
+          <div class="card">
+            <h2>Cópias de segurança automáticas</h2>
+            <p class="meta">O app guarda o estado anterior antes de sincronizar com a nuvem ou importar um backup. Ficam as 3 últimas — use se algum registro sumir. Restaurar <strong>traz de volta</strong> o que estava na cópia; não apaga o que você registrou depois.</p>
+            <div class="menu-list" style="margin-top:10px">
+              ${copias.map(c => `
+                <div class="menu-item" data-restaurar="${c.id}">
+                  <div>
+                    <div>${Util.escapeHtml(new Date(c.em).toLocaleString('pt-BR'))}</div>
+                    <div class="meta">${c.registros} registros · ${Util.escapeHtml(c.motivo)}</div>
+                  </div>
+                  <span class="chev">↩</span>
+                </div>
+              `).join('')}
+            </div>
+          </div>
+        `;
+      })()}
       <div class="card">
         <h2>Relatório para análise com IA ou treinador</h2>
         <p class="meta">Gera um resumo em texto do período escolhido, pronto para colar numa conversa com uma IA ou mandar pro seu treinador.</p>
@@ -1651,6 +1675,22 @@ Coxa: 58 cm
       a.download = `diario-backup-${Util.todayISO()}.json`;
       a.click();
       URL.revokeObjectURL(url);
+    });
+
+    $app.querySelectorAll('[data-restaurar]').forEach(el => {
+      el.addEventListener('click', () => {
+        const copia = Storage.copiasSeguranca().find(c => c.id === el.dataset.restaurar);
+        if (!copia) return;
+        const quando = new Date(copia.em).toLocaleString('pt-BR');
+        if (!window.confirm(
+          `Restaurar a cópia de ${quando} (${copia.registros} registros)?\n\n` +
+          'Os registros dessa cópia voltam pro diário. O que você registrou depois continua lá ' +
+          '— a sincronização junta os dois, não troca um pelo outro.'
+        )) return;
+        Storage.restaurarCopiaSeguranca(copia.id);
+        alert(`✅ Cópia de ${quando} restaurada.`);
+        api.render();
+      });
     });
 
     document.getElementById('import-json').addEventListener('change', async e => {

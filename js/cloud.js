@@ -155,7 +155,58 @@ const Cloud = (() => {
     const data = {};
     SYNC_KEYS.forEach(k => { data[k] = Storage.getAll(k); });
     data.perfil = Storage.getPerfil();
+    data._apagados = Storage.apagados();
     data._updatedAt = Date.now();
+    return data;
+  }
+
+  // ---- Mesclagem registro a registro ----
+  // Antes, sincronizar era "um lado sobrescreve o outro por inteiro", decidido por um
+  // único timestamp do documento. Bastava um aparelho abrir com cópia velha pra apagar o
+  // que o outro tinha acabado de registrar — foi o que aconteceu em 31/08/2026 com um
+  // café da manhã lançado no celular e perdido ao abrir o app no computador.
+  //
+  // Agora as duas listas se juntam por `id`, e quem ganha o desempate de cada registro é o
+  // `_upd` mais recente. Registro que existe só de um lado sempre entra. O único jeito de
+  // algo sair é uma lápide de exclusão (Storage.remove) — exclusão explícita, nunca perda.
+  function mesclarListas(locais, remotos, apagadosIds) {
+    const porId = new Map();
+    const absorver = lista => (Array.isArray(lista) ? lista : []).forEach(r => {
+      if (!r || !r.id || apagadosIds.has(r.id)) return;
+      const atual = porId.get(r.id);
+      // `>=` e não `>`: no empate quem passar por último ganha, e o último a passar é o
+      // lado local (ver ordem abaixo). Com `>` o empate ficava com o remoto, e empate é
+      // comum — dois `Date.now()` no mesmo milissegundo bastam, e todo registro anterior
+      // ao carimbo `_upd` empata em 0 com qualquer outro.
+      if (!atual || (r._upd || 0) >= (atual._upd || 0)) porId.set(r.id, r);
+    });
+    // Remotos primeiro, locais depois: em empate de `_upd` (inclusive registro antigo, de
+    // antes deste carimbo existir, onde os dois valem 0) fica a versão deste aparelho.
+    absorver(remotos);
+    absorver(locais);
+    // Registro sem id não dá pra casar entre aparelhos; mantém só os locais, senão cada
+    // sincronização criaria uma cópia nova dele.
+    const semId = (Array.isArray(locais) ? locais : []).filter(r => r && !r.id);
+    return [...porId.values(), ...semId];
+  }
+
+  function mesclarSnapshot(cloudData) {
+    const locaisApagados = Storage.apagados();
+    const remotosApagados = Array.isArray(cloudData._apagados) ? cloudData._apagados : [];
+    // Junta as lápides dos dois lados e devolve pro Storage, pra este aparelho também
+    // aprender o que o outro apagou.
+    const todas = [...remotosApagados, ...locaisApagados].filter(t => t && t.id);
+    const vistas = new Set();
+    const unicas = todas.filter(t => (vistas.has(t.id) ? false : (vistas.add(t.id), true)));
+    Storage.salvarApagados(unicas);
+    const apagadosIds = new Set(unicas.map(t => t.id));
+
+    const data = {};
+    SYNC_KEYS.forEach(k => { data[k] = mesclarListas(Storage.getAll(k), cloudData[k], apagadosIds); });
+
+    const perfilLocal = Storage.getPerfil() || {};
+    const perfilNuvem = cloudData.perfil || {};
+    data.perfil = (perfilNuvem._upd || 0) > (perfilLocal._upd || 0) ? perfilNuvem : perfilLocal;
     return data;
   }
 
@@ -174,6 +225,12 @@ const Cloud = (() => {
     if (data.perfil) localStorage.setItem('perfil', JSON.stringify(data.perfil));
   }
 
+  // Toda escrita que substitui o diário inteiro passa por aqui, pra existir de onde voltar.
+  function writeLocalComRede(data, motivo) {
+    Storage.salvarCopiaSeguranca(motivo);
+    writeLocalRaw(data);
+  }
+
   // Guarda quando (timestamp da nuvem) este aparelho ficou sincronizado pela última vez,
   // pra saber se um dado da nuvem é realmente mais novo antes de sobrescrever o local.
   function chaveUltimoSync(u) { return 'cloud_last_synced_' + u; }
@@ -187,10 +244,11 @@ const Cloud = (() => {
     const cloudData = snap.exists ? snap.data() : null;
     const cloudHas = !!cloudData && SYNC_KEYS.some(k => Array.isArray(cloudData[k]) && cloudData[k].length > 0);
     const localHas = localHasData();
-    // Marca por conta (uid) se esse aparelho já passou pela reconciliação inicial,
-    // pra não perguntar de novo a cada login — depois da primeira vez a nuvem já é a fonte de verdade.
+    // Continua marcado por conta (uid) só pra registrar que este aparelho já entrou na
+    // conta. Não decide mais nada: a mesclagem abaixo é a mesma na primeira vez e nas
+    // seguintes, então não há por que perguntar nem por que tratar o primeiro login
+    // diferente.
     const chaveReconciliado = 'cloud_reconciliado_' + user.uid;
-    const jaReconciliado = localStorage.getItem(chaveReconciliado) === '1';
 
     if (cloudHas && !localHas) {
       writeLocalRaw(cloudData);
@@ -198,26 +256,16 @@ const Cloud = (() => {
     } else if (!cloudHas && localHas) {
       await push();
     } else if (cloudHas && localHas) {
-      if (jaReconciliado) {
-        // Escrever local (com debounce de 1.5s) pode não ter chegado à nuvem ainda —
-        // só puxa a nuvem se ela for realmente mais nova que a última sincronização
-        // deste aparelho; senão empurra o local (que pode ter mudanças recentes não enviadas).
-        const ultimoSync = Number(localStorage.getItem(chaveUltimoSync(user.uid)) || 0);
-        if ((cloudData._updatedAt || 0) > ultimoSync) {
-          writeLocalRaw(cloudData);
-          marcarSincronizado(cloudData._updatedAt);
-        } else {
-          await push();
-        }
-      } else {
-        const usarNuvem = window.confirm(
-          'Encontramos dados na sua conta na nuvem e também neste aparelho.\n\n' +
-          'OK = usar os dados da NUVEM (substitui os deste aparelho).\n' +
-          'Cancelar = enviar os dados deste APARELHO para a nuvem (substitui os da nuvem).'
-        );
-        if (usarNuvem) { writeLocalRaw(cloudData); marcarSincronizado(cloudData._updatedAt); }
-        else await push();
-      }
+      // Os dois lados têm dados. Antes isso era uma escolha de qual lado sacrificar —
+      // por timestamp do documento (quando o aparelho já tinha reconciliado) ou por um
+      // window.confirm (na primeira vez). Nos dois caminhos alguém perdia registro.
+      //
+      // Agora mescla: nada precisa ser sacrificado, porque a união por id é sempre
+      // superconjunto dos dois lados. Some com isso tanto o diálogo quanto a comparação
+      // de timestamps — que era exatamente o ponto onde um aparelho com cópia velha
+      // conseguia apagar o registro recente do outro.
+      writeLocalComRede(mesclarSnapshot(cloudData), 'antes de mesclar com a nuvem');
+      await push();
     }
     localStorage.setItem(chaveReconciliado, '1');
     // se nenhum lado tem dados, nada a fazer
@@ -233,8 +281,25 @@ const Cloud = (() => {
   async function push() {
     if (!enabled || !user) return;
     try {
-      const snapshot = localSnapshot();
-      await db.collection('users').doc(user.uid).set(snapshot, { merge: true });
+      const ref = db.collection('users').doc(user.uid);
+      // Lê a nuvem antes de escrever e mescla. O `merge: true` do Firestore mescla CAMPOS,
+      // não o conteúdo de arrays — `set` troca a lista inteira. Sem esta leitura, dois
+      // aparelhos usados no mesmo intervalo perdem o registro de quem escreveu primeiro.
+      // Se a leitura falhar (offline, permissão), segue com o envio simples: é o
+      // comportamento antigo, e deixar de enviar seria pior que o risco que ele carrega.
+      let snapshot;
+      try {
+        const snap = await ref.get();
+        snapshot = snap.exists ? { ...mesclarSnapshot(snap.data()), _apagados: Storage.apagados(), _updatedAt: Date.now() } : localSnapshot();
+      } catch (e) {
+        console.warn('Não deu pra ler a nuvem antes de enviar — enviando o local', e);
+        snapshot = localSnapshot();
+      }
+      await ref.set(snapshot, { merge: true });
+      // Aplica o resultado no local também — mas mesclando de novo, não escrevendo o
+      // snapshot cru: o `set` acima é uma ida à rede, e um registro criado durante essa
+      // ida sumiria se a gente simplesmente sobrescrevesse com o que foi montado antes.
+      writeLocalRaw(mesclarSnapshot(snapshot));
       marcarSincronizado(snapshot._updatedAt);
       status = 'synced';
     } catch (e) {

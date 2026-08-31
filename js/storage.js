@@ -41,9 +41,14 @@ const Storage = (() => {
     return getAll(key).filter(item => item.date === date);
   }
 
+  // `_upd` é o carimbo de quando este registro mudou pela última vez. Existe pra
+  // sincronização conseguir mesclar dois aparelhos registro a registro: sem ele, o
+  // desempate entre a cópia local e a da nuvem só podia ser "um sobrescreve o outro
+  // por inteiro" — que foi o que apagou um café da manhã em 31/08/2026.
   function add(key, entry) {
     const items = getAll(key);
     entry.id = uid();
+    entry._upd = Date.now();
     items.push(entry);
     saveAll(key, items);
     return entry;
@@ -53,13 +58,44 @@ const Storage = (() => {
     const items = getAll(key);
     const idx = items.findIndex(i => i.id === id);
     if (idx > -1) {
-      items[idx] = { ...items[idx], ...changes };
+      items[idx] = { ...items[idx], ...changes, _upd: Date.now() };
       saveAll(key, items);
     }
   }
 
   function remove(key, id) {
+    // A lápide entra ANTES do saveAll: o saveAll é quem dispara a sincronização
+    // (Cloud.wrapStorage), e ela precisa encontrar a exclusão já registrada. Sem isso o
+    // item apagado num aparelho voltaria à vida na próxima mesclagem vinda do outro.
+    registrarApagado(key, id);
     saveAll(key, getAll(key).filter(i => i.id !== id));
+  }
+
+  // ---- Lápides de exclusão ----
+  // Guardadas por 90 dias: tempo de sobra pra qualquer aparelho parado voltar e aprender
+  // que o registro morreu, sem deixar a lista crescer pra sempre.
+  const APAGADOS_KEY = 'registros_apagados';
+  const APAGADOS_TTL_MS = 90 * 24 * 60 * 60 * 1000;
+
+  function apagados() {
+    try {
+      const lista = JSON.parse(localStorage.getItem(APAGADOS_KEY) || '[]');
+      return Array.isArray(lista) ? lista : [];
+    } catch {
+      return [];
+    }
+  }
+
+  function salvarApagados(lista) {
+    const limite = Date.now() - APAGADOS_TTL_MS;
+    localStorage.setItem(APAGADOS_KEY, JSON.stringify(lista.filter(t => t && t.ts > limite)));
+  }
+
+  function registrarApagado(key, id) {
+    if (!id) return;
+    const lista = apagados();
+    if (!lista.some(t => t.id === id)) lista.push({ key, id, ts: Date.now() });
+    salvarApagados(lista);
   }
 
   // ---- perfil (objeto único) ----
@@ -72,7 +108,7 @@ const Storage = (() => {
   }
 
   function savePerfil(data) {
-    localStorage.setItem('perfil', JSON.stringify(data));
+    localStorage.setItem('perfil', JSON.stringify({ ...data, _upd: Date.now() }));
   }
 
   // ---- config da refeição livre (objeto único, null se nunca configurado) ----
@@ -144,6 +180,7 @@ const Storage = (() => {
   }
 
   function importAll(data) {
+    salvarCopiaSeguranca('antes de importar um backup');
     Object.keys(KEYS).forEach(k => {
       if (Array.isArray(data[k])) saveAll(k, data[k]);
     });
@@ -152,9 +189,72 @@ const Storage = (() => {
     if (data.lista_compras) saveListaCompras(data.lista_compras);
   }
 
+  // ---- Cópias de segurança locais ----
+  // Rede contra perda de dados: antes de QUALQUER escrita que substitua o diário inteiro
+  // (sincronização trazendo a nuvem, importação de backup), o estado anterior é guardado
+  // aqui. Existe porque em 31/08/2026 abrir o app no computador sobrescreveu a nuvem com
+  // uma cópia velha e apagou o café da manhã registrado no celular — e não havia de onde
+  // voltar. Ficam as 3 últimas; a mais velha sai quando entra uma nova.
+  const SEG_KEY = 'copias_seguranca';
+  const SEG_MAX = 3;
+
+  function copiasSeguranca() {
+    try {
+      const lista = JSON.parse(localStorage.getItem(SEG_KEY) || '[]');
+      return Array.isArray(lista) ? lista : [];
+    } catch {
+      return [];
+    }
+  }
+
+  function resumoCopia(dados) {
+    return Object.keys(KEYS).reduce((n, k) => n + (Array.isArray(dados[k]) ? dados[k].length : 0), 0);
+  }
+
+  function salvarCopiaSeguranca(motivo) {
+    try {
+      const dados = exportAll();
+      // Não guarda cópia de um diário vazio: sobrescreveria uma cópia boa por uma inútil
+      // justamente no cenário que mais importa (aparelho novo ou dados já perdidos).
+      if (resumoCopia(dados) === 0) return null;
+      const copia = { id: uid(), em: Date.now(), motivo: motivo || 'automática', registros: resumoCopia(dados), dados };
+      let lista = [copia, ...copiasSeguranca()].slice(0, SEG_MAX);
+      // localStorage tem cota: se não couber, vai jogando a mais velha fora até caber.
+      for (;;) {
+        try {
+          localStorage.setItem(SEG_KEY, JSON.stringify(lista));
+          return copia;
+        } catch (e) {
+          if (lista.length <= 1) { console.warn('Sem espaço pra cópia de segurança', e); return null; }
+          lista = lista.slice(0, lista.length - 1);
+        }
+      }
+    } catch (e) {
+      // Uma cópia de segurança que falha nunca pode derrubar a operação que ela protege.
+      console.warn('Cópia de segurança falhou', e);
+      return null;
+    }
+  }
+
+  function restaurarCopiaSeguranca(id) {
+    const copia = copiasSeguranca().find(c => c.id === id);
+    if (!copia) return false;
+    // Guarda o estado atual antes de restaurar — restaurar a cópia errada também é perda.
+    salvarCopiaSeguranca('antes de restaurar uma cópia');
+    Object.keys(KEYS).forEach(k => {
+      if (Array.isArray(copia.dados[k])) saveAll(k, copia.dados[k]);
+    });
+    if (copia.dados.perfil) savePerfil(copia.dados.perfil);
+    if (copia.dados.refeicaoLivre_config) saveConfigRefeicaoLivre(copia.dados.refeicaoLivre_config);
+    if (copia.dados.lista_compras) saveListaCompras(copia.dados.lista_compras);
+    return true;
+  }
+
   return {
     KEYS, uid, getAll, saveAll, getByDate, add, update, remove,
     getPerfil, savePerfil, getConfigRefeicaoLivre, saveConfigRefeicaoLivre, getListaCompras, saveListaCompras,
     seedIfEmpty, mergeSeeds, exportAll, importAll,
+    apagados, registrarApagado, salvarApagados,
+    copiasSeguranca, salvarCopiaSeguranca, restaurarCopiaSeguranca,
   };
 })();
