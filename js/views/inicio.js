@@ -392,7 +392,7 @@ const ViewInicio = (() => {
     const irPerfilCalorias = document.getElementById('ir-perfil-calorias');
     if (irPerfilCalorias) {
       irPerfilCalorias.addEventListener('click', () => {
-        api.goToMais('perfil');
+        api.goToSub('perfil');
         setTimeout(() => {
           const faltando = !perfil.peso ? 'p-peso' : !perfil.altura ? 'p-altura' : !perfil.idade ? 'p-idade' : 'p-sexo';
           const el = document.getElementById(faltando);

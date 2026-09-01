@@ -15,7 +15,7 @@ const ViewMais = (() => {
   ];
 
   function render($app, state, api) {
-    switch (state.maisView) {
+    switch (state.subView) {
       case 'tarefas': return ViewTarefas.render($app, state, api);
       case 'fotos': return ViewFotos.render($app, state, api);
       case 'exames': return ViewExames.render($app, state, api);
@@ -40,7 +40,7 @@ const ViewMais = (() => {
       case 'backup': return renderBackup($app, state, api);
       case 'admin': return renderAdmin($app, state, api);
       // Todas as telas do paciente passam pelo renderAdmin: as funções de montagem
-      // vivem lá dentro, e ele despacha pela maisView logo no começo.
+      // vivem lá dentro, e ele despacha pela subView logo no começo.
       case 'paciente':
       case 'paciente-diario':
       case 'paciente-medidas':
@@ -60,25 +60,10 @@ const ViewMais = (() => {
   }
 
   // ---------------- LINHA QUE ABRE OUTRA TELA ----------------
-  // Mesmo desenho do menu raiz de Mais: ícone, título, uma linha explicando e a seta. Quem já
-  // usou o app uma vez reconhece que ali se clica e vai pra algum lugar — por isso os
-  // formulários de cadastro (alimento, exercício, combo, dieta) viraram destinos em vez de
-  // ficarem empilhados acima da lista que a pessoa veio consultar.
-  function escolhaHtml(attr, icone, titulo, sub) {
-    return `
-      <button class="menu-item" ${attr} style="align-items:flex-start;text-align:left">
-        <span class="icon">${icone}</span>
-        <div style="flex:1">
-          <div><strong>${titulo}</strong></div>
-          <div class="meta">${sub}</div>
-        </div>
-        <span class="chev">›</span>
-      </button>`;
-  }
-
-  function menuCardHtml(itens) {
-    return `<div class="card" style="padding:4px 16px"><div class="menu-list">${itens.join('')}</div></div>`;
-  }
+  // Moraram aqui enquanto só Mais tinha subtelas; hoje Medidas usa o mesmo padrão, então o
+  // markup vive no Util e estes são só apelidos pros ~20 usos abaixo.
+  const escolhaHtml = Util.escolhaHtml;
+  const menuCardHtml = Util.menuCardHtml;
 
   // ---------------- PACIENTE NO PAINEL: CACHE, SEÇÕES E ADERÊNCIA ----------------
   // Abrir um paciente custa duas consultas ao Firestore (diário + prescrição). Com cada
@@ -258,8 +243,8 @@ Coxa: 58 cm
     // Aferição já lançada pela nutri: o paciente vai conferir, não preencher.
     medidasAferidas: { tab: 'medidas', rotulo: 'Ver minhas medidas' },
     peso: { tab: 'medidas', rotulo: 'Registrar peso' },
-    fotos: { tab: 'mais', maisView: 'fotos', rotulo: 'Abrir Fotos' },
-    exames: { tab: 'mais', maisView: 'exames', rotulo: 'Abrir Exames' },
+    fotos: { tab: 'mais', subView: 'fotos', rotulo: 'Abrir Fotos' },
+    exames: { tab: 'mais', subView: 'exames', rotulo: 'Abrir Exames' },
   };
 
   // "há 2h" é mais útil que a data crua pra um aviso recente; acima de um dia, mostra a data.
@@ -324,7 +309,7 @@ Coxa: 58 cm
         if (!destino) return;
         Storage.update('notificacoes', n.id, { lida: true });
         state.tab = destino.tab;
-        state.maisView = destino.maisView || null;
+        state.subView = destino.subView || null;
         api.render();
       });
     });
@@ -403,7 +388,7 @@ Coxa: 58 cm
       else if (uid) { window.prompt('Seu ID (copie):', uid); }
     });
     const adminBtn = $app.querySelector('#cloud-admin');
-    if (adminBtn) adminBtn.addEventListener('click', () => api.goToMais('admin'));
+    if (adminBtn) adminBtn.addEventListener('click', () => api.goToSub('admin'));
     const googleBtn = $app.querySelector('#cloud-google');
     if (googleBtn) googleBtn.addEventListener('click', () => { Cloud.loginGoogle().catch(showErro); });
     const entrarBtn = $app.querySelector('#cloud-entrar');
@@ -467,7 +452,7 @@ Coxa: 58 cm
     bindContaCard($app, api);
     bindAparenciaCard($app, api);
     $app.querySelectorAll('[data-go]').forEach(btn => {
-      btn.addEventListener('click', () => api.goToMais(btn.dataset.go));
+      btn.addEventListener('click', () => api.goToSub(btn.dataset.go));
     });
   }
 
@@ -642,7 +627,7 @@ Coxa: 58 cm
     });
 
     document.getElementById('go-dietas-custom').addEventListener('click', () => {
-      api.goToMais('dietas-custom');
+      api.goToSub('dietas-custom');
     });
   }
 
@@ -755,8 +740,8 @@ Coxa: 58 cm
     `;
 
     const btnPacotes = document.getElementById('ir-dieta-pacotes');
-    if (btnPacotes) btnPacotes.addEventListener('click', () => api.goToMais('dieta-pacotes'));
-    document.getElementById('ir-dieta-nova').addEventListener('click', () => api.goToMais('dieta-nova'));
+    if (btnPacotes) btnPacotes.addEventListener('click', () => api.goToSub('dieta-pacotes'));
+    document.getElementById('ir-dieta-nova').addEventListener('click', () => api.goToSub('dieta-nova'));
 
     $app.querySelectorAll('[data-usar]').forEach(btn => {
       btn.addEventListener('click', () => {
@@ -974,8 +959,8 @@ Coxa: 58 cm
       </div>
     `;
 
-    document.getElementById('ir-alimento-novo').addEventListener('click', () => api.goToMais('alimento-novo'));
-    document.getElementById('ir-receita').addEventListener('click', () => api.goToMais('receita-sugerir'));
+    document.getElementById('ir-alimento-novo').addEventListener('click', () => api.goToSub('alimento-novo'));
+    document.getElementById('ir-receita').addEventListener('click', () => api.goToSub('receita-sugerir'));
 
     document.getElementById('food-filter').addEventListener('input', e => {
       const q = e.target.value.trim().toLowerCase();
@@ -1142,7 +1127,7 @@ Coxa: 58 cm
       });
     });
 
-    document.getElementById('ir-exercicio-novo').addEventListener('click', () => api.goToMais('exercicio-novo'));
+    document.getElementById('ir-exercicio-novo').addEventListener('click', () => api.goToSub('exercicio-novo'));
 
     function attachEditLink() {
       $app.querySelectorAll('[data-edit-link]').forEach(btn => {
@@ -1265,7 +1250,7 @@ Coxa: 58 cm
       : '<div class="card"><div class="empty">Nenhum treino ainda. Escolha uma das duas opções acima pra começar.</div></div>'}
     `;
 
-    document.getElementById('ir-pacotes').addEventListener('click', () => api.goToMais('treino-pacotes'));
+    document.getElementById('ir-pacotes').addEventListener('click', () => api.goToSub('treino-pacotes'));
     document.getElementById('criar-plano').addEventListener('click', () => {
       const maxOrdem = planos.reduce((m, p) => Math.max(m, p.ordem), 0);
       const novo = Storage.add('treino_planos', {
@@ -1275,10 +1260,10 @@ Coxa: 58 cm
       });
       // Vai direto pro editor: antes o plano vazio nascia no fim da lista e cabia ao usuário
       // perceber que algo tinha aparecido lá embaixo.
-      api.goToMais('plano-editar', novo.id);
+      api.goToSub('plano-editar', novo.id);
     });
     $app.querySelectorAll('[data-plano]').forEach(btn => {
-      btn.addEventListener('click', () => api.goToMais('plano-editar', btn.dataset.plano));
+      btn.addEventListener('click', () => api.goToSub('plano-editar', btn.dataset.plano));
     });
   }
 
@@ -1325,7 +1310,7 @@ Coxa: 58 cm
   // Editor de um treino só. Reaproveita o card que antes era repetido na lista inteira.
   function renderPlanoEditar($app, state, api) {
     const planos = Storage.getAll('treino_planos').sort((a, b) => a.ordem - b.ordem);
-    const plano = planos.find(p => p.id === state.maisParam);
+    const plano = planos.find(p => p.id === state.subParam);
     // Excluir dentro do card chama api.render(), que cai aqui de novo sem o plano — nesse
     // caso a tela não existe mais e o certo é voltar, não pintar uma tela vazia.
     if (!plano) { api.back(); return; }
@@ -1462,9 +1447,9 @@ Coxa: 58 cm
 
     attachComboDelete();
 
-    document.getElementById('ir-combo-novo').addEventListener('click', () => api.goToMais('combo-novo'));
+    document.getElementById('ir-combo-novo').addEventListener('click', () => api.goToSub('combo-novo'));
     const emptyCta = document.getElementById('empty-cta-combo');
-    if (emptyCta) emptyCta.addEventListener('click', () => api.goToMais('combo-novo'));
+    if (emptyCta) emptyCta.addEventListener('click', () => api.goToSub('combo-novo'));
 
     function attachComboDelete() {
       $app.querySelectorAll('[data-del-combo]').forEach(btn => {
@@ -1853,7 +1838,7 @@ Coxa: 58 cm
     // `let`: é o que permite reaproveitar as nove funções de montagem sem tocar em nenhuma.
     let detailEl = null;
 
-    if (ehTelaPaciente(state.maisView)) { pintarTelaPaciente(); return; }
+    if (ehTelaPaciente(state.subView)) { pintarTelaPaciente(); return; }
 
     $app.innerHTML = `
       <div class="card">
@@ -2186,12 +2171,12 @@ Coxa: 58 cm
       invalidarPacienteCache();
       await carregarPaciente(uid, info);
       detailEl.innerHTML = '';
-      api.goToMais('paciente', uid);
+      api.goToSub('paciente', uid);
     }
 
     // ---- Telas do paciente ----
     function pintarTelaPaciente() {
-      const uid = state.maisParam;
+      const uid = state.subParam;
       const cache = pacienteCache;
       if (!uid || cache.uid !== uid) {
         // Sem cache (ex: recarregou a página no meio da navegação) não há como remontar a
@@ -2199,7 +2184,7 @@ Coxa: 58 cm
         $app.innerHTML = '<div class="card"><div class="empty">Abra o paciente pela lista do painel.</div></div>';
         return;
       }
-      const secao = secaoPaciente(state.maisView);
+      const secao = secaoPaciente(state.subView);
       if (!secao) { pintarVisaoGeral(uid, cache); return; }
       if (secao.soSuper && !souSuperAdmin) { api.back(); return; }
 
@@ -2297,7 +2282,7 @@ Coxa: 58 cm
         drawLineChart(document.getElementById('pac-chart-peso'), points, { trend });
       }
       $app.querySelectorAll('[data-secao]').forEach(btn => {
-        btn.addEventListener('click', () => api.goToMais(btn.dataset.secao, uid));
+        btn.addEventListener('click', () => api.goToSub(btn.dataset.secao, uid));
       });
     }
 

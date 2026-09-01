@@ -299,7 +299,28 @@ const Util = (() => {
     return /FBAN|FBAV|Instagram|WhatsApp|Line\/|MicroMessenger|TikTok|Twitter|Snapchat/i.test(ua);
   }
 
-  return { todayISO, fmtDate, escapeHtml, daysAgo, daysFromNow, movingAverage, getPesoAtual, planoSugerido, ultimoTreinoFeito, weekdayOf, daysBetween, addDaysISO, mondayOf, fmtDatePill, historicoTreinos,
+  // ---- Linha que abre outra tela ----
+  // Ícone, título, uma linha explicando e a seta. Quem já usou o app uma vez reconhece que
+  // ali se clica e vai pra algum lugar. Moraram em mais.js enquanto só aquela aba tinha
+  // subtelas; vieram pra cá quando Medidas passou a usar o mesmo padrão, pra não existirem
+  // duas cópias do mesmo markup se soltando uma da outra.
+  function escolhaHtml(attr, icone, titulo, sub) {
+    return `
+      <button class="menu-item" ${attr} style="align-items:flex-start;text-align:left">
+        <span class="icon">${icone}</span>
+        <div style="flex:1">
+          <div><strong>${titulo}</strong></div>
+          <div class="meta">${sub}</div>
+        </div>
+        <span class="chev">›</span>
+      </button>`;
+  }
+
+  function menuCardHtml(itens) {
+    return `<div class="card" style="padding:4px 16px"><div class="menu-list">${itens.join('')}</div></div>`;
+  }
+
+  return { escolhaHtml, menuCardHtml, todayISO, fmtDate, escapeHtml, daysAgo, daysFromNow, movingAverage, getPesoAtual, planoSugerido, ultimoTreinoFeito, weekdayOf, daysBetween, addDaysISO, mondayOf, fmtDatePill, historicoTreinos,
     faixaPesoSaudavel, faixaGorduraSaudavel, faixaMassaMagraSaudavel, faixaAguaSaudavel, faixaImcSaudavel, metricasComposicao, estimarGorduraCorporal, inputGroup, youtubeSearchUrl, youtubeEmbedId, fileToDataURL, compressImageToDataURL,
     pesosExercicio, maxPesoExercicio, isInAppBrowser };
 })();
