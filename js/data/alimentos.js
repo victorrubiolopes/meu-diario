@@ -524,6 +524,13 @@ const ALIMENTOS_PADRAO = [
   // Nome traz a marca porque já existe um "Strogonoff de frango" caseiro na biblioteca, com
   // outros valores (155 kcal/100g contra 108 deste, que vem com o arroz junto).
   { name: 'Strogonoff de frango com arroz Swift Prato Feito', categoria: 'outro', portionLabel: '1 embalagem (300g)', portionGrams: 300, kcal: 324, carbs: 24, sugars: 6.3, protein: 18, fat: 18.9, satFat: 9, transFat: 1.2, fiber: 0, sodium: 1200 },
+  // Rótulo do pote (30 unidades de 20g). Dos 12g de açúcar da unidade, 9,4g são AÇÚCAR
+  // ADICIONADO — o campo `sugars` guarda o total, que é o que o app soma, mas a distinção
+  // importa aqui: é quase o dobro da paçoquita por unidade.
+  //
+  // Não é o mesmo produto que a "Bala de banana (bananinha)" já cadastrada: aquela dá
+  // 208 kcal/100g, esta dá 375. Ver a nota no changelog.
+  { name: 'Doce de banana Lanche', categoria: 'outro', portionLabel: '1 unidade (20g)', portionGrams: 20, kcal: 75, carbs: 18, sugars: 12, protein: 0.3, fat: 0, satFat: 0, transFat: 0, fiber: 0.5, sodium: 0.9 },
 ];
 
 // Categoria de cada alimento é uma propriedade de código (não persistida em Storage),
