@@ -310,9 +310,16 @@ const ViewAlimentacao = (() => {
         </select>
         <div class="tabs-sub" style="margin:10px 0">
           <button data-modo="busca" class="${modoAdicionar === 'busca' ? 'active' : ''}">Buscar alimento</button>
+          <button data-modo="colar" class="${modoAdicionar === 'colar' ? 'active' : ''}">Colar lista</button>
           <button data-modo="macros" class="${modoAdicionar === 'macros' ? 'active' : ''}">Só macros</button>
         </div>
-        ${modoAdicionar === 'macros' ? `
+        ${modoAdicionar === 'colar' ? `
+          <p class="meta" style="margin-top:0">Um alimento por linha, com a quantidade. Cada um vira uma linha própria, com a gordura saturada e o sódio da biblioteca — diferente do "Só macros", que zera esses campos.</p>
+          <label>Alimentos</label>
+          <textarea id="cl-texto" rows="6" placeholder="batata assada 190g&#10;costela suína assada 53g&#10;ceviche 115g&#10;cenoura cozida 80g&#10;azeite 5g"></textarea>
+          <button class="primary" id="cl-ler" style="margin-top:8px">Ler lista</button>
+          <div id="cl-resultado"></div>
+        ` : modoAdicionar === 'macros' ? `
           <p class="meta" style="margin-top:0">Pra comida que não dá pra quebrar item a item — restaurante, casa dos outros, marmita de terceiro. Só as calorias já valem; o resto é opcional.</p>
           <label>Descrição</label>
           <input type="text" id="mm-nome" placeholder="Ex: Almoço no restaurante">
@@ -449,6 +456,56 @@ const ViewAlimentacao = (() => {
     $app.querySelectorAll('[data-modo]').forEach(btn => {
       btn.addEventListener('click', () => { modoAdicionar = btn.dataset.modo; api.render(); });
     });
+
+    // Cola uma lista de alimentos e cai no MESMO carrinho da busca. Reaproveita o
+    // ParsePlano, que já resolve "nome + quantidade" contra a biblioteca no painel do
+    // profissional — a diferença é que aqui não há bloco nem nome de refeição.
+    //
+    // Mostra o que entendeu ANTES de adicionar: o parser erra alto de propósito, e ler a
+    // lista sem conferir traria de volta o problema que ele resolve.
+    const clLer = document.getElementById('cl-ler');
+    if (clLer) {
+      clLer.addEventListener('click', () => {
+        const texto = document.getElementById('cl-texto').value;
+        const box = document.getElementById('cl-resultado');
+        const { itens, avisos } = ParsePlano.parseRefeicaoSolta(texto, Storage.getAll('alimentos_biblioteca'));
+        const t = NUTRI_FIELDS.reduce((a, f) => (a[f] = itens.reduce((s, i) => s + (i[f] || 0), 0), a), {});
+        box.innerHTML = `
+          ${itens.length > 0 ? `
+            <div class="card" style="margin:10px 0 0;padding:10px 14px;background:var(--bg)">
+              <p class="meta" style="font-weight:600;margin-bottom:6px">Entendi ${itens.length} ${itens.length === 1 ? 'alimento' : 'alimentos'}</p>
+              ${itens.map(i => `
+                <div class="list-item">
+                  <div>${Util.escapeHtml(i.foodName)} <span class="meta">(${i.qty}x)</span></div>
+                  <div class="meta">${Math.round(i.kcal)} kcal</div>
+                </div>
+              `).join('')}
+              <p class="meta" style="margin-top:8px">
+                <strong>${Math.round(t.kcal)} kcal</strong> · P ${t.protein.toFixed(1)}g · C ${t.carbs.toFixed(1)}g · G ${t.fat.toFixed(1)}g · sat ${t.satFat.toFixed(1)}g · fibra ${t.fiber.toFixed(1)}g
+              </p>
+              <button class="primary" id="cl-add" style="width:100%;margin-top:6px">+ Adicionar ${itens.length} à lista</button>
+            </div>
+          ` : ''}
+          ${avisos.length > 0 ? `
+            <div class="card" style="margin:10px 0 0;padding:10px 14px;border-left:3px solid var(--accent)">
+              <p class="meta" style="font-weight:600;margin-bottom:4px">⚠️ ${avisos.length} ${avisos.length === 1 ? 'linha precisa' : 'linhas precisam'} de atenção</p>
+              ${avisos.map(a => `<p class="meta" style="margin:2px 0">${Util.escapeHtml(a)}</p>`).join('')}
+            </div>
+          ` : ''}
+        `;
+        const clAdd = document.getElementById('cl-add');
+        if (clAdd) {
+          clAdd.addEventListener('click', () => {
+            // Empurra no carrinho e repinta só ele: api.render() aqui apagaria o textarea
+            // e o resultado que a pessoa acabou de conferir.
+            itens.forEach(i => carrinho.push({ ...i }));
+            document.getElementById('cl-texto').value = '';
+            box.innerHTML = '';
+            api.render();
+          });
+        }
+      });
+    }
 
     // Lançamento direto de kcal/macros. Vai pro mesmo carrinho da busca, então soma nos
     // totais, salva junto e vira combo igual a qualquer outro item — a entrada de comida
