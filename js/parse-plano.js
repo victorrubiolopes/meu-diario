@@ -160,6 +160,23 @@ const ParsePlano = (() => {
     const contem = (biblioteca || []).filter(f => normalizar(f.name).includes(alvo));
     if (contem.length === 1) return { food: contem[0] };
     if (contem.length > 1) return { erro: 'ambiguo', candidatos: contem.slice(0, 4).map(f => f.name) };
+
+    // Última tentativa, no singular: a biblioteca guarda "Ovo cozido", mas ninguém escreve
+    // "2 ovo cozido" — escreve "2 ovos cozidos". Só roda DEPOIS de tudo acima falhar, então
+    // nunca muda um resultado que já dava certo: transforma 'ausente' em acerto, e nada mais.
+    //
+    // Tira o 's' final só de palavras com mais de 3 letras, pra não estragar "arroz", "chás"
+    // ou nomes curtos que terminam em s por natureza.
+    const singular = alvo.split(' ')
+      .map(p => (p.length > 3 && p.endsWith('s') ? p.slice(0, -1) : p))
+      .join(' ');
+    if (singular !== alvo) {
+      const exatoS = (biblioteca || []).filter(f => normalizar(f.name) === singular);
+      if (exatoS.length >= 1) return { food: exatoS[0] };
+      const contemS = (biblioteca || []).filter(f => normalizar(f.name).includes(singular));
+      if (contemS.length === 1) return { food: contemS[0] };
+      if (contemS.length > 1) return { erro: 'ambiguo', candidatos: contemS.slice(0, 4).map(f => f.name) };
+    }
     return { erro: 'ausente' };
   }
 
@@ -174,6 +191,44 @@ const ParsePlano = (() => {
     const item = { foodName: food.name, qty };
     NUTRI.forEach(f => { item[f] = Math.round((food[f] || 0) * qty * 10) / 10; });
     return item;
+  }
+
+  // Lista SOLTA de alimentos, sem cabeçalho de refeição — é o que o dono do app cola pra
+  // lançar uma refeição de uma vez ("batata assada 190g / ceviche 115g / ..."), em vez de
+  // fazer cinco buscas na biblioteca.
+  //
+  // Difere do parsePlanoAlimentar em duas coisas, e as duas são de propósito:
+  //
+  // 1. NÃO tem blocos nem nome de refeição. Quem cola já escolheu o tipo no seletor da
+  //    tela; pedir "Almoço" na primeira linha só criaria uma regra pra errar.
+  // 2. Linha não reconhecida vira aviso E a lista válida continua valendo. Mesma regra do
+  //    resto do ParsePlano: erra alto, nunca some com o que a pessoa escreveu. Aqui isso
+  //    importa mais ainda porque ela vê o resultado na hora e corrige a linha ruim.
+  function parseRefeicaoSolta(texto, biblioteca) {
+    const itens = [];
+    const avisos = [];
+    (texto || '').split('\n').forEach(linha => {
+      if (!linha.trim()) return;
+      const q = parseQuantidade(linha);
+      if (!q.nome) { avisos.push(`Linha sem alimento, ignorada: "${linha.trim()}"`); return; }
+      const achado = acharAlimento(q.nome, biblioteca);
+      if (achado.erro === 'ambiguo') {
+        avisos.push(`"${q.nome}" casa com mais de um alimento (${achado.candidatos.join(', ')}). Escreva o nome completo.`);
+        return;
+      }
+      if (achado.erro) {
+        avisos.push(`"${q.nome}" não está na biblioteca — cadastre antes ou corrija o nome.`);
+        return;
+      }
+      // Sem quantidade escrita, montarItem assume 1 porção. Avisa, porque "ceviche" sozinho
+      // virar 100g silenciosamente é o tipo de erro que só aparece no fechamento do mês.
+      if (q.gramas == null && q.porcoes == null) {
+        avisos.push(`"${achado.food.name}" entrou como 1 porção (${achado.food.portionLabel}) — não havia quantidade na linha.`);
+      }
+      itens.push(montarItem(achado.food, q.gramas, q.porcoes));
+    });
+    if (itens.length === 0 && avisos.length === 0) avisos.push('Nada reconhecido no texto.');
+    return { itens, avisos };
   }
 
   function parsePlanoAlimentar(texto, biblioteca) {
@@ -307,7 +362,7 @@ const ParsePlano = (() => {
   }
 
   return {
-    parseTreino, parsePlanoAlimentar, parseMedidas, parseDataMedida,
+    parseTreino, parsePlanoAlimentar, parseRefeicaoSolta, parseMedidas, parseDataMedida,
     parseExercicio, parseQuantidade, parseCabecalhoRefeicao, acharAlimento,
     normalizar, blocos, montarItem,
   };
