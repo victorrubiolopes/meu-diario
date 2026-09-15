@@ -235,6 +235,7 @@ Coxa: 58 cm
   const NOTIF_ICONES = {
     dieta: '🥗', plano: '🍽️', treino: '🏋️', corrida: '🏃',
     lista: '🛒', refeicaoLivre: '🍔', solicitacao: '📣', medidas: '📏',
+    peso: '⚖️',
   };
   // Pedidos levam o paciente direto pra tela onde ele resolve — um aviso que não leva
   // a lugar nenhum vira só barulho.
@@ -498,6 +499,13 @@ Coxa: 58 cm
           </select>
         </div>
         <p class="meta" id="dieta-desc" style="color:var(--text-muted);font-size:0.78rem"></p>
+        <label>Dias de pesagem</label>
+        <div id="p-dias-pesagem" class="chip-group">
+          ${['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb'].map((lbl, i) => `
+            <button type="button" class="chip ${(perfil.diasPesagem || []).includes(i) ? 'active' : ''}" data-dia-pesagem="${i}">${lbl}</button>
+          `).join('')}
+        </div>
+        <p class="meta" style="font-size:0.78rem">Nesses dias, se você ainda não registrou o peso, um aviso aparece no sininho ao abrir o app. Nenhum dia marcado = sem aviso.</p>
         <button type="button" class="secondary" id="go-dietas-custom" style="margin:8px 0">+ Gerenciar minhas dietas</button>
         <div id="template-fields">
           <label>Estilo de macros</label>
@@ -558,6 +566,9 @@ Coxa: 58 cm
         mealStrategy: document.getElementById('p-meal-strategy').value,
         numRefeicoes: Math.max(1, Number(document.getElementById('p-num-refeicoes').value) || 5),
         aguaMetaCustom: Number(document.getElementById('p-agua-meta').value) || null,
+        // Lidos do DOM (classe .active) e não de um estado à parte, pra seguirem a mesma
+        // regra dos outros campos: o que está na tela é o que é salvo.
+        diasPesagem: [...document.querySelectorAll('#p-dias-pesagem .chip.active')].map(c => Number(c.dataset.diaPesagem)).sort(),
       };
       if (isDietaCustom) {
         p.dietaCustomId = dietaVal.slice(3);
@@ -619,6 +630,12 @@ Coxa: 58 cm
       el.addEventListener('change', updatePreview);
     });
     updatePreview();
+
+    // Só alterna a classe: repintar a tela aqui apagaria o resto do formulário que ele
+    // ainda não salvou. O currentFormPerfil lê o estado do DOM na hora de salvar.
+    $app.querySelectorAll('[data-dia-pesagem]').forEach(chip => {
+      chip.addEventListener('click', () => chip.classList.toggle('active'));
+    });
 
     document.getElementById('save-perfil').addEventListener('click', () => {
       Storage.savePerfil(currentFormPerfil());

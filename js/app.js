@@ -250,6 +250,45 @@ const App = (() => {
     });
   }
 
+  // Aviso de pesagem no sininho, nos dias escolhidos em Perfil → Dias de pesagem.
+  //
+  // Roda na abertura do app, que é o único gatilho que existe: não há service worker nem
+  // push aqui, então NADA no app alcança o usuário com ele fechado. Isso é uma limitação
+  // real e o aviso só funciona como complemento de um lembrete externo — sozinho, ele
+  // lembra quem já abriu o app, que é justamente quem menos precisa.
+  //
+  // Três condições, todas necessárias: hoje é dia marcado, ainda não há peso registrado
+  // hoje, e ainda não existe aviso de hoje. A terceira evita que abrir o app cinco vezes
+  // gere cinco avisos.
+  function lembrarPesagem() {
+    const perfil = Storage.getPerfil() || {};
+    const dias = perfil.diasPesagem;
+    if (!Array.isArray(dias) || dias.length === 0) return;
+    const hoje = Util.todayISO();
+    if (!dias.includes(Util.weekdayOf(hoje))) return;
+
+    const jaPesou = Storage.getByDate('medidas', hoje).some(m => m.weight != null);
+    const avisoDeHoje = Storage.getAll('notificacoes').find(n => n.tipo === 'peso' && n.data === hoje);
+
+    // Roda no boot E depois de cada sincronização. No boot o aparelho ainda pode não saber
+    // de uma pesagem feita no outro — então o aviso criado antes de sincronizar precisa
+    // sumir quando o peso chega. Sem isso, pesar no celular e abrir no PC deixaria um
+    // "dia de pesagem" mentindo no sininho até o dia acabar.
+    if (jaPesou) {
+      if (avisoDeHoje) Storage.remove('notificacoes', avisoDeHoje.id);
+      return;
+    }
+    if (avisoDeHoje) return;
+    Storage.add('notificacoes', {
+      tipo: 'peso',
+      titulo: 'Dia de pesagem',
+      texto: 'Em jejum, antes do treino — a pesagem sai em dois toques na aba Medidas.',
+      data: hoje,
+      criadoEm: Date.now(),
+      lida: false,
+    });
+  }
+
   function aplicarSeeds() {
     Storage.mergeSeeds('exercicios_biblioteca', EXERCICIOS_PADRAO);
     Storage.mergeSeeds('alimentos_biblioteca', ALIMENTOS_PADRAO);
@@ -497,13 +536,14 @@ const App = (() => {
     // Ao entrar/baixar dados, re-aplica seeds, re-renderiza e atualiza a tela de login.
     if (typeof Cloud !== 'undefined') {
       Cloud.wrapStorage();
-      Cloud.onChange(() => { aplicarSeeds(); render(); atualizarGate(); atualizarOnboardingGate(); });
+      Cloud.onChange(() => { aplicarSeeds(); lembrarPesagem(); render(); atualizarGate(); atualizarOnboardingGate(); });
       initGate();
       Cloud.init();
       atualizarGate();
     }
 
     aplicarSeeds();
+    lembrarPesagem();
     initOnboardingGate();
     atualizarOnboardingGate();
 
