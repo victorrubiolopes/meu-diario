@@ -144,6 +144,14 @@ const ALIMENTOS_PADRAO = [
   { name: 'Cação frito', categoria: 'proteina', portionLabel: '100g', portionGrams: 100, kcal: 140, carbs: 0, sugars: 0, protein: 24, fat: 3.6, satFat: 1.1, transFat: 0, fiber: 0, sodium: 1256 },
   { name: 'Cação cozido', categoria: 'proteina', portionLabel: '100g', portionGrams: 100, kcal: 208, carbs: 0, sugars: 0, protein: 25, fat: 10, satFat: 3, transFat: 0, fiber: 0, sodium: 160 },
   { name: 'Cação cru', categoria: 'proteina', portionLabel: '100g', portionGrams: 100, kcal: 116, carbs: 0, sugars: 0, protein: 25.6, fat: 0.7, satFat: 0.2, transFat: 0, fiber: 0, sodium: 115 },
+  // Filé assado seco, do jeito que sai no self-service: só tempero (sal, alho, limão, ervas)
+  // e um fio de óleo na assadeira, SEM molho por cima.
+  // Montado a partir de 'Cação cru': assar perde ~25% de água e não cria caloria, então 100g
+  // de assado ≈ 133g de cru (154 kcal, 34g de proteína). Somei 1,5g de óleo do preparo
+  // (+14 kcal) e o sal do tempero (sódio 250 em vez de 115).
+  // NÃO usar 'Cação cozido' (208 kcal) pra filé assado: aquele valor da TACO é o cação
+  // ENSOPADO, com 10g de gordura vinda do óleo do molho — superestima em ~40 kcal/100g.
+  { name: 'Lombo de cação assado', categoria: 'proteina', portionLabel: '100g', portionGrams: 100, kcal: 168, carbs: 0, sugars: 0, protein: 34, fat: 2.4, satFat: 0.5, transFat: 0, fiber: 0, sodium: 250 },
   { name: 'Merluza assada', categoria: 'proteina', portionLabel: '100g', portionGrams: 100, kcal: 344, carbs: 0, sugars: 0, protein: 30.1, fat: 24.5, satFat: 7.4, transFat: 0, fiber: 0, sodium: 41 },
   { name: 'Merluza frita', categoria: 'proteina', portionLabel: '100g', portionGrams: 100, kcal: 122, carbs: 0, sugars: 0, protein: 16.6, fat: 2, satFat: 0.6, transFat: 0, fiber: 0, sodium: 80 },
   { name: 'Pescada filé crua', categoria: 'proteina', portionLabel: '100g', portionGrams: 100, kcal: 223, carbs: 0, sugars: 0, protein: 21.4, fat: 19.1, satFat: 5.7, transFat: 0, fiber: 0, sodium: 91 },
@@ -232,6 +240,12 @@ const ALIMENTOS_PADRAO = [
   { name: 'Repolho cru', categoria: 'legume', portionLabel: '100g', portionGrams: 100, kcal: 24, carbs: 5.7, sugars: 3.2, protein: 1.2, fat: 0.1, satFat: 0, transFat: 0, fiber: 2, sodium: 4 },
   { name: 'Vagem refogada', categoria: 'legume', portionLabel: '100g', portionGrams: 100, kcal: 32, carbs: 6.8, sugars: 3, protein: 1.9, fat: 0.2, satFat: 0, transFat: 0, fiber: 2.9, sodium: 3 },
   { name: 'Beterraba cozida', categoria: 'legume', portionLabel: '100g', portionGrams: 100, kcal: 32, carbs: 7.2, sugars: 0, protein: 1.3, fat: 0.1, satFat: 0, transFat: 0, fiber: 1.9, sodium: 1 },
+  // O "legumes refogados" genérico do self-service, pra não ter que decompor a travessa em
+  // quatro itens toda vez. Mistura de referência: 40% abobrinha, 30% cenoura, 20% abóbora,
+  // 10% tomate (26 kcal/100g), mais 2g de óleo do refogado (+18 kcal) e o sal do preparo.
+  // Se a sua travessa tiver batata, milho ou ervilha, ela é mais calórica que isto — nesse
+  // caso lance os itens separados.
+  { name: 'Legumes refogados (mix)', categoria: 'legume', portionLabel: '100g', portionGrams: 100, kcal: 45, carbs: 5.8, sugars: 3.3, protein: 1, fat: 2.2, satFat: 0.3, transFat: 0, fiber: 1.8, sodium: 150 },
 
   // Oleaginosas e sementes
   { name: 'Castanha de caju', categoria: 'outro', portionLabel: '1 punhado (30g)', portionGrams: 30, kcal: 170, carbs: 9, sugars: 1.5, protein: 5, fat: 13.5, satFat: 2.4, transFat: 0, fiber: 1, sodium: 3 },
