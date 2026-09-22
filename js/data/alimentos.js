@@ -185,6 +185,14 @@ const ALIMENTOS_PADRAO = [
   { name: 'Farinha de milho (fubá)', categoria: 'carboidrato', portionLabel: '1 xícara (150g)', portionGrams: 150, kcal: 527, carbs: 118.7, sugars: 0, protein: 10.8, fat: 2.3, satFat: 0.4, transFat: 0, fiber: 8.3, sodium: 68 },
   { name: 'Farinha de rosca', categoria: 'carboidrato', portionLabel: '1 colher sopa (15g)', portionGrams: 15, kcal: 56, carbs: 11.4, sugars: 0.5, protein: 1.7, fat: 0.2, satFat: 0, transFat: 0, fiber: 0.7, sodium: 50 },
   { name: 'Macarrão cru (massa seca)', categoria: 'carboidrato', portionLabel: '100g', portionGrams: 100, kcal: 371, carbs: 77.9, sugars: 0, protein: 10, fat: 1.3, satFat: 0.2, transFat: 0, fiber: 2.9, sodium: 7 },
+  // Pesto puro (manjericão, azeite, parmesão, pinoli/castanha, alho). Quase tudo gordura:
+  // 1 colher de sopa já são 68 kcal. Use pra ajustar quando souber quanto molho veio.
+  { name: 'Molho pesto', categoria: 'outro', portionLabel: '1 colher sopa (15g)', portionGrams: 15, kcal: 68, carbs: 0.8, sugars: 0.2, protein: 1, fat: 6.6, satFat: 1.2, transFat: 0, fiber: 0.2, sodium: 165 },
+  // Prato pronto do self-service: 88g de 'Macarrão cozido' + 12g de 'Molho pesto' — ou seja,
+  // a massa bem coberta, não nadando no molho. Se vier encharcada, lance a massa e o molho
+  // separados. Os 12g de pesto sozinhos já respondem por 54 das 193 kcal, e por 5,3 dos
+  // 6,1g de gordura: num prato de massa ao pesto, o molho é o que pesa, não a massa.
+  { name: 'Massa ao pesto', categoria: 'carboidrato', portionLabel: '100g', portionGrams: 100, kcal: 193, carbs: 28, sugars: 1.1, protein: 5.9, fat: 6.1, satFat: 1.1, transFat: 0, fiber: 1.7, sodium: 133 },
   { name: 'Pão caseiro sovado', categoria: 'carboidrato', portionLabel: '100g', portionGrams: 100, kcal: 311, carbs: 61.5, sugars: 2, protein: 8.4, fat: 2.8, satFat: 0.6, transFat: 0, fiber: 2.4, sodium: 431 },
   { name: 'Torrada (pão francês)', categoria: 'carboidrato', portionLabel: '1 unidade (10g)', portionGrams: 10, kcal: 38, carbs: 7.5, sugars: 0.2, protein: 1.1, fat: 0.3, satFat: 0.1, transFat: 0, fiber: 0.3, sodium: 83 },
   { name: 'Pipoca (com óleo, sem sal)', categoria: 'outro', portionLabel: '1 xícara (15g)', portionGrams: 15, kcal: 67, carbs: 10.5, sugars: 0.2, protein: 1.5, fat: 2.4, satFat: 0.4, transFat: 0, fiber: 2.1, sodium: 1 },
