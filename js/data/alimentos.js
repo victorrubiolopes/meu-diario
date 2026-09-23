@@ -216,6 +216,16 @@ const ALIMENTOS_PADRAO = [
 
   // Laticínios
   { name: 'Queijo mussarela', categoria: 'outro', portionLabel: '1 fatia (30g)', portionGrams: 30, kcal: 90, carbs: 0.6, sugars: 0.6, protein: 6.6, fat: 6.9, satFat: 4.1, transFat: 0, fiber: 0, sodium: 176 },
+  // Queijo fresco de leite de búfala, vendido em salmoura (bolinhas ou a bola inteira).
+  // PESE ESCORRIDO: a salmoura não entra na conta.
+  // Valores de tabela de referência, não de um rótulo específico — se o seu pote trouxer
+  // rótulo, mande que eu alinho. Porção de 100g em vez de "1 fatia" porque búfala não se
+  // fatia como a mussarela de tábua.
+  // Comparada à 'Queijo mussarela' (300 kcal/100g), a búfala tem MENOS caloria e gordura,
+  // porque é fresca e cheia de água — e menos da metade do sódio (250 contra 587). Mas tem
+  // menos proteína também (17 contra 22), então por grama de proteína sai mais cara:
+  // 15,6 kcal/g contra 13,6 da mussarela. É um queijo gordo: 100g são 21,5g de gordura.
+  { name: 'Mussarela de búfala', categoria: 'outro', portionLabel: '100g', portionGrams: 100, kcal: 265, carbs: 0.8, sugars: 0.8, protein: 17, fat: 21.5, satFat: 14, transFat: 0, fiber: 0, sodium: 250 },
   { name: 'Queijo prato', categoria: 'outro', portionLabel: '1 fatia (30g)', portionGrams: 30, kcal: 105, carbs: 0.5, sugars: 0.5, protein: 6.6, fat: 8.5, satFat: 5.4, transFat: 0, fiber: 0, sodium: 210 },
   { name: 'Leite desnatado', categoria: 'outro', portionLabel: '1 copo (200ml)', portionGrams: 200, kcal: 70, carbs: 9.8, sugars: 9.8, protein: 6.8, fat: 0.4, satFat: 0.2, transFat: 0, fiber: 0, sodium: 80 },
   { name: 'Leite Molico + Proteína', categoria: 'outro', portionLabel: '1 copo (200ml)', portionGrams: 200, kcal: 66, carbs: 10, sugars: 10, protein: 10, fat: 0, satFat: 0, transFat: 0, fiber: 0, sodium: 130 },
