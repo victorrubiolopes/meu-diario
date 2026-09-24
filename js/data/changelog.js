@@ -1,5 +1,6 @@
 // Lista de atualizações recentes do app, mais recente primeiro. Editável manualmente a cada mudança.
 const CHANGELOG = [
+  { date: '2026-09-24', texto: 'Baby beef na biblioteca, grelhado (220 kcal/100g) e no alho (227). "Baby beef" não é corte, é boi jovem — cai entre o contra-filé e a alcatra. Na versão no alho, quem pesa é a manteiga do refogado, não o alho' },
   { date: '2026-09-23', texto: 'Mussarela de búfala na biblioteca: 265 kcal e 21,5g de gordura por 100g. Tem menos caloria e menos da metade do sódio da mussarela comum (por ser fresca, cheia de água), mas também menos proteína. Pese escorrida — a salmoura não entra na conta' },
   { date: '2026-09-22', texto: 'Mais dois itens de self-service: "Massa ao pesto" (193 kcal/100g — massa bem coberta, não nadando no molho) e "Molho pesto" avulso (68 kcal por colher de sopa), pra quando o molho vier mais pesado e você quiser ajustar' },
   { date: '2026-09-21', texto: 'Dois itens novos na biblioteca, pra facilitar lançar almoço de self-service: "Lombo de cação assado" (168 kcal e 34g de proteína por 100g — filé assado seco, sem molho) e "Legumes refogados (mix)" (45 kcal/100g — abobrinha, cenoura, abóbora e tomate com o óleo do refogado). Antes era preciso decompor a travessa de legumes em quatro itens, e o cação só existia cru, frito ou ensopado' },
