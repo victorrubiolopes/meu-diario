@@ -133,6 +133,16 @@ const ALIMENTOS_PADRAO = [
   { name: 'Acém sem gordura cozido', categoria: 'proteina', portionLabel: '100g', portionGrams: 100, kcal: 215, carbs: 0, sugars: 0, protein: 27.3, fat: 10.9, satFat: 3.3, transFat: 0, fiber: 0, sodium: 56 },
   { name: 'Charque cozido', categoria: 'proteina', portionLabel: '100g', portionGrams: 100, kcal: 263, carbs: 0, sugars: 0, protein: 36.4, fat: 11.9, satFat: 3.6, transFat: 0, fiber: 0, sodium: 1443 },
   { name: 'Picanha grelhada', categoria: 'proteina', portionLabel: '100g', portionGrams: 100, kcal: 289, carbs: 0, sugars: 0, protein: 26.4, fat: 19.5, satFat: 5.9, transFat: 0, fiber: 0, sodium: 60 },
+  // "Baby beef" não é um corte, é a idade do boi: carne de animal jovem (até ~24 meses),
+  // servida normalmente do contra-filé ou da alcatra. Mais macia e um pouco mais magra que
+  // a mesma peça de boi adulto. Valores entre o 'Contra-filé sem gordura grelhado' (194) e
+  // o 'Miolo de alcatra grelhado' (241), que é onde ela cai na prática.
+  { name: 'Baby beef grelhado', categoria: 'proteina', portionLabel: '100g', portionGrams: 100, kcal: 220, carbs: 0, sugars: 0, protein: 32, fat: 9.5, satFat: 3.8, transFat: 0, fiber: 0, sodium: 60 },
+  // A versão do self-service: 'Baby beef grelhado' com alho frito por cima, na manteiga ou
+  // no óleo. Os ~3g de gordura e os 3g de alho do preparo somam 7 kcal a mais que a carne
+  // pura e quase dobram a gordura saturada (5 contra 3,8) — o alho não é o que pesa, a
+  // manteiga é. O sódio sobe de 60 pra 230 por causa do sal do preparo.
+  { name: 'Baby beef no alho', categoria: 'proteina', portionLabel: '100g', portionGrams: 100, kcal: 227, carbs: 0.7, sugars: 0.2, protein: 30.5, fat: 11.4, satFat: 5, transFat: 0, fiber: 0.1, sodium: 230 },
   { name: 'Lombo suíno grelhado', categoria: 'proteina', portionLabel: '100g', portionGrams: 100, kcal: 210, carbs: 0, sugars: 0, protein: 27, fat: 11, satFat: 4, transFat: 0, fiber: 0, sodium: 55 },
   { name: 'Bacon frito', categoria: 'outro', portionLabel: '100g', portionGrams: 100, kcal: 541, carbs: 1.4, sugars: 0, protein: 37, fat: 42, satFat: 14, transFat: 0, fiber: 0, sodium: 1500 },
   // Barriga de porco assada. Categoria 'outro' (não 'proteina') pelo mesmo motivo do bacon:
