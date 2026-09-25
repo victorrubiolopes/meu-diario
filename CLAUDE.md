@@ -67,6 +67,15 @@ Tudo em **português (pt-BR)**: interface, comentários, mensagens de commit e c
   pra conferência. O `lancar` **nunca grava sozinho** — só o toque no botão grava, senão bastaria
   mandar uma URL pra injetar registro no diário de alguém. Fica em memória (não em localStorage):
   é de uso único e não pode sobreviver a um F5. `testes/lancar-link.test.js` trava isso.
+- **Caixa de entrada** (`caixaEntrada`): único caminho que lança comida **sem toque do usuário**.
+  Um agente externo (conta de login dedicada) deposita a refeição pronta; `aplicarCaixaEntrada()`
+  em `cloud.js` lança no diário no login, avisa no sino e apaga o depósito. O que torna isso
+  aceitável: o agente **não tem `allow read` em lugar nenhum** (deposita e não enxerga),
+  `users/{uid}` segue gravável só pelo dono, e todo lançamento é desfazível **pelos ids**
+  guardados na notificação (nunca por data — apagaria o que a pessoa lançou na mão).
+  Ferramenta do lado de fora: `ferramentas/depositar-refeicao.js` (lê `DIARIO_AGENTE_EMAIL`/
+  `DIARIO_AGENTE_SENHA` do ambiente; recusa depositar se o parser gerou aviso).
+  O UID do agente vai na regra, **não** no repositório. `testes/caixa-entrada.test.js` trava tudo isso.
 - **Backup**: `Storage.exportAll()` é síncrona e **sem fotos** de propósito — ela alimenta
   `salvarCopiaSeguranca`, que grava o retorno dentro do localStorage, e dataURLs de fotos
   estourariam a cota. O backup com fotos é outro caminho (`exportAll()` + `PhotoDB.allPhotos()`),

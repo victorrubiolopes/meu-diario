@@ -134,6 +134,7 @@ const Cloud = (() => {
           await escreverPerfilPublico();
           await verificarAdmin();
           await aplicarPrescricao();
+          await aplicarCaixaEntrada();
           compAlimentos.start();
           compExercicios.start();
         } else {
@@ -396,6 +397,71 @@ const Cloud = (() => {
     return (typeof ViewMedidas !== 'undefined' && Array.isArray(ViewMedidas.FIELDS))
       ? ViewMedidas.FIELDS.map(f => f.key)
       : MEDIDA_CAMPOS_FALLBACK;
+  }
+
+  // ---- Caixa de entrada: refeição depositada por um agente externo ----
+  // Quem calculou o prato fora do app (uma conversa com IA, por exemplo) deposita a refeição
+  // pronta em 'caixaEntrada'; aqui ela entra no diário sozinha e o sino avisa o que entrou,
+  // com opção de desfazer. É a diferença pro link ?lancar=, que exige o toque: ali quem abre
+  // é a pessoa, aqui ela nem precisa estar com o app na mão.
+  //
+  // Por que dá pra confiar nisso sem um toque de confirmação:
+  //  - as regras deixam SÓ a conta do agente criar, e ela não consegue LER nada — é caixa de
+  //    depósito, não chave do diário. Credencial vazada insere refeição chata, não lê exame.
+  //  - todo lançamento vira notificação com "Desfazer", que apaga exatamente os registros
+  //    daquele depósito (guarda os ids, não apaga por data).
+  const CAIXA_APLICADOS = 'caixa_entrada_aplicados';
+
+  async function aplicarCaixaEntrada() {
+    try {
+      const snap = await db.collection('caixaEntrada').where('uid', '==', user.uid).get();
+      if (!snap || snap.empty) return false;
+
+      // Guarda o que já foi aplicado: se o delete falhar (rede caindo no meio), o documento
+      // volta na próxima abertura e sem isso a refeição entraria duas vezes.
+      let aplicados;
+      try { aplicados = JSON.parse(localStorage.getItem(CAIXA_APLICADOS) || '[]'); } catch { aplicados = []; }
+      const vistos = new Set(Array.isArray(aplicados) ? aplicados : []);
+      let entraram = 0;
+
+      for (const doc of snap.docs) {
+        const d = doc.data() || {};
+        const itens = Array.isArray(d.itens) ? d.itens : [];
+        if (!vistos.has(doc.id) && itens.length && d.date && d.mealType) {
+          const ids = [];
+          itens.forEach(it => {
+            const salvo = Storage.add('alimentacao', {
+              date: d.date, mealType: d.mealType, order: Date.now(), ...it,
+            });
+            if (salvo && salvo.id) ids.push(salvo.id);
+          });
+          const kcal = Math.round(itens.reduce((s, i) => s + (Number(i.kcal) || 0), 0));
+          Storage.add('notificacoes', {
+            tipo: 'refeicaoRecebida',
+            titulo: 'Refeição lançada pra você',
+            texto: `${d.mealType} de ${d.date} · ${itens.length} ${itens.length === 1 ? 'item' : 'itens'} · ${kcal} kcal`,
+            criadoEm: Date.now(),
+            lida: false,
+            desfazer: ids,
+          });
+          vistos.add(doc.id);
+          entraram++;
+        }
+        // Apaga mesmo se já estava aplicado: é o que impede o documento de ficar preso
+        // na coleção pra sempre depois de uma falha anterior.
+        try { await doc.ref.delete(); } catch (e) { console.warn('Não consegui apagar da caixa de entrada', e); }
+      }
+
+      // Mantém a lista curta: 200 ids bastam pra cobrir qualquer atraso de exclusão.
+      try { localStorage.setItem(CAIXA_APLICADOS, JSON.stringify([...vistos].slice(-200))); } catch {}
+      if (entraram > 0) emit();
+      return entraram > 0;
+    } catch (e) {
+      // Regra ainda não publicada, offline, coleção inexistente: nada disso pode derrubar
+      // o login. O app segue igual, só sem a caixa de entrada.
+      console.warn('Caixa de entrada indisponível', e);
+      return false;
+    }
   }
 
   async function aplicarPrescricao() {

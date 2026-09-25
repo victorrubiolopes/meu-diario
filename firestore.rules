@@ -96,6 +96,40 @@ service cloud.firestore {
       allow create: if request.auth != null;
       allow delete: if ehSuperAdmin();
     }
+    // ---- Caixa de entrada de refeições ----
+    // Um agente externo (uma conta de login dedicada, criada só pra isso) DEPOSITA aqui
+    // refeições já calculadas; o app do dono lê, lança no diário e apaga o documento.
+    //
+    // O ponto do desenho: o agente NÃO TEM 'allow read' em lugar nenhum. Ele deposita e
+    // não enxerga. Se a credencial dele vazar, o estrago é inserir refeição indevida na
+    // caixa de alguém — chato, visível no sino e desfazível — e não ler diário, medidas
+    // ou exames. Por isso os dados do diário continuam fora do alcance dele: 'users/{uid}'
+    // segue gravável só pelo próprio dono, como sempre foi.
+    //
+    // TROQUE o UID abaixo pelo da conta do agente (Firebase Console → Authentication).
+    // Enquanto estiver com o valor de exemplo, ninguém consegue depositar nada — que é o
+    // comportamento certo pra uma regra ainda não configurada.
+    function ehAgente() {
+      return request.auth != null
+        && request.auth.uid == 'COLE_AQUI_O_UID_DA_CONTA_DO_AGENTE';
+    }
+    match /caixaEntrada/{doc} {
+      // Só o dono lê e limpa a própria caixa. Nem admin, nem nutri, nem o agente.
+      allow read, delete: if request.auth != null && request.auth.uid == resource.data.uid;
+      // Depósito: campos fixos e tamanho limitado, pra uma credencial vazada não conseguir
+      // usar a coleção como armazenamento livre nem entupir o diário de uma vez.
+      allow create: if ehAgente()
+        && request.resource.data.keys().hasOnly(['uid', 'date', 'mealType', 'itens', 'criadoEm', 'origem'])
+        && request.resource.data.uid is string
+        && request.resource.data.date is string
+        && request.resource.data.mealType is string
+        && request.resource.data.itens is list
+        && request.resource.data.itens.size() > 0
+        && request.resource.data.itens.size() <= 40;
+      // Depósito não se edita: o que foi escrito é o que o dono vai ver.
+      allow update: if false;
+    }
+
     match /sharedFoods/{doc}     { allow read, write: if request.auth != null; }
     match /sharedExercises/{doc} { allow read, write: if request.auth != null; }
   }
