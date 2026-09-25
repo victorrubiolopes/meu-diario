@@ -182,7 +182,7 @@ const App = (() => {
     'paciente-papel': 'Papel e profissional',
   };
 
-  const api = { goTo, goToSub, back, render, get state() { return state; } };
+  const api = { goTo, goToSub, back, render, consumirLancamento, get state() { return state; } };
 
   // Sino: badge com o número de não lidas. Vive no topbar, fora do ciclo de render das views,
   // então é atualizado junto do render() e sempre que a nuvem emitir mudança (a prescrição
@@ -529,8 +529,51 @@ const App = (() => {
     if (code) { localStorage.setItem('pendingInviteCode', code); sessionStorage.setItem('pendingInviteCode', code); }
   }
 
+  // Refeição pronta chegando por link (?lancar=...), pra quem calculou o prato em outro
+  // lugar não ter que copiar, abrir o app e colar. NÃO grava nada: deixa a lista montada
+  // na tela de Comida pra pessoa conferir e confirmar. Link que escreve sozinho no diário
+  // seria uma porta pra qualquer um injetar registro mandando uma URL.
+  //
+  // Fica na memória, não no localStorage: é de uso único: se sobrevivesse a um F5, voltaria
+  // a aparecer depois de já ter sido salvo.
+  let lancamentoPendente = null;
+  const MEAL_TYPES_URL = ['Café da manhã', 'Almoço', 'Lanche', 'Jantar', 'Outro'];
+
+  function capturarLancamentoDaURL() {
+    const params = new URLSearchParams(location.search);
+    const lista = params.get('lancar');
+    if (lista && lista.length <= 2000) {
+      const data = params.get('data');
+      const ref = params.get('ref');
+      lancamentoPendente = {
+        lista,
+        // Data inválida (ou ausente) cai em hoje em vez de recusar o link inteiro: errar a
+        // data é bem menos grave que perder o lançamento, e a tela mostra qual dia vai receber.
+        data: /^\d{4}-\d{2}-\d{2}$/.test(data || '') ? data : Util.todayISO(),
+        ref: MEAL_TYPES_URL.includes(ref) ? ref : 'Almoço',
+      };
+    }
+    // Tira só os parâmetros consumidos — o ?convite= de um cadastro novo continua valendo.
+    if (params.has('lancar') || params.has('ref') || params.has('data')) {
+      ['lancar', 'ref', 'data'].forEach(p => params.delete(p));
+      const busca = params.toString();
+      history.replaceState(null, '', location.pathname + (busca ? '?' + busca : ''));
+    }
+  }
+
+  function consumirLancamento() {
+    const l = lancamentoPendente;
+    lancamentoPendente = null;
+    return l;
+  }
+
   function init() {
     capturarConviteDaURL();
+    capturarLancamentoDaURL();
+    if (lancamentoPendente) {
+      state.tab = 'alimentacao';
+      state.date = lancamentoPendente.data;
+    }
 
     // Nuvem (opcional): envolve o Storage e conecta o login antes de tudo.
     // Ao entrar/baixar dados, re-aplica seeds, re-renderiza e atualiza a tela de login.

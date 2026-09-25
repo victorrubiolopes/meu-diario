@@ -14,6 +14,9 @@ const ViewAlimentacao = (() => {
   // 'busca' = escolher alimento da biblioteca (padrão); 'macros' = digitar kcal e macros
   // direto, pra comida que não dá pra quebrar item a item (restaurante, casa dos outros).
   let modoAdicionar = 'busca';
+  // Refeição que chegou por link (?lancar=). O App entrega uma vez só; guardamos aqui pra
+  // sobreviver aos re-renders da própria tela até a pessoa confirmar ou descartar.
+  let lancamentoLink = null;
   const CATEGORIA_LABELS = { proteina: 'proteína', carboidrato: 'carboidrato', fruta: 'fruta', legume: 'legume/verdura', outro: 'extra' };
 
   function sumNutrients(entries) {
@@ -190,6 +193,11 @@ const ViewAlimentacao = (() => {
   }
 
   function render($app, state, api) {
+    // Chegou refeição por link? O App entrega uma vez; a partir daí ela vive aqui.
+    if (api.consumirLancamento) {
+      const novo = api.consumirLancamento();
+      if (novo) lancamentoLink = novo;
+    }
     const perfil = Storage.getPerfil();
     const meta = calcularMetas(perfil);
     const entries = Storage.getByDate('alimentacao', state.date).sort((a, b) => (a.order || 0) - (b.order || 0));
@@ -302,6 +310,7 @@ const ViewAlimentacao = (() => {
           <button class="secondary" id="add-combo" style="margin-top:10px">Adicionar combo</button>
         </div>
       ` : ''}
+      ${lancamentoLink ? renderLancamentoLink(state) : ''}
       <div class="card">
         <h2>Adicionar refeição</h2>
         <label>Tipo</label>
@@ -625,6 +634,29 @@ const ViewAlimentacao = (() => {
       });
     });
 
+    // Confirmação do link: grava direto, sem passar pelo carrinho. O carrinho existe pra
+    // quem está montando a refeição aos poucos; aqui a lista já veio pronta e conferida,
+    // e obrigar a um segundo toque ("adicionar à lista", depois "salvar") só devolveria o
+    // atrito que o link veio tirar.
+    const linkSalvar = document.getElementById('link-salvar');
+    if (linkSalvar) {
+      linkSalvar.addEventListener('click', () => {
+        const { itens } = ParsePlano.parseRefeicaoSolta(lancamentoLink.lista, Storage.getAll('alimentos_biblioteca'));
+        const mealType = lancamentoLink.ref;
+        const data = lancamentoLink.data;
+        itens.forEach(item => {
+          Storage.add('alimentacao', { date: data, mealType, order: Date.now(), ...item });
+        });
+        ultimoMealType = mealType;
+        lancamentoLink = null;
+        api.render();
+      });
+    }
+    const linkDescartar = document.getElementById('link-descartar');
+    if (linkDescartar) {
+      linkDescartar.addEventListener('click', () => { lancamentoLink = null; api.render(); });
+    }
+
     const salvarCarrinhoBtn = document.getElementById('salvar-carrinho');
     if (salvarCarrinhoBtn) {
       salvarCarrinhoBtn.addEventListener('click', () => {
@@ -748,6 +780,46 @@ const ViewAlimentacao = (() => {
 
   function fotoRefeicaoDe(date, mealType) {
     return Storage.getAll('refeicao_fotos').find(f => f.date === date && f.mealType === mealType) || null;
+  }
+
+  // Card de conferência da refeição que veio por link. É a autorização: mostra item a item
+  // o que o parser entendeu, o dia que vai receber e o total, e só grava no toque do botão.
+  // Repete o dia em destaque porque link pode trazer data antiga (lançar almoço de ontem),
+  // e salvar no dia errado é o tipo de erro que só aparece semanas depois.
+  function renderLancamentoLink(state) {
+    const { itens, avisos } = ParsePlano.parseRefeicaoSolta(lancamentoLink.lista, Storage.getAll('alimentos_biblioteca'));
+    const t = NUTRI_FIELDS.reduce((a, f) => (a[f] = itens.reduce((s, i) => s + (i[f] || 0), 0), a), {});
+    return `
+      <div class="card" style="border-left:3px solid var(--accent)">
+        <h2>🔗 Refeição recebida por link</h2>
+        <p class="meta">Nada foi salvo ainda. Confira e confirme.</p>
+        <p class="meta" style="margin-top:8px">
+          <strong>${Util.escapeHtml(lancamentoLink.ref)}</strong> ·
+          <strong>${Util.escapeHtml(Util.fmtDate(lancamentoLink.data))}</strong>
+        </p>
+        ${itens.length > 0 ? `
+          <div style="margin-top:8px">
+            ${itens.map(i => `
+              <div class="list-item">
+                <div>${Util.escapeHtml(i.foodName)} <span class="meta">(${i.qty}x)</span></div>
+                <div class="meta">${Math.round(i.kcal)} kcal</div>
+              </div>
+            `).join('')}
+          </div>
+          <p class="meta" style="margin-top:8px">
+            <strong>${Math.round(t.kcal)} kcal</strong> · P ${t.protein.toFixed(1)}g · C ${t.carbs.toFixed(1)}g · G ${t.fat.toFixed(1)}g · sat ${t.satFat.toFixed(1)}g · fibra ${t.fiber.toFixed(1)}g
+          </p>
+        ` : '<p class="empty">Não reconheci nenhum alimento deste link.</p>'}
+        ${avisos.length > 0 ? `
+          <div class="card" style="margin:10px 0 0;padding:10px 14px;background:var(--bg)">
+            <p class="meta" style="font-weight:600;margin-bottom:4px">⚠️ ${avisos.length} ${avisos.length === 1 ? 'linha precisa' : 'linhas precisam'} de atenção</p>
+            ${avisos.map(a => `<p class="meta" style="margin:2px 0">${Util.escapeHtml(a)}</p>`).join('')}
+          </div>
+        ` : ''}
+        ${itens.length > 0 ? `<button class="primary" id="link-salvar" style="width:100%;margin-top:10px">✅ Confirmar e salvar no diário</button>` : ''}
+        <button class="link" id="link-descartar" style="width:100%;margin-top:6px">Descartar</button>
+      </div>
+    `;
   }
 
   function renderSugestaoRefeicoes(date, meta) {
