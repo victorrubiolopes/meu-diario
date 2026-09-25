@@ -62,6 +62,15 @@ Tudo em **português (pt-BR)**: interface, comentários, mensagens de commit e c
   coleções compartilhadas, senão mandaria a lista inteira a cada push — deixava lento).
 - Local-first: login é opcional, mas há uma tela de login (gate) quando a nuvem está ativa.
 - Onboarding: conta nova vê tela de boas-vindas pedindo peso/altura/idade/sexo/atividade/objetivo.
+- **Parâmetros de URL** (lidos no `init()` do `app.js`): `?convite=CODE` vincula paciente→nutri no
+  cadastro; `?lancar=<lista>&ref=<refeição>&data=<ISO>` abre a tela de Comida com a refeição montada
+  pra conferência. O `lancar` **nunca grava sozinho** — só o toque no botão grava, senão bastaria
+  mandar uma URL pra injetar registro no diário de alguém. Fica em memória (não em localStorage):
+  é de uso único e não pode sobreviver a um F5. `testes/lancar-link.test.js` trava isso.
+- **Backup**: `Storage.exportAll()` é síncrona e **sem fotos** de propósito — ela alimenta
+  `salvarCopiaSeguranca`, que grava o retorno dentro do localStorage, e dataURLs de fotos
+  estourariam a cota. O backup com fotos é outro caminho (`exportAll()` + `PhotoDB.allPhotos()`),
+  montado em `mais.js`, num arquivo separado. `testes/backup-fotos.test.js` trava isso.
 - `aplicarSeeds()` em `app.js` roda migrações one-shot (ex: renomes de grupo muscular, níveis de emagrecimento).
 
 ### Navegação (`app.js`)
