@@ -235,7 +235,7 @@ Coxa: 58 cm
   const NOTIF_ICONES = {
     dieta: '🥗', plano: '🍽️', treino: '🏋️', corrida: '🏃',
     lista: '🛒', refeicaoLivre: '🍔', solicitacao: '📣', medidas: '📏',
-    peso: '⚖️',
+    peso: '⚖️', refeicaoRecebida: '📥',
   };
   // Pedidos levam o paciente direto pra tela onde ele resolve — um aviso que não leva
   // a lugar nenhum vira só barulho.
@@ -285,6 +285,7 @@ Coxa: 58 cm
                 ${n.texto ? `<div class="notif-texto">${Util.escapeHtml(n.texto)}</div>` : ''}
                 <div class="notif-quando">${quandoTexto(n.criadoEm)}</div>
                 ${destino ? `<button class="secondary" data-ir="${Util.escapeHtml(n.id)}" style="margin-top:8px;font-size:0.78rem;padding:6px 12px">${destino.rotulo}</button>` : ''}
+                ${Array.isArray(n.desfazer) && n.desfazer.length ? `<button class="secondary" data-desfazer="${Util.escapeHtml(n.id)}" style="margin-top:8px;font-size:0.78rem;padding:6px 12px">Desfazer</button>` : ''}
               </div>
               <button class="link" data-del-notif="${Util.escapeHtml(n.id)}" aria-label="Remover">✕</button>
             </div>
@@ -302,6 +303,20 @@ Coxa: 58 cm
     }
     $app.querySelectorAll('[data-del-notif]').forEach(b => {
       b.addEventListener('click', () => { Storage.remove('notificacoes', b.dataset.delNotif); api.render(); });
+    });
+
+    // Desfaz um lançamento que entrou sozinho pela caixa de entrada. Apaga pelos IDS
+    // guardados na notificação, nunca por data e refeição — senão levaria junto o que a
+    // pessoa registrou na mão no mesmo almoço.
+    $app.querySelectorAll('[data-desfazer]').forEach(b => {
+      b.addEventListener('click', () => {
+        const n = Storage.getAll('notificacoes').find(x => x.id === b.dataset.desfazer);
+        if (!n || !Array.isArray(n.desfazer)) return;
+        if (!window.confirm(`Apagar do diário ${n.desfazer.length} ${n.desfazer.length === 1 ? 'registro' : 'registros'} deste lançamento?`)) return;
+        n.desfazer.forEach(id => Storage.remove('alimentacao', id));
+        Storage.remove('notificacoes', n.id);
+        api.render();
+      });
     });
     $app.querySelectorAll('[data-ir]').forEach(b => {
       b.addEventListener('click', () => {
