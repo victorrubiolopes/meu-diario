@@ -320,7 +320,18 @@ const Util = (() => {
     return `<div class="card" style="padding:4px 16px"><div class="menu-list">${itens.join('')}</div></div>`;
   }
 
-  return { escolhaHtml, menuCardHtml, todayISO, fmtDate, escapeHtml, daysAgo, daysFromNow, movingAverage, getPesoAtual, planoSugerido, ultimoTreinoFeito, weekdayOf, daysBetween, addDaysISO, mondayOf, fmtDatePill, historicoTreinos,
+  // Tamanho de arquivo em português, pra avisar quanto o backup com fotos vai pesar antes
+  // de baixar. Base 1024, uma casa decimal a partir de MB (em KB a casa não diz nada).
+  function formatarTamanho(bytes) {
+    const n = Number(bytes);
+    if (!isFinite(n) || n <= 0) return '0 KB';
+    if (n < 1024) return n + ' B';
+    if (n < 1024 * 1024) return Math.round(n / 1024) + ' KB';
+    if (n < 1024 * 1024 * 1024) return (n / (1024 * 1024)).toFixed(1).replace('.', ',') + ' MB';
+    return (n / (1024 * 1024 * 1024)).toFixed(1).replace('.', ',') + ' GB';
+  }
+
+  return { escolhaHtml, menuCardHtml, formatarTamanho, todayISO, fmtDate, escapeHtml, daysAgo, daysFromNow, movingAverage, getPesoAtual, planoSugerido, ultimoTreinoFeito, weekdayOf, daysBetween, addDaysISO, mondayOf, fmtDatePill, historicoTreinos,
     faixaPesoSaudavel, faixaGorduraSaudavel, faixaMassaMagraSaudavel, faixaAguaSaudavel, faixaImcSaudavel, metricasComposicao, estimarGorduraCorporal, inputGroup, youtubeSearchUrl, youtubeEmbedId, fileToDataURL, compressImageToDataURL,
     pesosExercicio, maxPesoExercicio, isInAppBrowser };
 })();

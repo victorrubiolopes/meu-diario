@@ -1625,6 +1625,8 @@ Coxa: 58 cm
         <h2>Exportar / Importar</h2>
         <p class="meta">Como os dados ficam salvos só neste navegador, exporte periodicamente para não perder nada.</p>
         <button class="primary" id="export-json">Exportar backup (.json)</button>
+        <button class="secondary" id="export-fotos" style="margin-top:8px">Exportar backup com fotos</button>
+        <p class="meta" id="export-fotos-info" style="margin-top:6px">As fotos de progresso e os arquivos de exame ficam num banco separado e <strong>não entram</strong> no backup comum — ele sairia com dezenas de MB. Use o segundo botão quando quiser levá-las junto.</p>
         <label style="margin-top:14px">Importar backup</label>
         <input type="file" id="import-json" accept="application/json">
       </div>
@@ -1668,15 +1670,50 @@ Coxa: 58 cm
       </div>
     `;
 
-    document.getElementById('export-json').addEventListener('click', () => {
-      const data = Storage.exportAll();
+    function baixarJson(data, nome) {
       const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
       const url = URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url;
-      a.download = `diario-backup-${Util.todayISO()}.json`;
+      a.download = nome;
       a.click();
       URL.revokeObjectURL(url);
+    }
+
+    document.getElementById('export-json').addEventListener('click', () => {
+      baixarJson(Storage.exportAll(), `diario-backup-${Util.todayISO()}.json`);
+    });
+
+    // Backup com fotos: exportAll() (localStorage, síncrono) + o IndexedDB das imagens.
+    // Sai num arquivo separado de propósito — juntar os dois no botão de cima faria o
+    // backup do dia a dia pesar dezenas de MB, e é ele que a maioria das pessoas usa.
+    // Avisa o tamanho ANTES de montar o arquivo, porque montar já custa a memória toda.
+    const $btnFotos = document.getElementById('export-fotos');
+    $btnFotos.addEventListener('click', async () => {
+      const original = $btnFotos.textContent;
+      $btnFotos.disabled = true;
+      $btnFotos.textContent = 'Lendo fotos…';
+      try {
+        const bytes = await PhotoDB.totalBytes();
+        if (bytes === 0) {
+          alert('Não há nenhuma foto nem arquivo de exame guardado — o backup comum já leva tudo que existe.');
+          return;
+        }
+        if (!window.confirm(
+          `O arquivo vai ter cerca de ${Util.formatarTamanho(bytes)}.\n\n` +
+          'Em celular, arquivo grande pode demorar pra salvar e pra reimportar depois. Continuar?'
+        )) return;
+        $btnFotos.textContent = 'Montando arquivo…';
+        const data = Storage.exportAll();
+        data._fotos = await PhotoDB.allPhotos();
+        baixarJson(data, `diario-backup-com-fotos-${Util.todayISO()}.json`);
+      } catch (e) {
+        console.warn('Falha ao exportar com fotos', e);
+        alert('Não consegui ler as fotos. O backup comum (botão de cima) continua funcionando.');
+      } finally {
+        $btnFotos.disabled = false;
+        $btnFotos.textContent = original;
+      }
     });
 
     $app.querySelectorAll('[data-restaurar]').forEach(el => {
@@ -1702,7 +1739,20 @@ Coxa: 58 cm
       try {
         const data = JSON.parse(text);
         Storage.importAll(data);
-        alert('Backup importado com sucesso!');
+        // Backup antigo (ou o comum) não tem '_fotos' — segue sem reclamar, os dados já
+        // entraram. As fotos vão pro IndexedDB por fora do importAll, que é síncrono.
+        let fotos = 0;
+        if (Array.isArray(data._fotos) && data._fotos.length) {
+          try {
+            fotos = await PhotoDB.putMany(data._fotos);
+          } catch (e) {
+            console.warn('Dados importados, mas as fotos falharam', e);
+            alert('Os dados foram importados, mas não consegui gravar as fotos. Tente de novo só a importação das fotos.');
+            api.render();
+            return;
+          }
+        }
+        alert(fotos ? `Backup importado com sucesso! ${fotos} foto(s) restaurada(s).` : 'Backup importado com sucesso!');
         api.render();
       } catch {
         alert('Arquivo inválido.');

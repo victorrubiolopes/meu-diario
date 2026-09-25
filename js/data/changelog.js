@@ -1,5 +1,6 @@
 // Lista de atualizações recentes do app, mais recente primeiro. Editável manualmente a cada mudança.
 const CHANGELOG = [
+  { date: '2026-09-25', texto: 'Novo botão "Exportar backup com fotos", em Mais → Backup. As fotos de progresso e os arquivos de exame ficam num banco separado (IndexedDB) e nunca entravam no backup — agora saem num arquivo à parte, que avisa o tamanho antes de baixar. Importar reconhece os dois formatos. O backup comum continua leve e sem fotos de propósito: é ele que alimenta as cópias de segurança automáticas, que não caberiam no navegador com imagens dentro' },
   { date: '2026-09-24', texto: 'Baby beef na biblioteca, grelhado (220 kcal/100g) e no alho (227). "Baby beef" não é corte, é boi jovem — cai entre o contra-filé e a alcatra. Na versão no alho, quem pesa é a manteiga do refogado, não o alho' },
   { date: '2026-09-23', texto: 'Mussarela de búfala na biblioteca: 265 kcal e 21,5g de gordura por 100g. Tem menos caloria e menos da metade do sódio da mussarela comum (por ser fresca, cheia de água), mas também menos proteína. Pese escorrida — a salmoura não entra na conta' },
   { date: '2026-09-22', texto: 'Mais dois itens de self-service: "Massa ao pesto" (193 kcal/100g — massa bem coberta, não nadando no molho) e "Molho pesto" avulso (68 kcal por colher de sopa), pra quando o molho vier mais pesado e você quiser ajustar' },

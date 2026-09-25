@@ -206,6 +206,12 @@ const Storage = (() => {
     return getAll(key);
   }
 
+  // NÃO incluir fotos aqui. Esta função é síncrona de propósito, e o motivo não é estilo:
+  // 'salvarCopiaSeguranca' usa o retorno dela pra guardar o diário inteiro DENTRO do
+  // localStorage. Fotos são dataURL de megabytes cada — jogá-las aqui estouraria a cota na
+  // hora e derrubaria justamente a rede de segurança contra perda de dados. Fora isso,
+  // IndexedDB é assíncrono e tornaria toda a cadeia async à toa.
+  // O backup COM fotos é outro caminho, em mais.js: exportAll() + PhotoDB.allPhotos().
   function exportAll() {
     const data = {};
     Object.keys(KEYS).forEach(k => { data[k] = getAll(k); });
