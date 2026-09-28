@@ -107,6 +107,16 @@ const ALIMENTOS_PADRAO = [
   { name: 'Coxa de frango cozida', categoria: 'proteina', portionLabel: '100g', portionGrams: 100, kcal: 167, carbs: 0, sugars: 0, protein: 26.9, fat: 5.8, satFat: 1.7, transFat: 0, fiber: 0, sodium: 64 },
   { name: 'Sobrecoxa de frango crua', categoria: 'proteina', portionLabel: '100g', portionGrams: 100, kcal: 162, carbs: 0, sugars: 0, protein: 17.6, fat: 9.6, satFat: 2.9, transFat: 0, fiber: 0, sodium: 80 },
   { name: 'Sobrecoxa de frango assada', categoria: 'proteina', portionLabel: '100g', portionGrams: 100, kcal: 233, carbs: 0, sugars: 0, protein: 29.2, fat: 12, satFat: 3.6, transFat: 0, fiber: 0, sodium: 106 },
+  // ATENÇÃO: a linha acima é SEM PELE (é o que diz o cabeçalho deste bloco, mas o nome não
+  // avisa — e isso já causou um lançamento subestimado em 28/09/2026). Sobrecoxa de buffet
+  // quase sempre vem com a pele dourada por cima; nesse caso use a linha de baixo.
+  //
+  // Montada a partir da de cima pela razão carne+pele/carne do frango assado (USDA:
+  // 247/209 kcal e 15,5/10,9 g de gordura na coxa assada) — a pele acrescenta ~18% de
+  // caloria e ~42% de gordura, e dilui um pouco a proteína por grama.
+  // Em 150g (uma sobrecoxa desossada de self-service) a diferença é de ~63 kcal e 7,5g
+  // de gordura: é a escolha que mais muda o prato, não o acompanhamento.
+  { name: 'Sobrecoxa de frango com pele assada', categoria: 'proteina', portionLabel: '100g', portionGrams: 100, kcal: 275, carbs: 0, sugars: 0, protein: 28.1, fat: 17, satFat: 5, transFat: 0, fiber: 0, sodium: 100 },
   { name: 'Carne bovina crua (patinho)', categoria: 'proteina', portionLabel: '100g', portionGrams: 100, kcal: 133, carbs: 0, sugars: 0, protein: 21.7, fat: 4.5, satFat: 1.4, transFat: 0, fiber: 0, sodium: 49 },
   { name: 'Patinho grelhado', categoria: 'proteina', portionLabel: '100g', portionGrams: 100, kcal: 219, carbs: 0, sugars: 0, protein: 35.9, fat: 7.3, satFat: 2.2, transFat: 0, fiber: 0, sodium: 60 },
   { name: 'Patinho assado', categoria: 'proteina', portionLabel: '100g', portionGrams: 100, kcal: 199, carbs: 0, sugars: 0, protein: 36.1, fat: 5, satFat: 1.5, transFat: 0, fiber: 0, sodium: 60 },
