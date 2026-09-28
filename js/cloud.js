@@ -125,6 +125,7 @@ const Cloud = (() => {
       db = firebase.firestore();
       try { auth.setPersistence(firebase.auth.Auth.Persistence.LOCAL); } catch (e) { /* ignore */ }
       enabled = true;
+      checarCaixaAoVoltar();
       auth.onAuthStateChanged(async u => {
         user = u || null;
         if (u) {
@@ -412,7 +413,29 @@ const Cloud = (() => {
   //    daquele depósito (guarda os ids, não apaga por data).
   const CAIXA_APLICADOS = 'caixa_entrada_aplicados';
 
+  // Volta do segundo plano. Em celular o app quase nunca é fechado de verdade — fica
+  // suspenso por dias —, então checar só no login faria uma refeição depositada ao meio-dia
+  // aparecer só na próxima vez que o login rodasse, que pode ser semana que vem.
+  //
+  // Checa SÓ a caixa de entrada, não a sincronização inteira: puxar o diário todo a cada
+  // troca de aba seria caro e mexeria num caminho que hoje está estável.
+  const CAIXA_INTERVALO_MS = 30 * 1000;
+  let ultimaChecagemCaixa = 0;
+
+  function checarCaixaAoVoltar() {
+    if (typeof document === 'undefined' || !document.addEventListener) return;
+    document.addEventListener('visibilitychange', () => {
+      if (document.visibilityState !== 'visible') return;
+      if (!user) return;
+      // Alternar entre abas dispara o evento a cada ida e volta; sem o intervalo mínimo
+      // isso vira uma consulta ao Firestore por toque.
+      if (Date.now() - ultimaChecagemCaixa < CAIXA_INTERVALO_MS) return;
+      aplicarCaixaEntrada();
+    });
+  }
+
   async function aplicarCaixaEntrada() {
+    ultimaChecagemCaixa = Date.now();
     try {
       const snap = await db.collection('caixaEntrada').where('uid', '==', user.uid).get();
       if (!snap || snap.empty) return false;
