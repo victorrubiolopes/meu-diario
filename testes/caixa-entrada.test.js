@@ -56,6 +56,19 @@ ok(/desfazer: ids/.test(fn), 'a notificação carrega os ids pro desfazer');
 ok(/Storage\.add\('notificacoes'/.test(fn), 'todo lançamento vira aviso no sino');
 ok(cloudSrc.indexOf('await aplicarCaixaEntrada();') > 0, 'roda no login');
 
+console.log('\n--- checagem ao voltar do segundo plano ---');
+const volta = cloudSrc.slice(cloudSrc.indexOf('function checarCaixaAoVoltar()'), cloudSrc.indexOf('async function aplicarCaixaEntrada()'));
+ok(volta.length > 0, 'achou checarCaixaAoVoltar');
+ok(/visibilitychange/.test(volta), 'escuta o evento de voltar pra tela');
+ok(/visibilityState !== 'visible'/.test(volta), 'ignora quando o app VAI pro segundo plano');
+ok(/if \(!user\) return/.test(volta), 'não consulta nada sem login');
+ok(/CAIXA_INTERVALO_MS/.test(volta), 'tem intervalo mínimo entre checagens');
+ok(!/onLogin|pushDiario|mesclarSnapshot/.test(volta), 'não dispara a sincronização inteira, só a caixa');
+ok(/typeof document === 'undefined'/.test(volta), 'não quebra fora do navegador');
+ok(cloudSrc.indexOf('checarCaixaAoVoltar();') > 0, 'é registrado no init');
+ok(/ultimaChecagemCaixa = Date\.now\(\);/.test(cloudSrc.slice(cloudSrc.indexOf('async function aplicarCaixaEntrada()'))),
+  'a checagem do login também conta pro intervalo (não checa duas vezes seguidas)');
+
 console.log('\n--- desfazer apaga por id, nunca por data ---');
 const undo = maisSrc.slice(maisSrc.indexOf("querySelectorAll('[data-desfazer]')"), maisSrc.indexOf("querySelectorAll('[data-ir]')"));
 ok(undo.length > 0, 'achou o handler do desfazer');
