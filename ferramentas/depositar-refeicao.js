@@ -21,9 +21,14 @@
 //
 //   --dry-run  monta e mostra o depósito sem enviar (confere o parse antes de gastar rede)
 //
-// VARIÁVEIS DE AMBIENTE (nunca no repositório, nunca no chat):
-//   DIARIO_AGENTE_EMAIL  e-mail da conta dedicada do agente
-//   DIARIO_AGENTE_SENHA  senha dessa conta
+// VARIÁVEIS DE AMBIENTE:
+//   DIARIO_AGENTE_EMAIL  e-mail da conta dedicada do agente     (segredo — só no ambiente)
+//   DIARIO_AGENTE_SENHA  senha dessa conta                      (segredo — só no ambiente)
+//   DIARIO_VICTOR_UID    destino padrão do depósito, se --uid não for passado
+//
+// O UID do destinatário não é segredo (sozinho não abre nada), mas fica no ambiente em vez
+// do repositório por dois motivos: o repositório é público, e assim a ferramenta funciona
+// sem ninguém precisar lembrar o número a cada uso.
 
 const fs = require('fs');
 const path = require('path');
@@ -105,8 +110,9 @@ async function depositar(idToken, doc) {
 
 (async () => {
   const o = args();
+  if (!o.uid) o.uid = process.env.DIARIO_VICTOR_UID;
   if (!o.uid || !o.itens) {
-    console.error('Faltou --uid ou --itens. Veja o cabeçalho deste arquivo.');
+    console.error('Faltou --itens, ou --uid sem DIARIO_VICTOR_UID no ambiente. Veja o cabeçalho deste arquivo.');
     process.exit(2);
   }
   if (!/^\d{4}-\d{2}-\d{2}$/.test(o.data || '')) {
