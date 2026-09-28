@@ -93,6 +93,9 @@ ok(!/AIza[0-9A-Za-z_-]{30,}/.test(ferr), 'não tem chave embutida (lê de fireba
 ok(!/senha\s*=\s*['"][^'"]+['"]/.test(ferr), 'nenhuma senha escrita no arquivo');
 ok(/origem: 'claude'/.test(ferr), 'marca a origem do depósito');
 ok(/dry-run|dryRun/.test(ferr), 'tem modo de conferência sem enviar');
+ok(/process\.env\.DIARIO_VICTOR_UID/.test(ferr), 'pega o UID de destino do ambiente quando --uid não vem');
+ok(!/4aYt3|trt2wU/.test(ferr), 'nenhum UID real na ferramenta');
+
 
 console.log(falhas === 0 ? '\nTODOS OS TESTES PASSARAM\n' : `\n${falhas} TESTE(S) FALHARAM\n`);
 process.exit(falhas === 0 ? 0 : 1);
