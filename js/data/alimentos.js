@@ -181,6 +181,15 @@ const ALIMENTOS_PADRAO = [
   { name: 'Bucho bovino cru', categoria: 'proteina', portionLabel: '100g', portionGrams: 100, kcal: 137, carbs: 0, sugars: 0, protein: 20.5, fat: 5.5, satFat: 1.7, transFat: 0, fiber: 0, sodium: 45 },
   { name: 'Almôndegas bovinas cruas', categoria: 'proteina', portionLabel: '100g', portionGrams: 100, kcal: 189, carbs: 0, sugars: 0, protein: 12.3, fat: 11.2, satFat: 3.4, transFat: 0, fiber: 0, sodium: 621 },
   { name: 'Almôndegas bovinas fritas', categoria: 'proteina', portionLabel: '100g', portionGrams: 100, kcal: 272, carbs: 0, sugars: 0, protein: 18.2, fat: 15.8, satFat: 4.7, transFat: 0, fiber: 0, sodium: 1030 },
+  // Hambúrguer grande de carne moída com farinha de rosca e ovo na massa, assado, com
+  // queijo e crosta de alho e ervas por cima — o do self-service, não o empanado e frito
+  // de cantina italiana (esse passa fácil de 300 kcal/100g).
+  // Composição de referência por 100g: 65g de carne moída cozida, 12g de farinha de rosca,
+  // 8g de ovo, 10g de mussarela e 5g de óleo/molho do preparo.
+  // Repare que NÃO é carne pura: a farinha de rosca põe ~10g de carboidrato onde um bife
+  // teria zero, e a proteína cai pra 21,5g/100g contra os 30,7 de um miolo de alcatra
+  // assado. Por grama de proteína custa 10,1 kcal, contra 6,6 do alcatra.
+  { name: 'Polpetone assado', categoria: 'proteina', portionLabel: '100g', portionGrams: 100, kcal: 218, carbs: 10, sugars: 1, protein: 21.5, fat: 9.6, satFat: 4, transFat: 0.2, fiber: 0.6, sodium: 400 },
   { name: 'Carne seca cozida', categoria: 'proteina', portionLabel: '100g', portionGrams: 100, kcal: 313, carbs: 0, sugars: 0, protein: 26.9, fat: 21.9, satFat: 6.6, transFat: 0, fiber: 0, sodium: 1943 },
   { name: 'Carne seca crua', categoria: 'proteina', portionLabel: '100g', portionGrams: 100, kcal: 313, carbs: 0, sugars: 0, protein: 19.7, fat: 25.4, satFat: 7.6, transFat: 0, fiber: 0, sodium: 4440 },
   { name: 'Coxinha de frango frita', categoria: 'outro', portionLabel: '1 unidade (80g)', portionGrams: 80, kcal: 226, carbs: 27.6, sugars: 1, protein: 7.7, fat: 9.4, satFat: 2.8, transFat: 0, fiber: 0.8, sodium: 426 },
