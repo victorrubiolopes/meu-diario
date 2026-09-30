@@ -1,5 +1,6 @@
 // Lista de atualizações recentes do app, mais recente primeiro. Editável manualmente a cada mudança.
 const CHANGELOG = [
+  { date: '2026-09-30', texto: 'Esfiha aberta de pizzaria na biblioteca, margherita e frango com mussarela (~464 kcal cada, na unidade de 20cm). São as abertas de prato, não a esfirra fechada de padaria que já existia. O peso de 180g é estimativa por volume, não pesagem — está dito no comentário do arquivo' },
   { date: '2026-09-29', texto: 'Polpetone assado na biblioteca (218 kcal/100g). É o do self-service, assado com crosta de alho e ervas — não o empanado e frito de cantina, que passa de 300. Vale saber que ele não é carne pura: a farinha de rosca da massa põe 10g de carboidrato onde um bife teria zero, e sai mais caro por grama de proteína' },
   { date: '2026-09-28', texto: 'Sobrecoxa de frango COM PELE assada na biblioteca (275 kcal/100g). A que já existia é sem pele, mas o nome não avisava — e sobrecoxa de self-service quase sempre vem com a pele. Em 150g a diferença é de 63 kcal e 7,5g de gordura' },
   { date: '2026-09-28', texto: 'Refeição que chega pela caixa de entrada agora aparece quando você volta pro app, não só quando faz login. Em celular o app fica suspenso em segundo plano por dias, então antes um lançamento feito de manhã podia demorar a aparecer' },
