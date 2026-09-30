@@ -290,6 +290,13 @@ const Util = (() => {
     return pesos.length ? Math.max(...pesos) : 0;
   }
 
+  // Repetições REALMENTE feitas em cada série. Espelha o pesosExercicio: descarta o que não
+  // é número positivo, porque série em branco ou zerada não é dado — é campo não preenchido.
+  function repsFeitasExercicio(ex) {
+    if (!ex || !Array.isArray(ex.repsFeitas)) return [];
+    return ex.repsFeitas.map(Number).filter(r => !isNaN(r) && r > 0);
+  }
+
   // Navegador embutido de apps (WhatsApp, Instagram, Facebook, TikTok, Line...): o login com
   // Google costuma falhar aí — o WebView restringe/particiona o storage que o Firebase usa
   // pra completar o fluxo OAuth (erro "missing initial state" / sessionStorage inacessível),
@@ -333,5 +340,5 @@ const Util = (() => {
 
   return { escolhaHtml, menuCardHtml, formatarTamanho, todayISO, fmtDate, escapeHtml, daysAgo, daysFromNow, movingAverage, getPesoAtual, planoSugerido, ultimoTreinoFeito, weekdayOf, daysBetween, addDaysISO, mondayOf, fmtDatePill, historicoTreinos,
     faixaPesoSaudavel, faixaGorduraSaudavel, faixaMassaMagraSaudavel, faixaAguaSaudavel, faixaImcSaudavel, metricasComposicao, estimarGorduraCorporal, inputGroup, youtubeSearchUrl, youtubeEmbedId, fileToDataURL, compressImageToDataURL,
-    pesosExercicio, maxPesoExercicio, isInAppBrowser };
+    pesosExercicio, maxPesoExercicio, repsFeitasExercicio, isInAppBrowser };
 })();
