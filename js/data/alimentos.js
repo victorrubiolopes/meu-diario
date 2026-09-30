@@ -4,6 +4,13 @@
 // dieta específica cadastrada — 'proteina' | 'carboidrato' | 'fruta' | 'legume' | 'outro'.
 const ALIMENTOS_PADRAO = [
   { name: 'Arroz branco cozido', categoria: 'carboidrato', portionLabel: '100g', portionGrams: 100, kcal: 128, carbs: 28, sugars: 0, protein: 2.5, fat: 0.2, satFat: 0, transFat: 0, fiber: 0.4, sodium: 1 },
+  // Arroz refogado com charque/carne seca, cebola e tomate. Composição de referência por
+  // 100g: 70g de arroz branco cozido, 18g de carne seca, 4g de óleo do refogado e 8g de
+  // cebola/tomate.
+  // Não é "arroz com uma carninha": tem 40% mais caloria que o arroz branco puro (180 contra
+  // 128) porque leva óleo E charque, que é a carne mais gorda da biblioteca (21,9g/100g).
+  // O sódio também salta — 450 contra 1 do arroz branco — e vem todo da carne seca.
+  { name: 'Arroz carreteiro', categoria: 'carboidrato', portionLabel: '100g', portionGrams: 100, kcal: 180, carbs: 20, sugars: 0.8, protein: 6.6, fat: 7.9, satFat: 2.5, transFat: 0.1, fiber: 0.8, sodium: 450 },
   { name: 'Feijão carioca cozido', categoria: 'carboidrato', portionLabel: '100g', portionGrams: 100, kcal: 76, carbs: 13.6, sugars: 0.3, protein: 4.8, fat: 0.5, satFat: 0.1, transFat: 0, fiber: 8.5, sodium: 2 },
   { name: 'Peito de frango grelhado', categoria: 'proteina', portionLabel: '100g', portionGrams: 100, kcal: 159, carbs: 0, sugars: 0, protein: 32, fat: 2.5, satFat: 0.8, transFat: 0, fiber: 0, sodium: 50 },
   { name: 'Ovo cozido', categoria: 'proteina', portionLabel: '1 unidade (50g)', portionGrams: 50, kcal: 73, carbs: 0.3, sugars: 0.3, protein: 6.7, fat: 4.8, satFat: 1.4, transFat: 0, fiber: 0, sodium: 73 },
