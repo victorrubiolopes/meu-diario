@@ -519,6 +519,23 @@ const ALIMENTOS_PADRAO = [
   // pizzaria brasileira (~260kcal/fatia). Sem catupiry, fica menos gordurosa que a de frango;
   // cebola e champignon quase não somam caloria, mas o lombo puxa sódio e proteína pra cima.
   { name: 'Pizza Tutti (lombo, mussarela, cebola e champignon)', categoria: 'outro', portionLabel: '1 fatia (100g)', portionGrams: 100, kcal: 270, carbs: 29, sugars: 2.5, protein: 15, fat: 10.5, satFat: 4.8, transFat: 0.2, fiber: 1.8, sodium: 640 },
+  // Esfiha ABERTA de pizzaria (paulistana), do tamanho que vem num prato raso — ~20cm de
+  // diâmetro, massa fina com borda. NÃO confundir com a esfirra fechada de padaria, que é
+  // a linha 'Esfirra de carne aberta' acima, de 60g.
+  //
+  // O peso é a maior incerteza aqui, e por isso está no nome: 180g é uma estimativa por
+  // volume (massa fina de 20cm + cobertura), não uma pesagem. Se a sua for visivelmente
+  // maior ou menor, o ajuste é proporcional — 20g a mais ou a menos mudam ~50 kcal.
+  //
+  // Montadas por ingrediente, como as outras pizzas daqui (nenhuma pizzaria de balcão
+  // publica tabela). Margherita: 100g de massa assada, 45g de mussarela, 30g de tomate/molho,
+  // 4g de azeite e manjericão. Conferem com a 'Pizza de mussarela (fatia)' quando levadas
+  // pra base de 100g (258 contra 266 kcal), que é a calibragem que eu tinha.
+  { name: 'Esfiha aberta de margherita', categoria: 'outro', portionLabel: '1 unidade (180g)', portionGrams: 180, kcal: 464, carbs: 58, sugars: 4, protein: 19.4, fat: 17.5, satFat: 7.6, transFat: 0.2, fiber: 2.8, sodium: 830 },
+  // Mesma massa, trocando parte da mussarela por frango desfiado: quase a mesma caloria da
+  // margherita (461 contra 464) com 7,4g a mais de proteína e 2g a menos de gordura. Entre
+  // as duas, esta é a escolha melhor — e a diferença é do frango, não do queijo.
+  { name: 'Esfiha aberta de frango com mussarela', categoria: 'outro', portionLabel: '1 unidade (180g)', portionGrams: 180, kcal: 461, carbs: 53, sugars: 3, protein: 26.8, fat: 15.5, satFat: 6.4, transFat: 0.2, fiber: 2.6, sodium: 720 },
   { name: 'Massa Leve Pizza de Frigideira', categoria: 'carboidrato', portionLabel: '1 unidade (25g)', portionGrams: 25, kcal: 63, carbs: 11.8, sugars: 0, protein: 1.6, fat: 1, satFat: 0.3, transFat: 0, fiber: 0.5, sodium: 77 },
   { name: 'Hambúrguer completo (fast food)', categoria: 'outro', portionLabel: '1 unidade (150g)', portionGrams: 150, kcal: 420, carbs: 35, sugars: 6, protein: 20, fat: 22, satFat: 8, transFat: 0.5, fiber: 2, sodium: 780 },
   { name: 'Cerveja pilsen', categoria: 'outro', portionLabel: '1 lata (350ml)', portionGrams: 350, kcal: 150, carbs: 12, sugars: 0, protein: 1.5, fat: 0, satFat: 0, transFat: 0, fiber: 0, sodium: 15 },
