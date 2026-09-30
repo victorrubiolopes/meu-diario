@@ -102,6 +102,21 @@ const ViewTreino = (() => {
     return null;
   }
 
+  // Mesma busca da carga, pras repetições feitas. Anda junto com ultimaCargaPorSerie de
+  // propósito: quem repete um exercício costuma repetir a série inteira (peso E reps), e ter
+  // só metade pré-preenchida obrigava a digitar o resto na mão toda vez.
+  function ultimaRepsPorSerie(name, dateISO) {
+    if (!name || !name.trim()) return null;
+    const all = Storage.getAll('treino').filter(e => e.date <= dateISO).sort((a, b) => b.date.localeCompare(a.date));
+    for (const e of all) {
+      const ex = (e.exercises || []).find(x => x.name && x.name.trim().toLowerCase() === name.trim().toLowerCase());
+      if (!ex) continue;
+      const reps = Util.repsFeitasExercicio(ex);
+      if (reps.length) return reps;
+    }
+    return null;
+  }
+
   function melhorPaceHistorico(excludeId) {
     const all = Storage.getAll('corridas').filter(c => c.id !== excludeId && c.distanceKm && c.timeMin);
     if (all.length === 0) return null;
@@ -245,7 +260,7 @@ const ViewTreino = (() => {
     const planoParaPrefill = existing ? null : sessao.plano;
     let rows = (existing ? existing.exercises : (planoParaPrefill ? planoParaPrefill.exercises.map(e => ({ ...e })) : [{ name: '', sets: '', reps: '', weight: '', done: [] }])).map(e => ({ ...e }));
     if (rows.length === 0) rows = [{ name: '', sets: '', reps: '', weight: '', done: [] }];
-    if (!existing) seedCargasHistorico(rows);
+    if (!existing) { seedCargasHistorico(rows); seedRepsHistorico(rows); }
     // Id da entrada sendo editada nesta sessão — começa null se for um treino novo, e passa a
     // apontar pro registro assim que o primeiro persist() o cria.
     let entryId = existing ? existing.id : null;
@@ -328,8 +343,9 @@ const ViewTreino = (() => {
     }
 
     // Repetições realmente feitas em cada série (o plano diz "8 a 10", mas você pode ter feito 8
-    // na primeira e 6 na última). Fica vazio por padrão: o placeholder mostra o que foi planejado,
-    // então só quem quiser registrar a diferença precisa digitar.
+    // na primeira e 6 na última). Começa vazia; quem preenche é o seedRepsHistorico logo abaixo,
+    // com o que foi feito da última vez. Sem histórico, fica em branco e o placeholder mostra
+    // o que foi planejado.
     function ensureRepsFeitas(r) {
       const n = setsCount(r);
       if (!Array.isArray(r.repsFeitas)) r.repsFeitas = [];
@@ -350,6 +366,22 @@ const ViewTreino = (() => {
         const n = setsCount(r) || cargas.length;
         r.weights = Array.from({ length: n }, (_, j) => String(cargas[j] != null ? cargas[j] : cargas[cargas.length - 1]));
         r.weight = String(Math.max(...cargas));
+      });
+    }
+
+    // Mesma ideia da carga, pras repetições: cada série já vem com o que foi feito da última
+    // vez nesse exercício. Só entra em linha que ainda não tem NENHUMA rep preenchida, pra
+    // não pisar no que a pessoa acabou de digitar.
+    // Série a mais do que tinha no histórico repete a última — é o palpite menos errado, e
+    // é o mesmo critério da carga.
+    function seedRepsHistorico(alvoRows) {
+      alvoRows.forEach(r => {
+        if (!r.name || !r.name.trim()) return;
+        if (Array.isArray(r.repsFeitas) && r.repsFeitas.some(v => v != null && v !== '')) return;
+        const reps = ultimaRepsPorSerie(r.name, state.date);
+        if (!reps || !reps.length) return;
+        const n = setsCount(r) || reps.length;
+        r.repsFeitas = Array.from({ length: n }, (_, j) => String(reps[j] != null ? reps[j] : reps[reps.length - 1]));
       });
     }
 
@@ -530,7 +562,7 @@ const ViewTreino = (() => {
         // Ao digitar/trocar o nome, já traz a carga da última vez que esse exercício foi feito
         // (por nome, independente do plano) — antes isso só acontecia ao carregar um plano,
         // então exercício adicionado na mão vinha sempre sem peso.
-        inp.addEventListener('change', () => { syncNames(); seedCargasHistorico(rows); persist(); renderCards(); });
+        inp.addEventListener('change', () => { syncNames(); seedCargasHistorico(rows); seedRepsHistorico(rows); persist(); renderCards(); });
       });
       cardsEl.querySelectorAll('[data-remove]').forEach(btn => {
         btn.addEventListener('click', () => {
@@ -623,6 +655,7 @@ const ViewTreino = (() => {
       rows = (plano.exercises || []).map(e => ({ ...e, done: [], weights: [], repsFeitas: [] }));
       if (rows.length === 0) rows.push({ name: '', sets: '', reps: '', weight: '', done: [] });
       seedCargasHistorico(rows);
+      seedRepsHistorico(rows);
       persist();
       renderCards();
     }
