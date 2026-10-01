@@ -1,5 +1,6 @@
 // Lista de atualizações recentes do app, mais recente primeiro. Editável manualmente a cada mudança.
 const CHANGELOG = [
+  { date: '2026-10-01', texto: 'Pão Artesano Pão na Chapa (Pullman) na biblioteca, lido do rótulo. A porção é a fatia, de 36g — valor que não está escrito no pacote, sai da conta da porção declarada. Lançar "2 fatias" ou "72g" dá exatamente o mesmo. É fatia grossa: uma dessas pesa como uma e meia de pão de forma comum' },
   { date: '2026-09-30', texto: 'Arroz carreteiro na biblioteca (180 kcal/100g). Tem 40% mais caloria que o arroz branco puro e 450x mais sódio, porque leva óleo do refogado e charque — a carne mais gorda da biblioteca' },
   { date: '2026-09-30', texto: 'Na musculação, cada série agora já vem com as repetições que você fez da última vez naquele exercício — do mesmo jeito que a carga já vinha. Só preenche série que está vazia, então nunca apaga o que você acabou de digitar; e se o exercício tem mais séries do que tinha no histórico, as extras repetem a última' },
   { date: '2026-09-30', texto: 'Esfiha aberta de pizzaria na biblioteca, margherita e frango com mussarela (~464 kcal cada, na unidade de 20cm). São as abertas de prato, não a esfirra fechada de padaria que já existia. O peso de 180g é estimativa por volume, não pesagem — está dito no comentário do arquivo' },
