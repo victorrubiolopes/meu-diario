@@ -24,6 +24,19 @@ const ALIMENTOS_PADRAO = [
   { name: 'Whey protein (pó)', categoria: 'proteina', portionLabel: '1 scoop (30g)', portionGrams: 30, kcal: 120, carbs: 3, sugars: 2, protein: 24, fat: 1.5, satFat: 0.5, transFat: 0, fiber: 0, sodium: 50 },
   { name: 'Whey Protein Growth Chocolate', categoria: 'proteina', portionLabel: '30g (2 dosadores)', portionGrams: 30, kcal: 122, carbs: 2.7, sugars: 1.7, protein: 23, fat: 2.1, satFat: 0.9, transFat: 0, fiber: 0, sodium: 45 },
   { name: 'Pão de forma integral', categoria: 'carboidrato', portionLabel: '1 fatia (25g)', portionGrams: 25, kcal: 63, carbs: 12.5, sugars: 1.5, protein: 2.4, fat: 0.9, satFat: 0.2, transFat: 0, fiber: 1.7, sodium: 127 },
+  // Lido do rótulo (foto da embalagem de 500g). Valores declarados por 100g: 261 kcal,
+  // 52 C, 5,4 açúcares (4,8 adicionados), 8,1 P, 2,4 G, 0,5 sat, 0 trans, 3,1 fibra,
+  // 356 sódio. Atwater fecha em -0,4%.
+  //
+  // A FATIA SÃO 36g, e isso não está escrito em lugar nenhum do rótulo — sai da porção:
+  // "50 g (1 + 7/18 da fatia)" → 50 ÷ (25/18) = 36,0g. Confere com a embalagem: 10 porções
+  // de 50g = 500g, que dá ~14 fatias.
+  // Como a porção aqui é a FATIA, lançar por grama ou por fatia dá no mesmo — "2 fatias" e
+  // "72g" caem no mesmo valor, porque tudo escala por portionGrams.
+  //
+  // É a versão de fatia grossa do Artesano: a fatia pesa 36g contra os 25g de um pão de
+  // forma comum, então UMA fatia desta já é quase uma e meia daquelas.
+  { name: 'Pão Artesano Pão na Chapa Pullman', categoria: 'carboidrato', portionLabel: '1 fatia (36g)', portionGrams: 36, kcal: 94, carbs: 18.7, sugars: 1.9, protein: 2.9, fat: 0.9, satFat: 0.2, transFat: 0, fiber: 1.1, sodium: 128 },
   { name: 'Pão de hambúrguer', categoria: 'carboidrato', portionLabel: '1 unidade (50g)', portionGrams: 50, kcal: 145, carbs: 26, sugars: 3, protein: 4.5, fat: 2.5, satFat: 0.6, transFat: 0, fiber: 1, sodium: 260 },
   { name: 'Carne bovina moída magra cozida', categoria: 'proteina', portionLabel: '100g', portionGrams: 100, kcal: 172, carbs: 0, sugars: 0, protein: 26, fat: 7, satFat: 2.8, transFat: 0.3, fiber: 0, sodium: 65 },
   { name: 'Tilápia grelhada', categoria: 'proteina', portionLabel: '100g', portionGrams: 100, kcal: 128, carbs: 0, sugars: 0, protein: 26.2, fat: 2.7, satFat: 0.9, transFat: 0, fiber: 0, sodium: 56 },
