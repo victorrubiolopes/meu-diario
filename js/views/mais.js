@@ -1855,15 +1855,64 @@ Coxa: 58 cm
     }
     linhas.push('');
 
-    linhas.push('== Peso ==');
+    // Peso e composição. Duas decisões aqui, as duas de propósito:
+    //
+    // 1. O HISTÓRICO NÃO É CORTADO PELO PERÍODO. Medição corporal é esparsa (umas duas por
+    //    mês), então o recorte de 15/30/90 dias joga fora justamente a janela longa — que é
+    //    a única que vence o ruído da bioimpedância. 14 medições cabem em 15 linhas; o custo
+    //    de mandar tudo é nenhum e o de cortar é perder o sinal.
+    // 2. MASSA GORDA E MAGRA SÃO CALCULADAS, não só o peso. "85,3 → 83,6 kg" parece fracasso;
+    //    "gordura 16,7 → 15,2 e magra 68,6 → 68,4" mostra recomposição. É a diferença entre
+    //    o profissional concluir que não funcionou e ver o que de fato aconteceu.
+    const todasMedidas = ler('medidas').slice().sort((a, b) => a.date.localeCompare(b.date));
+    const comComposicao = todasMedidas.filter(m => m.weight != null && m.bodyFat != null);
+    const magra = m => m.weight * (1 - m.bodyFat / 100);
+    const gorda = m => m.weight * (m.bodyFat / 100);
+
+    linhas.push('== Peso e composição ==');
     if (pesos.length > 0) {
-      linhas.push(`${pesos[0].weight}kg → ${pesos[pesos.length - 1].weight}kg (${pesos.length} registros no período)`);
+      linhas.push(`No período: ${pesos[0].weight}kg → ${pesos[pesos.length - 1].weight}kg (${pesos.length} ${pesos.length === 1 ? 'registro' : 'registros'})`);
     } else {
       linhas.push('Sem registros de peso no período');
     }
     if (tendencia) {
       linhas.push(`Tendência esperada pela dieta: ${tendencia.taxaEsperada >= 0 ? '+' : ''}${tendencia.taxaEsperada.toFixed(2)}kg/semana`);
       linhas.push(`Tendência real (${tendencia.janelaRecente ? 'últimos' : 'todo o histórico,'} ${tendencia.dias} dias): ${tendencia.taxaReal >= 0 ? '+' : ''}${tendencia.taxaReal.toFixed(2)}kg/semana`);
+    }
+
+    if (comComposicao.length >= 2) {
+      const a = comComposicao[0], b = comComposicao[comComposicao.length - 1];
+      const dPeso = b.weight - a.weight, dGorda = gorda(b) - gorda(a), dMagra = magra(b) - magra(a);
+      linhas.push('');
+      linhas.push(`Composição ${Util.fmtDate(a.date)} → ${Util.fmtDate(b.date)}:`);
+      linhas.push(`  peso        ${a.weight.toFixed(1)} → ${b.weight.toFixed(1)} kg (${dPeso >= 0 ? '+' : ''}${dPeso.toFixed(1)})`);
+      linhas.push(`  massa gorda ${gorda(a).toFixed(1)} → ${gorda(b).toFixed(1)} kg (${dGorda >= 0 ? '+' : ''}${dGorda.toFixed(1)})`);
+      linhas.push(`  massa magra ${magra(a).toFixed(1)} → ${magra(b).toFixed(1)} kg (${dMagra >= 0 ? '+' : ''}${dMagra.toFixed(1)})`);
+      // Só faz sentido falar em "quanto da perda foi gordura" quando houve perda de peso
+      // relevante: com variação perto de zero a divisão estoura e vira número sem sentido.
+      if (Math.abs(dPeso) >= 0.3) {
+        linhas.push(`  ${Math.round(100 * Math.abs(dGorda) / Math.abs(dPeso))}% da variação de peso foi gordura.`);
+      }
+    }
+
+    if (todasMedidas.length > 0) {
+      const col = (v, c, dec) => (v == null ? '—' : (typeof v === 'number' ? v.toFixed(dec == null ? 1 : dec) : String(v))).padStart(c);
+      linhas.push('');
+      linhas.push(`Histórico completo (${todasMedidas.length} ${todasMedidas.length === 1 ? 'medição' : 'medições'}, fora do recorte de ${dias} dias de propósito):`);
+      linhas.push('data        peso   %gord  magra  gorda   cint  abdôm  quadr  peito   coxa  braço');
+      todasMedidas.forEach(m => {
+        const temComp = m.weight != null && m.bodyFat != null;
+        linhas.push(
+          Util.fmtDate(m.date).padEnd(11) +
+          col(m.weight, 5) + col(m.bodyFat, 7) +
+          col(temComp ? magra(m) : null, 7) + col(temComp ? gorda(m) : null, 7) +
+          col(m.waist, 7) + col(m.abdomen, 7) + col(m.hip, 7) +
+          col(m.chest, 7) + col(m.thigh, 7) + col(m.arm, 7)
+        );
+      });
+      linhas.push('Peso/%gordura/magra/gorda em kg; demais em cm. % de gordura por bioimpedância,');
+      linhas.push('erro típico ±2-3 pontos percentuais — diferença pequena entre duas medições');
+      linhas.push('consecutivas é ruído; só a tendência longa é sinal.');
     }
     linhas.push('');
 
@@ -3284,7 +3333,9 @@ Coxa: 58 cm
 
   // aderenciaPaciente e faixaImcTexto saem no export por serem as duas funções de cálculo
   // puro daqui — dá pra testá-las com node, sem DOM, como o ParsePlano.
-  return { render, aderenciaPaciente, faixaImcTexto, medidasDoPaciente };
+  // gerarRelatorio sai no export pra poder ser testado com dados sintéticos: ele já aceita
+  // 'dadosExternos' (o painel da nutri usa), então chamar de fora não é um caminho novo.
+  return { render, aderenciaPaciente, faixaImcTexto, medidasDoPaciente, gerarRelatorio };
 })();
 
 if (typeof module !== 'undefined' && module.exports) module.exports = ViewMais;
