@@ -4,6 +4,11 @@
 // dieta específica cadastrada — 'proteina' | 'carboidrato' | 'fruta' | 'legume' | 'outro'.
 const ALIMENTOS_PADRAO = [
   { name: 'Arroz branco cozido', categoria: 'carboidrato', portionLabel: '100g', portionGrams: 100, kcal: 128, carbs: 28, sugars: 0, protein: 2.5, fat: 0.2, satFat: 0, transFat: 0, fiber: 0.4, sodium: 1 },
+  // Arroz de sushi/poke: arroz branco cozido temperado com vinagre, açúcar e sal. Referência
+  // por 100g: 95g de 'Arroz branco cozido' mais ~3g de açúcar do tempero.
+  // Só 2 kcal a mais que o arroz branco puro, mas o sódio vai de 1 pra 250 por causa do sal
+  // do tempero — num poke grande, a base de arroz sozinha já põe ~670mg de sódio no prato.
+  { name: 'Gohan (arroz japonês temperado)', categoria: 'carboidrato', portionLabel: '100g', portionGrams: 100, kcal: 130, carbs: 29.6, sugars: 3, protein: 2.4, fat: 0.2, satFat: 0, transFat: 0, fiber: 0.4, sodium: 250 },
   // Arroz refogado com charque/carne seca, cebola e tomate. Composição de referência por
   // 100g: 70g de arroz branco cozido, 18g de carne seca, 4g de óleo do refogado e 8g de
   // cebola/tomate.
@@ -37,10 +42,26 @@ const ALIMENTOS_PADRAO = [
   // É a versão de fatia grossa do Artesano: a fatia pesa 36g contra os 25g de um pão de
   // forma comum, então UMA fatia desta já é quase uma e meia daquelas.
   { name: 'Pão Artesano Pão na Chapa Pullman', categoria: 'carboidrato', portionLabel: '1 fatia (36g)', portionGrams: 36, kcal: 94, carbs: 18.7, sugars: 1.9, protein: 2.9, fat: 0.9, satFat: 0.2, transFat: 0, fiber: 1.1, sodium: 128 },
+  // Lido do rótulo (Casa de Pães Integral, pacote de 450g). Por 100g: 310 kcal, 40 C,
+  // 1,8 açúcares (0,9 adicionados), 8,3 P, 13 G, 2 sat, 0 trans, 7,4 fibra, 273 sódio.
+  // Atwater fecha em -0,1%. A fatia são 35g, da porção "50 g (1 + 3/7 fatias)".
+  //
+  // NÃO é pão de forma integral de supermercado — é outra categoria de alimento:
+  //   Pão de forma integral ... 252 kcal/100g, 3,6 G, fibra ~4
+  //   Artesano Pão na Chapa .... 261 kcal/100g, 2,4 G, fibra 3,1
+  //   ESTE .................... 310 kcal/100g, 13 G, fibra 7,4
+  // Os 13g de gordura vêm de semente/castanha na massa, e são eles que puxam a caloria.
+  // Em troca, a fibra é o dobro. Duas fatias já dão 5,2g de fibra — 21% do dia.
+  { name: 'Pão 100% integral (Casa de Pães Integral)', categoria: 'carboidrato', portionLabel: '1 fatia (35g)', portionGrams: 35, kcal: 109, carbs: 14, sugars: 0.6, protein: 2.9, fat: 4.6, satFat: 0.7, transFat: 0, fiber: 2.6, sodium: 96 },
   { name: 'Pão de hambúrguer', categoria: 'carboidrato', portionLabel: '1 unidade (50g)', portionGrams: 50, kcal: 145, carbs: 26, sugars: 3, protein: 4.5, fat: 2.5, satFat: 0.6, transFat: 0, fiber: 1, sodium: 260 },
   { name: 'Carne bovina moída magra cozida', categoria: 'proteina', portionLabel: '100g', portionGrams: 100, kcal: 172, carbs: 0, sugars: 0, protein: 26, fat: 7, satFat: 2.8, transFat: 0.3, fiber: 0, sodium: 65 },
   { name: 'Tilápia grelhada', categoria: 'proteina', portionLabel: '100g', portionGrams: 100, kcal: 128, carbs: 0, sugars: 0, protein: 26.2, fat: 2.7, satFat: 0.9, transFat: 0, fiber: 0, sodium: 56 },
   { name: 'Salmão grelhado', categoria: 'proteina', portionLabel: '100g', portionGrams: 100, kcal: 208, carbs: 0, sugars: 0, protein: 22, fat: 13, satFat: 3.1, transFat: 0, fiber: 0, sodium: 59 },
+  // Salmão cru de sashimi/poke (atlântico de cativeiro, que é o que se usa aqui).
+  // Quase a mesma caloria do grelhado: cru tem mais água, mas o grelhado perde água e
+  // concentra — os dois acabam perto de 200 kcal/100g. A diferença real é o sódio, que no
+  // cru é só o do próprio peixe.
+  { name: 'Salmão cru', categoria: 'proteina', portionLabel: '100g', portionGrams: 100, kcal: 200, carbs: 0, sugars: 0, protein: 20, fat: 13, satFat: 3, transFat: 0, fiber: 0, sodium: 50 },
   { name: 'Brócolis cozido', categoria: 'legume', portionLabel: '100g', portionGrams: 100, kcal: 25, carbs: 4.4, sugars: 0, protein: 2.1, fat: 0.5, satFat: 0.1, transFat: 0, fiber: 3.4, sodium: 10 },
   { name: 'Brócolis cru', categoria: 'legume', portionLabel: '100g', portionGrams: 100, kcal: 25, carbs: 4, sugars: 0, protein: 3.6, fat: 0.3, satFat: 0.1, transFat: 0, fiber: 2.9, sodium: 2 },
   { name: 'Alface', categoria: 'legume', portionLabel: '100g', portionGrams: 100, kcal: 15, carbs: 2.9, sugars: 0.8, protein: 1.4, fat: 0.2, satFat: 0, transFat: 0, fiber: 1.3, sodium: 28 },
@@ -299,6 +320,14 @@ const ALIMENTOS_PADRAO = [
   // Vegetais
   { name: 'Pepino', categoria: 'legume', portionLabel: '100g', portionGrams: 100, kcal: 10, carbs: 2.1, sugars: 1.2, protein: 0.7, fat: 0.1, satFat: 0, transFat: 0, fiber: 0.8, sodium: 2 },
   { name: 'Couve refogada', categoria: 'legume', portionLabel: '100g', portionGrams: 100, kcal: 30, carbs: 3.8, sugars: 0.6, protein: 1.9, fat: 1.1, satFat: 0.2, transFat: 0, fiber: 2, sodium: 5 },
+  // Couve fatiada fina e FRITA, a do poke e do yakisoba. Não confundir com a refogada acima:
+  // fritar tira quase toda a água e deixa o óleo no lugar dela, então 100g de crispy vêm de
+  // ~240g de couve fresca mais o óleo absorvido.
+  // Resultado: 350 contra 30 kcal/100g — é quase doze vezes mais densa que a refogada.
+  // Na prática vem pouca (20-30g num poke), então pesa menos do que o número assusta; mas é
+  // o item mais calórico por grama de um poke, acima até do cream cheese.
+  // Estimativa por ingredientes, não rótulo: fritura absorve óleo de forma variável.
+  { name: 'Couve crispy (frita)', categoria: 'legume', portionLabel: '100g', portionGrams: 100, kcal: 350, carbs: 20, sugars: 2, protein: 7, fat: 27, satFat: 4, transFat: 0.1, fiber: 8, sodium: 300 },
   { name: 'Espinafre refogado', categoria: 'legume', portionLabel: '100g', portionGrams: 100, kcal: 21, carbs: 2.5, sugars: 0.4, protein: 2.6, fat: 0.3, satFat: 0, transFat: 0, fiber: 1.7, sodium: 66 },
   { name: 'Abobrinha refogada', categoria: 'legume', portionLabel: '100g', portionGrams: 100, kcal: 19, carbs: 3.9, sugars: 2.5, protein: 1.1, fat: 0.2, satFat: 0, transFat: 0, fiber: 1.3, sodium: 2 },
   { name: 'Berinjela refogada', categoria: 'legume', portionLabel: '100g', portionGrams: 100, kcal: 22, carbs: 4.7, sugars: 2.3, protein: 0.6, fat: 0.3, satFat: 0, transFat: 0, fiber: 2.4, sodium: 2 },
