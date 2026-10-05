@@ -18,28 +18,53 @@
 //
 // ======================= A CONTA DE QUE A PRESCRIÇÃO DEPENDE =======================
 //
-// Ela avisou que o plano depende dos dados estarem corretos. NÃO ESTÃO, e dá pra provar:
+// Ela avisou que o plano depende dos dados estarem corretos. Não estão, e o tamanho do
+// desencontro é este:
 //
 //   consumo médio nos dias completos do diário ........ 1652 kcal
-//   gasto estimado (meu cálculo de baixo pra cima
-//     e o número dela convergem) ...................... 2700 kcal
+//   gasto estimado de baixo pra cima (TMB Katch-McArdle
+//     de 1847 + 255 de exercício dos registros reais) .. 2700 kcal
 //   déficit implícito ................................. 1048 kcal/dia
 //   perda de gordura que isso produziria em 204 dias .. 27,8 kg
 //   perda de gordura MEDIDA ...........................  1,5 kg
 //
-// O diário prevê 18x mais perda do que a balança mediu. E não dá pra salvar a conta baixando
-// o gasto: para o diário fechar, o TDEE teria que ser 1709 kcal/dia — 138 ABAIXO da TMB de
-// 1847. Ninguém gasta menos que o próprio repouso.
+// O diário prevê 18x mais perda do que a balança mediu. Uma das duas pontas está errada, e
+// a primeira versão deste comentário escolheu a ponta errada: pôs o buraco todo nos fins de
+// semana em branco. RETRATADO. A conta que desmonta isso é direta: pra média fechar em 2700
+// com 16 dias a 1652, os 10 dias sem registro teriam que ser de 4377 kcal CADA. Isso é comer
+// exagerado todo fim de semana por meses, e a nutricionista — que é a esposa dele, convive e
+// vê praticamente todas as refeições, inclusive as livres — diz que não acontece. Observação
+// presencial de anos é evidência melhor do que a minha inferência por subtração.
 //
-// Sobra uma explicação só: com o peso quase parado, o consumo real tem que estar perto do
-// gasto, ~2640 kcal/dia. São ~990 kcal/dia que não entram no diário, e o buraco tem
-// endereço: 28 dos últimos 32 fins de semana em branco.
+// A explicação que sobra e que fecha as duas pontas é SUB-REGISTRO NOS DIAS REGISTRADOS,
+// não dias ocultos. Auto-registro alimentar erra 20-30% pra baixo mesmo em quem tenta
+// acertar — porção estimada a olho, óleo do preparo, bebida, o que se belisca em pé. Não é
+// desonestidade, é erro de medida, e há exemplos concretos dos pratos analisados em
+// outubro: 187 kcal de cream cheese dentro de um poke, 18 g de gordura só na pele de uma
+// sobrecoxa, o fio de azeite do ovo frito. Invisível pra quem observa, visível pra balança.
 //
-// CONSEQUÊNCIA PRÁTICA: a "normocalórica de 2700" quase certamente NÃO é um aumento — é
-// perto do que ele já come. O ganho real do plano não é restaurar metabolismo, é trocar um
-// padrão oscilante e invisível (1650 na semana, 3500+ no fim de semana) por um consistente
-// e mensurável, com 180 g de proteína. Se a semana 1 não mudar a balança, isso NÃO confirma
-// platô metabólico — confirma que 2700 era mesmo a manutenção.
+//   1652 kcal com 25% de sub-registro → consumo real ~2200 kcal/dia
+//   peso estável a 2200 de consumo    → GASTO real ~2200 kcal/dia
+//   TMB que fecharia isso             → ~1620, ou 226 abaixo dos 1847 previstos
+//
+// Esses 226 kcal caem dentro da faixa de 100-300 que a literatura pós-perda documenta. Ou
+// seja: levar a observação dela a sério não enfraquece a hipótese dela, REFORÇA. Ela acerta
+// nas duas pontas — ele não come exagerado E o gasto está abaixo do previsto. A
+// "convergência independente" que eu celebrava era convergência de um cálculo teórico com
+// outro cálculo teórico; nenhum dos dois foi medido.
+//
+// CONSEQUÊNCIA PRÁTICA: a semana 1 é o experimento que separa as hipóteses, e vale combinar
+// com ela ANTES de começar o que cada resultado significa:
+//
+//   gasto real 2200 → comer 2700 é +500/dia → +0,45 kg na semana
+//   gasto real 2400 → comer 2700 é +300/dia → +0,27 kg na semana
+//   gasto real 2700 → comer 2700 é neutro   →  0,00 kg na semana
+//
+// Se o peso subir 0,4-0,5 kg na semana 1, isso NÃO é recaída nem o plano falhando — é o
+// gasto real aparecendo, e nesse caso a semana 2 em 2350 ainda seria superávit, não déficit.
+// A medida que resolve: peso diário + registro completo por 14 dias, fins de semana
+// incluídos. Com isso o gasto cai por conta própria da equação de balanço, sem depender de
+// TMB prevista, multiplicador de atividade ou palpite meu.
 //
 // ======================= DUAS RESSALVAS =======================
 //
@@ -61,6 +86,10 @@
 // tocados por este arquivo — esses saem pela tela de Combos, na mão.
 const META_VICTOR = {
   fonte: 'meta-victor-ea-2026-08-18',
+  // Mesmo campo que DIETA_VICTOR usa. É o que identifica os combos na tela de Combos: o
+  // 'fonte' nunca aparece pro usuário, e sem isso as 16 refeições dela ficavam visualmente
+  // iguais às que o Victor montou na mão.
+  profissional: 'Gabrielle Rubio',
   meta: {
     nome: 'Nutri Gabrielle — Semana 1, normocalórica (04/10/2026)',
     kcal: 2700,
@@ -78,8 +107,9 @@ const META_VICTOR = {
     'Alvo da semana 1: 2700 kcal (normocalórica). Semana 2 em diante: ~2350 kcal, déficit de ~380/dia = 0,35 kg de gordura por semana.',
     'Cardápio transcrito dá 2633 kcal, P 180, C 340, G 66, fibra 29 — 2% abaixo do alvo declarado, dentro das faixas do próprio cardápio (legumes 150-200g, "1 porção de fruta").',
     'Proteína em 2,15 g/kg de peso: faixa alta, adequada pra preservar massa magra no déficit que começa na semana 2.',
-    'Convergência independente: meu cálculo de baixo pra cima (TMB Katch-McArdle de 1847 sobre massa magra medida de 68,4 kg, mais 255 kcal/dia de exercício tirados dos registros reais) dá ~2700, o mesmo número dela. O multiplicador automático do app, com atividade "intensa", daria 3186 — alto demais para 19 treinos em 25 dias.',
-    'ATENÇÃO: o diário registra 1652 kcal/dia nos dias completos, o que é incompatível com peso estável e TMB de 1847. O consumo real está perto de 2640. Faltam ~990 kcal/dia de registro, concentradas nos fins de semana.',
+    'O cálculo de baixo pra cima (TMB Katch-McArdle de 1847 sobre massa magra medida de 68,4 kg, mais 255 kcal/dia de exercício tirados dos registros reais) dá ~2700, o mesmo número dela — mas os dois são estimativas teóricas, não medida: convergir não prova. O multiplicador automático do app, com atividade "intensa", daria 3186 — alto demais para 19 treinos em 25 dias.',
+    'ATENÇÃO: o diário registra 1652 kcal/dia nos dias completos, incompatível com peso estável e TMB de 1847. A explicação mais provável é sub-registro de 20-30% nos próprios dias registrados (porção a olho, óleo do preparo, bebida), não dias ocultos — consumo real perto de 2200, e nesse caso o gasto real também é ~2200. Se for isso, 2700 na semana 1 é superávit de ~500/dia e o peso sobe ~0,45 kg: resultado esperado, não recaída.',
+    'A medida que separa as hipóteses: peso diário + registro completo por 14 dias, fins de semana incluídos. Com isso o gasto sai da equação de balanço sem depender de TMB prevista nem de multiplicador de atividade.',
   ],
   combos: [
     {
