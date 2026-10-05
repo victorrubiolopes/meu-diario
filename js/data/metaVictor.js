@@ -1,192 +1,910 @@
-// Meta própria do Victor, calculada em conversa com a IA a partir dos dados registrados no
-// app — NÃO é prescrição de nutricionista. Nasceu em 18/08/2026 e foi REVISADA em 31/08,
-// no fechamento dos 14 dias de teste. Mesmo modelo do DIETA_VICTOR (upsert por fonte, só
-// aparece pro dono do app).
+// Dieta prescrita pela NUTRICIONISTA (Gabrielle Rubio), recebida em 04/10/2026.
+// Este arquivo mudou de natureza: até 31/08 ele guardava uma meta que EU calculei a partir
+// dos registros do app. Agora guarda uma PRESCRIÇÃO profissional. O que eu faço aqui é
+// transcrever e conferir a aritmética, não propor.
 //
-// ======================= O QUE OS 14 DIAS MOSTRARAM (31/08) =======================
+// ======================= O QUE MUDOU NO DIAGNÓSTICO =======================
 //
-// A versão de 18/08 mirava 1940 kcal/dia e ERRAVA em duas coisas:
+// A nutricionista levantou a hipótese de PLATÔ e prescreveu voltar à manutenção antes de
+// cortar: semana 1 normocalórica (~2700), semana 2 em diante em déficit (~2350).
 //
-// 1. TIRAVA A REFEIÇÃO LIVRE. A prescrição do Matheus tinha 1050 kcal, 1x/semana,
-//    SUBSTITUINDO uma refeição — média semanal de 1665. Esta meta simplesmente não tinha
-//    o campo. O Victor manteve o hábito (que estava certo) e as duas livres do período
-//    caíram INTEIRAS por cima de um alvo sem espaço pra elas: saíram em 2859 e 2689 kcal,
-//    contra os ~2065 previstos. E o app não avisou, porque a régua tinha sido removida.
+// Eu tinha concluído, com 7 meses de dados, que não era platô — era déficit pequeno o tempo
+// todo (gordura caindo 0,32 kg/mês na 1ª metade do período e 0,12 na 2ª). Estava analisando
+// a janela errada. O histórico que ela tem e eu não tinha: ele saiu de MAIS DE 100 kg para
+// 73 kg numa rotina alta de treinos, depois voltou para 85 e há anos não desce de 80. Perda
+// grande seguida de reganho com piso resistente é o quadro em que a adaptação metabólica
+// pós-perda é real e documentada (gasto 100-300 kcal abaixo do previsto, por anos).
+// Nesse quadro, comer em manutenção antes de cortar é a conduta indicada.
 //
-// 2. O ALVO ERA ALTO DEMAIS. 1940 sem previsão de livre, com as livres acontecendo,
-//    implicava ~2060 kcal/dia de média real.
+// ======================= A CONTA DE QUE A PRESCRIÇÃO DEPENDE =======================
 //
-// Resultado dos 14 dias: peso 83,7 -> 84,3 kg. MAS o ganho quase certamente não é gordura.
-// O carboidrato subiu de 110 pra 179 g/dia; glicogênio carrega ~3g de água por grama, e
-// reabastecer de um estado depletado adiciona 1,3-1,5 kg na balança sem uma grama de
-// gordura. Com TDEE realista de ~2350, comer 1875 dá déficit de ~475/dia = -0,86 kg de
-// gordura em 14 dias. -0,86 de gordura mais +1,4 de água dá exatamente o +0,6 medido.
+// Ela avisou que o plano depende dos dados estarem corretos. NÃO ESTÃO, e dá pra provar:
 //
-// ATENÇÃO PRA QUEM LER DEPOIS: não dá pra derivar TDEE de peso de balança em 2 semanas
-// com o carboidrato mudando. Eu tentei três vezes nesta conversa e produzi três respostas
-// diferentes (1530, 2700, 2350) — o erro estava no método, não nos dados. Peso de balança
-// nesse prazo mede hidratação, não balanço energético.
+//   consumo médio nos dias completos do diário ........ 1652 kcal
+//   gasto estimado (meu cálculo de baixo pra cima
+//     e o número dela convergem) ...................... 2700 kcal
+//   déficit implícito ................................. 1048 kcal/dia
+//   perda de gordura que isso produziria em 204 dias .. 27,8 kg
+//   perda de gordura MEDIDA ...........................  1,5 kg
 //
-// ======================= POR QUE 1750 E NÃO 1515 =======================
+// O diário prevê 18x mais perda do que a balança mediu. E não dá pra salvar a conta baixando
+// o gasto: para o diário fechar, o TDEE teria que ser 1709 kcal/dia — 138 ABAIXO da TMB de
+// 1847. Ninguém gasta menos que o próprio repouso.
 //
-// Voltar pro 1515 do Matheus seria over-correction: contra TDEE de ~2350 é déficit de
-// 835/dia, mais de 1% do peso por semana. É o tipo de aperto associado a adaptação
-// metabólica — e os exames do Victor já mostram T4 livre em 0,98 (piso da faixa é 0,75)
-// com TSH subindo de 2,56 pra 3,3 em três anos. Foram também as duas semanas a ~1290 kcal
-// que precederam os dias de 2859 e 2689: restrição forte cobra o preço depois.
+// Sobra uma explicação só: com o peso quase parado, o consumo real tem que estar perto do
+// gasto, ~2640 kcal/dia. São ~990 kcal/dia que não entram no diário, e o buraco tem
+// endereço: 28 dos últimos 32 fins de semana em branco.
 //
-// 1750 é o meio entre as duas configurações que ele JÁ rodou (1515 do Matheus e 1940 meu),
-// com a régua da refeição livre de volta. Média semanal ~1840, déficit de ~510/dia.
+// CONSEQUÊNCIA PRÁTICA: a "normocalórica de 2700" quase certamente NÃO é um aumento — é
+// perto do que ele já come. O ganho real do plano não é restaurar metabolismo, é trocar um
+// padrão oscilante e invisível (1650 na semana, 3500+ no fim de semana) por um consistente
+// e mensurável, com 180 g de proteína. Se a semana 1 não mudar a balança, isso NÃO confirma
+// platô metabólico — confirma que 2700 era mesmo a manutenção.
 //
-// ======================= A PRIORIDADE MUDOU =======================
+// ======================= DUAS RESSALVAS =======================
 //
-// O peso está entre 83,7 e 85,4 kg desde março e a gordura entre 18,3% e 19,6% — seis meses
-// de composição parada. No mesmo período os lipídios pioraram de forma monotônica:
-// LDL 101 -> 111 -> 120 -> 137 (nunca desceu), HDL 40 -> 45 -> 54 -> 38 (caiu 30% em um ano),
-// colesterol total 160 -> 198. Ele tem 29 anos.
+// 1. NÃO HÁ REFEIÇÃO LIVRE na prescrição, e por isso 'refeicaoLivre' está null. Foi
+//    exatamente esse buraco que estragou o ciclo de 18/08: o alvo não previa livre, ele
+//    manteve o hábito, e as duas livres (2859 e 2689 kcal) caíram inteiras por cima de um
+//    alvo sem espaço pra elas. Precisa ser combinado com ela, não inventado aqui.
+// 2. A SATURADA SUBIU em termos absolutos: 19,4 g/dia contra os 10,4-11,2 do ciclo anterior,
+//    porque a dieta é maior. Como % das calorias ela CAIU, de 11-12% (o que ele comia de
+//    fato) para 6,6%, abaixo do teto de 10%. Vale acompanhar mesmo assim: o LDL dele foi
+//    101 -> 111 -> 120 -> 137 e o HDL caiu de 54 para 38 em um ano.
 //
-// Por isso o alvo primário deste ciclo NÃO é a balança, é a GORDURA SATURADA: estava em
-// 20,5-23,5 g/dia (11-12% das kcal) e o cardápio abaixo entrega 10,4-11,2 g (5,4-5,5%).
-// Saturada é o fator dietético com relação causal mais estabelecida com LDL, e não depende
-// de resolver nenhuma dúvida sobre o metabolismo dele.
+// ======================= NOTA DE MANUTENÇÃO =======================
 //
-// Os ~10g de excesso não vinham do cardápio prescrito — vinham de fora dele (mussarela em
-// porção maior que a prescrita, requeijão, pizza, pipoca de cinema).
-//
-// ======================= REGRA DE MÉTODO =======================
-//
-// Em 18/08 eu mudei TRÊS variáveis de uma vez (alvo, refeição livre e estrutura das
-// refeições). Testar três juntas significa que nenhuma foi testada. Neste ciclo muda UMA:
-// a saturada. As calorias voltam pra um ponto defensável e ficam lá.
+// O 'fonte' continua 'meta-victor-ea-2026-08-18' de propósito, apesar de o nome já não
+// descrever o conteúdo: é a chave que o botão Recarregar usa pra SUBSTITUIR os combos
+// antigos. Trocar a chave deixaria os 11 combos do ciclo anterior órfãos na biblioteca.
+// Combos da prescrição do Matheus ('dieta-gorgoteam-2026-08-15') e os feitos à mão NÃO são
+// tocados por este arquivo — esses saem pela tela de Combos, na mão.
 const META_VICTOR = {
   fonte: 'meta-victor-ea-2026-08-18',
   meta: {
-    nome: 'Meta própria — revisão pós-14 dias (31/08/2026)',
-    kcal: 1750,
-    protein: 160,
-    carb: 195,
-    fat: 38,
-    fiber: 25,
+    nome: 'Nutri Gabrielle — Semana 1, normocalórica (04/10/2026)',
+    kcal: 2700,
+    protein: 180,
+    carb: 340,
+    fat: 70,
+    fiber: 28,
   },
-  // Estava na prescrição do Matheus e eu tinha removido em 18/08. Volta com o mesmo valor:
-  // SUBSTITUI uma refeição do dia, não soma às cinco. Com ela, a média da semana fica em
-  // ~1840 kcal. As duas livres dos 14 dias saíram em 2859 e 2689 — é esse número que o app
-  // volta a conseguir apontar.
-  refeicaoLivre: { kcal: 1050, carbs: 120, fat: 50, protein: 30, fiber: 5, porSemana: 1 },
-  kcalDiaNormal: 1750,
+  // A prescrição não prevê refeição livre. Null é deliberado: inventar um valor aqui seria
+  // repetir o erro de 18/08 pelo avesso. A combinar com a nutricionista.
+  refeicaoLivre: null,
+  kcalDiaNormal: 2700,
+  disclaimer: 'Prescrição da nutricionista Gabrielle Rubio (04/10/2026). Semana 1 é normocalórica; da semana 2 em diante o alvo cai para ~2350 kcal. Os combos abaixo são a transcrição do cardápio dela, com os valores calculados sobre a biblioteca do app.',
   baseCalculo: [
-    'TMB (Katch-McArdle, massa magra medida 68,7kg): ~1847 kcal.',
-    'Exercício líquido calculado sobre os registros reais dos 14 dias (44,1 km de corrida a ~1,03 kcal/kg/km e 6 sessões de musculação a 3,5-4 METs médios, contando os descansos): ~332 kcal/dia brutos, ~230 depois de compensação de NEAT.',
-    'TDEE resultante: ~2350 kcal/dia. As estimativas anteriores (2650-2870 em 18/08) superestimavam a musculação usando 5 METs, que ignora que metade da sessão é descanso.',
-    'Alvo de 1750 nos dias normais + 1 refeição livre de 1050/semana substituindo uma refeição = média semanal ~1840, déficit de ~510 kcal/dia (~0,45 kg/semana).',
-    'Proteína 160g = 1,9 g/kg, dentro da faixa de 1,8-2,2 recomendada em déficit com treino de força (Helms et al. 2014).',
-    'ALVO PRIMÁRIO DO CICLO: gordura saturada abaixo de 17 g/dia. Estava em 20,5-23,5g (11-12% das kcal) com LDL em 137 e HDL em 38 no exame de 28/08. O cardápio abaixo entrega 10,4-11,2g.',
-    'O peso NÃO é critério de sucesso deste ciclo: 15 dias com o carboidrato se estabilizando não separam gordura de glicogênio. O que o ciclo precisa entregar é 8 pesagens (2x/semana) e 15 de 15 dias registrados — sem isso toda média depende de qual subconjunto de dias se escolhe.',
+    'Alvo da semana 1: 2700 kcal (normocalórica). Semana 2 em diante: ~2350 kcal, déficit de ~380/dia = 0,35 kg de gordura por semana.',
+    'Cardápio transcrito dá 2633 kcal, P 180, C 340, G 66, fibra 29 — 2% abaixo do alvo declarado, dentro das faixas do próprio cardápio (legumes 150-200g, "1 porção de fruta").',
+    'Proteína em 2,15 g/kg de peso: faixa alta, adequada pra preservar massa magra no déficit que começa na semana 2.',
+    'Convergência independente: meu cálculo de baixo pra cima (TMB Katch-McArdle de 1847 sobre massa magra medida de 68,4 kg, mais 255 kcal/dia de exercício tirados dos registros reais) dá ~2700, o mesmo número dela. O multiplicador automático do app, com atividade "intensa", daria 3186 — alto demais para 19 treinos em 25 dias.',
+    'ATENÇÃO: o diário registra 1652 kcal/dia nos dias completos, o que é incompatível com peso estável e TMB de 1847. O consumo real está perto de 2640. Faltam ~990 kcal/dia de registro, concentradas nos fins de semana.',
   ],
-  disclaimer: 'Estimativa própria a partir dos dados registrados no app, feita em conversa com IA — não é prescrição de nutricionista nem substitui avaliação profissional. Os achados de exame (LDL 137, HDL 38, T4 livre 0,98, creatinina 1,23, ferritina 269) são pra discutir com médico, não pra conduta por conta própria.',
   combos: [
     {
-      nome: 'R1 · Pré-treino — Paçoca e banana (05:30)',
-      horario: '05:30',
-      itens: [
-        { foodName: 'Paçoquita (1 unidade, 15g)', qty: 1, kcal: 80, carbs: 7.5, sugars: 7.2, protein: 2.7, fat: 4.2, satFat: 0.6, transFat: 0, fiber: 0.6, sodium: 28 },
-        { foodName: 'Banana prata (1 unidade, 90g)', qty: 1, kcal: 80, carbs: 20, sugars: 12, protein: 1, fat: 0.2, satFat: 0, transFat: 0, fiber: 2, sodium: 1 },
-      ],
+      "nome": "R1 · Pré-treino musculação — Paçoca (05:30)",
+      "horario": "05:30",
+      "itens": [
+        {
+          "foodName": "Paçoca 15g",
+          "qty": 1,
+          "kcal": 72,
+          "carbs": 7.8,
+          "sugars": 6.5,
+          "protein": 1.9,
+          "fat": 3.8,
+          "satFat": 0.7,
+          "transFat": 0,
+          "fiber": 0.8,
+          "sodium": 33.8
+        }
+      ]
     },
     {
-      nome: 'R1 · Pré-treino — Paçoquita (05:30)',
-      horario: '05:30',
-      itens: [
-        { foodName: 'Paçoquita (2 unidades, 30g)', qty: 1, kcal: 160, carbs: 15, sugars: 14.4, protein: 5.4, fat: 8.4, satFat: 1.2, transFat: 0, fiber: 1.2, sodium: 56 },
-      ],
+      "nome": "R1 · Pré-treino corrida — Paçoca e banana (05:30)",
+      "horario": "05:30",
+      "itens": [
+        {
+          "foodName": "Paçoca 15g",
+          "qty": 1,
+          "kcal": 72,
+          "carbs": 7.8,
+          "sugars": 6.5,
+          "protein": 1.9,
+          "fat": 3.8,
+          "satFat": 0.7,
+          "transFat": 0,
+          "fiber": 0.8,
+          "sodium": 33.8
+        },
+        {
+          "foodName": "Banana nanica 120g",
+          "qty": 1,
+          "kcal": 110,
+          "carbs": 28.6,
+          "sugars": 20,
+          "protein": 1.7,
+          "fat": 0.1,
+          "satFat": 0,
+          "transFat": 0,
+          "fiber": 2.3,
+          "sodium": 1
+        }
+      ]
     },
     {
-      nome: 'R1 · Pré-treino — Banana e bananinha (05:30)',
-      horario: '05:30',
-      itens: [
-        { foodName: 'Banana nanica (1 unidade, 120g)', qty: 1, kcal: 110, carbs: 28.6, sugars: 20, protein: 1.7, fat: 0.1, satFat: 0, transFat: 0, fiber: 2.3, sodium: 1 },
-        { foodName: 'Bala de banana (1 unidade, 26g)', qty: 1, kcal: 54, carbs: 13, sugars: 11, protein: 0, fat: 0, satFat: 0, transFat: 0, fiber: 0, sodium: 0 },
-      ],
+      "nome": "R2 · Café/pós-treino — Queijo minas e banana (08:00)",
+      "horario": "08:00",
+      "itens": [
+        {
+          "foodName": "Tapioca (goma hidratada) 80g",
+          "qty": 1,
+          "kcal": 142.4,
+          "carbs": 35.2,
+          "sugars": 0.3,
+          "protein": 0.2,
+          "fat": 0,
+          "satFat": 0,
+          "transFat": 0,
+          "fiber": 0.5,
+          "sodium": 1.6
+        },
+        {
+          "foodName": "Ovo cozido 150g",
+          "qty": 1,
+          "kcal": 219,
+          "carbs": 0.9,
+          "sugars": 0.9,
+          "protein": 20.1,
+          "fat": 14.4,
+          "satFat": 4.2,
+          "transFat": 0,
+          "fiber": 0,
+          "sodium": 219
+        },
+        {
+          "foodName": "Queijo minas frescal 40g",
+          "qty": 1,
+          "kcal": 116,
+          "carbs": 1.3,
+          "sugars": 1.3,
+          "protein": 7.2,
+          "fat": 8.8,
+          "satFat": 5.6,
+          "transFat": 0,
+          "fiber": 0,
+          "sodium": 173.3
+        },
+        {
+          "foodName": "Banana nanica 120g",
+          "qty": 1,
+          "kcal": 110,
+          "carbs": 28.6,
+          "sugars": 20,
+          "protein": 1.7,
+          "fat": 0.1,
+          "satFat": 0,
+          "transFat": 0,
+          "fiber": 2.3,
+          "sodium": 1
+        },
+        {
+          "foodName": "Mel de abelha 15g",
+          "qty": 1,
+          "kcal": 38.3,
+          "carbs": 11,
+          "sugars": 11,
+          "protein": 0.1,
+          "fat": 0,
+          "satFat": 0,
+          "transFat": 0,
+          "fiber": 0.1,
+          "sodium": 2.3
+        }
+      ]
     },
     {
-      nome: 'R2 · Café da manhã — Mussarela (08:00)',
-      horario: '08:00',
-      itens: [
-        { foodName: 'Tapioca (goma hidratada) 50g', qty: 1, kcal: 89, carbs: 22, sugars: 0.2, protein: 0.1, fat: 0, satFat: 0, transFat: 0, fiber: 0.3, sodium: 1 },
-        { foodName: 'Mel 10g', qty: 1, kcal: 30.5, carbs: 8.3, sugars: 8.2, protein: 0.1, fat: 0, satFat: 0, transFat: 0, fiber: 0, sodium: 0.5 },
-        { foodName: 'Ovo 100g (2 unidades)', qty: 1, kcal: 146, carbs: 0.6, sugars: 0.6, protein: 13.4, fat: 9.6, satFat: 2.8, transFat: 0, fiber: 0, sodium: 146 },
-        { foodName: 'Queijo mussarela 20g', qty: 1, kcal: 60, carbs: 0.4, sugars: 0.4, protein: 4.4, fat: 4.6, satFat: 2.7, transFat: 0, fiber: 0, sodium: 117.3 },
-      ],
+      "nome": "R2 · Café/pós-treino — Mussarela e mamão (08:00)",
+      "horario": "08:00",
+      "itens": [
+        {
+          "foodName": "Tapioca (goma hidratada) 80g",
+          "qty": 1,
+          "kcal": 142.4,
+          "carbs": 35.2,
+          "sugars": 0.3,
+          "protein": 0.2,
+          "fat": 0,
+          "satFat": 0,
+          "transFat": 0,
+          "fiber": 0.5,
+          "sodium": 1.6
+        },
+        {
+          "foodName": "Ovo cozido 150g",
+          "qty": 1,
+          "kcal": 219,
+          "carbs": 0.9,
+          "sugars": 0.9,
+          "protein": 20.1,
+          "fat": 14.4,
+          "satFat": 4.2,
+          "transFat": 0,
+          "fiber": 0,
+          "sodium": 219
+        },
+        {
+          "foodName": "Queijo mussarela 40g",
+          "qty": 1,
+          "kcal": 120,
+          "carbs": 0.8,
+          "sugars": 0.8,
+          "protein": 8.8,
+          "fat": 9.2,
+          "satFat": 5.5,
+          "transFat": 0,
+          "fiber": 0,
+          "sodium": 234.6
+        },
+        {
+          "foodName": "Mamão 180g",
+          "qty": 1,
+          "kcal": 72,
+          "carbs": 18,
+          "sugars": 14,
+          "protein": 1.1,
+          "fat": 0.2,
+          "satFat": 0,
+          "transFat": 0,
+          "fiber": 3.1,
+          "sodium": 5.4
+        },
+        {
+          "foodName": "Mel de abelha 15g",
+          "qty": 1,
+          "kcal": 38.3,
+          "carbs": 11,
+          "sugars": 11,
+          "protein": 0.1,
+          "fat": 0,
+          "satFat": 0,
+          "transFat": 0,
+          "fiber": 0.1,
+          "sodium": 2.3
+        }
+      ]
     },
     {
-      nome: 'R2 · Café da manhã — Queijo branco (08:00)',
-      horario: '08:00',
-      itens: [
-        { foodName: 'Tapioca (goma hidratada) 50g', qty: 1, kcal: 89, carbs: 22, sugars: 0.2, protein: 0.1, fat: 0, satFat: 0, transFat: 0, fiber: 0.3, sodium: 1 },
-        { foodName: 'Mel 10g', qty: 1, kcal: 30.5, carbs: 8.3, sugars: 8.2, protein: 0.1, fat: 0, satFat: 0, transFat: 0, fiber: 0, sodium: 0.5 },
-        { foodName: 'Ovo 100g (2 unidades)', qty: 1, kcal: 146, carbs: 0.6, sugars: 0.6, protein: 13.4, fat: 9.6, satFat: 2.8, transFat: 0, fiber: 0, sodium: 146 },
-        { foodName: 'Queijo branco (minas frescal) 20g', qty: 1, kcal: 58, carbs: 0.7, sugars: 0.7, protein: 3.6, fat: 4.4, satFat: 2.8, transFat: 0, fiber: 0, sodium: 86.7 },
-      ],
+      "nome": "R3 · Lanche da manhã — Banana (10:30)",
+      "horario": "10:30",
+      "itens": [
+        {
+          "foodName": "Banana nanica 120g",
+          "qty": 1,
+          "kcal": 110,
+          "carbs": 28.6,
+          "sugars": 20,
+          "protein": 1.7,
+          "fat": 0.1,
+          "satFat": 0,
+          "transFat": 0,
+          "fiber": 2.3,
+          "sodium": 1
+        }
+      ]
     },
     {
-      nome: 'R3 · Almoço — Ceviche e batata assada (12:30)',
-      horario: '12:30',
-      itens: [
-        { foodName: 'Ceviche de tilápia 300g', qty: 1, kcal: 285, carbs: 13.5, sugars: 4.5, protein: 45, fat: 5.4, satFat: 1.2, transFat: 0, fiber: 1.8, sodium: 1050 },
-        { foodName: 'Batata inglesa assada 175g', qty: 1, kcal: 162.8, carbs: 36.8, sugars: 2.1, protein: 4.4, fat: 0.2, satFat: 0, transFat: 0, fiber: 3.9, sodium: 8.8 },
-        { foodName: 'Brócolis cozido 100g', qty: 1, kcal: 25, carbs: 4.4, sugars: 0, protein: 2.1, fat: 0.5, satFat: 0.1, transFat: 0, fiber: 3.4, sodium: 10 },
-        { foodName: 'Cenoura cozida 80g', qty: 1, kcal: 24, carbs: 5, sugars: 3.2, protein: 0.6, fat: 0.2, satFat: 0, transFat: 0, fiber: 2.3, sodium: 28 },
-      ],
+      "nome": "R3 · Lanche da manhã — Mamão (10:30)",
+      "horario": "10:30",
+      "itens": [
+        {
+          "foodName": "Mamão 200g",
+          "qty": 1,
+          "kcal": 80,
+          "carbs": 20,
+          "sugars": 15.6,
+          "protein": 1.2,
+          "fat": 0.2,
+          "satFat": 0,
+          "transFat": 0,
+          "fiber": 3.4,
+          "sodium": 6
+        }
+      ]
     },
     {
-      nome: 'R3 · Almoço — Ceviche, arroz e feijão (12:30)',
-      horario: '12:30',
-      itens: [
-        { foodName: 'Ceviche de tilápia 280g', qty: 1, kcal: 266, carbs: 12.6, sugars: 4.2, protein: 42, fat: 5, satFat: 1.1, transFat: 0, fiber: 1.7, sodium: 980 },
-        { foodName: 'Arroz branco cozido 100g', qty: 1, kcal: 128, carbs: 28, sugars: 0, protein: 2.5, fat: 0.2, satFat: 0, transFat: 0, fiber: 0.4, sodium: 1 },
-        { foodName: 'Feijão carioca cozido 120g', qty: 1, kcal: 91.2, carbs: 16.3, sugars: 0.4, protein: 5.8, fat: 0.6, satFat: 0.1, transFat: 0, fiber: 10.2, sodium: 2.4 },
-        { foodName: 'Brócolis cozido 100g', qty: 1, kcal: 25, carbs: 4.4, sugars: 0, protein: 2.1, fat: 0.5, satFat: 0.1, transFat: 0, fiber: 3.4, sodium: 10 },
-        { foodName: 'Cenoura cozida 80g', qty: 1, kcal: 24, carbs: 5, sugars: 3.2, protein: 0.6, fat: 0.2, satFat: 0, transFat: 0, fiber: 2.3, sodium: 28 },
-      ],
+      "nome": "R3 · Lanche da manhã — Uva (10:30)",
+      "horario": "10:30",
+      "itens": [
+        {
+          "foodName": "Uva 150g",
+          "qty": 1,
+          "kcal": 79.5,
+          "carbs": 20.9,
+          "sugars": 19.5,
+          "protein": 1,
+          "fat": 0.3,
+          "satFat": 0,
+          "transFat": 0,
+          "fiber": 1.4,
+          "sodium": 3
+        }
+      ]
     },
     {
-      nome: 'R3 · Almoço — Frango e batata assada (12:30)',
-      horario: '12:30',
-      itens: [
-        { foodName: 'Peito de frango grelhado 150g', qty: 1, kcal: 238.5, carbs: 0, sugars: 0, protein: 48, fat: 3.8, satFat: 1.2, transFat: 0, fiber: 0, sodium: 75 },
-        { foodName: 'Batata inglesa assada 175g', qty: 1, kcal: 162.8, carbs: 36.8, sugars: 2.1, protein: 4.4, fat: 0.2, satFat: 0, transFat: 0, fiber: 3.9, sodium: 8.8 },
-        { foodName: 'Brócolis cozido 100g', qty: 1, kcal: 25, carbs: 4.4, sugars: 0, protein: 2.1, fat: 0.5, satFat: 0.1, transFat: 0, fiber: 3.4, sodium: 10 },
-        { foodName: 'Cenoura cozida 80g', qty: 1, kcal: 24, carbs: 5, sugars: 3.2, protein: 0.6, fat: 0.2, satFat: 0, transFat: 0, fiber: 2.3, sodium: 28 },
-      ],
+      "nome": "R3 · Lanche da manhã — Pera (10:30)",
+      "horario": "10:30",
+      "itens": [
+        {
+          "foodName": "Pera 130g",
+          "qty": 1,
+          "kcal": 68.9,
+          "carbs": 17.9,
+          "sugars": 12.7,
+          "protein": 0.4,
+          "fat": 0.1,
+          "satFat": 0,
+          "transFat": 0,
+          "fiber": 3.6,
+          "sodium": 1.3
+        }
+      ]
     },
     {
-      nome: 'R4 · Lanche — Whey, leite e banana (16:00)',
-      horario: '16:00',
-      itens: [
-        { foodName: 'Whey protein 30g', qty: 1, kcal: 120, carbs: 3, sugars: 2, protein: 24, fat: 1.5, satFat: 0.5, transFat: 0, fiber: 0, sodium: 50 },
-        { foodName: 'Leite desnatado 200ml', qty: 1, kcal: 70, carbs: 9.8, sugars: 9.8, protein: 6.8, fat: 0.4, satFat: 0.2, transFat: 0, fiber: 0, sodium: 80 },
-        { foodName: 'Banana nanica (1 unidade, 120g)', qty: 1, kcal: 110, carbs: 28.6, sugars: 20, protein: 1.7, fat: 0.1, satFat: 0, transFat: 0, fiber: 2.3, sodium: 1 },
-      ],
+      "nome": "R4 · Almoço — Frango (12:30)",
+      "horario": "12:30",
+      "itens": [
+        {
+          "foodName": "Arroz branco cozido 200g",
+          "qty": 1,
+          "kcal": 256,
+          "carbs": 56,
+          "sugars": 0,
+          "protein": 5,
+          "fat": 0.4,
+          "satFat": 0,
+          "transFat": 0,
+          "fiber": 0.8,
+          "sodium": 2
+        },
+        {
+          "foodName": "Peito de frango cozido 150g",
+          "qty": 1,
+          "kcal": 244.5,
+          "carbs": 0,
+          "sugars": 0,
+          "protein": 47.3,
+          "fat": 4.8,
+          "satFat": 1.5,
+          "transFat": 0,
+          "fiber": 0,
+          "sodium": 54
+        },
+        {
+          "foodName": "Brócolis cozido 175g",
+          "qty": 1,
+          "kcal": 43.8,
+          "carbs": 7.7,
+          "sugars": 0,
+          "protein": 3.7,
+          "fat": 0.9,
+          "satFat": 0.2,
+          "transFat": 0,
+          "fiber": 6,
+          "sodium": 17.5
+        },
+        {
+          "foodName": "Azeite de oliva 10g",
+          "qty": 1,
+          "kcal": 91.5,
+          "carbs": 0,
+          "sugars": 0,
+          "protein": 0,
+          "fat": 10.4,
+          "satFat": 1.5,
+          "transFat": 0,
+          "fiber": 0,
+          "sodium": 0
+        },
+        {
+          "foodName": "Banana nanica 120g",
+          "qty": 1,
+          "kcal": 110,
+          "carbs": 28.6,
+          "sugars": 20,
+          "protein": 1.7,
+          "fat": 0.1,
+          "satFat": 0,
+          "transFat": 0,
+          "fiber": 2.3,
+          "sodium": 1
+        }
+      ]
     },
     {
-      nome: 'R4 · Lanche — Whey, leite, banana e aveia (16:00)',
-      horario: '16:00',
-      itens: [
-        { foodName: 'Whey protein 30g', qty: 1, kcal: 120, carbs: 3, sugars: 2, protein: 24, fat: 1.5, satFat: 0.5, transFat: 0, fiber: 0, sodium: 50 },
-        { foodName: 'Leite desnatado 200ml', qty: 1, kcal: 70, carbs: 9.8, sugars: 9.8, protein: 6.8, fat: 0.4, satFat: 0.2, transFat: 0, fiber: 0, sodium: 80 },
-        { foodName: 'Banana prata (1 unidade, 90g)', qty: 1, kcal: 80, carbs: 20, sugars: 12, protein: 1, fat: 0.2, satFat: 0, transFat: 0, fiber: 2, sodium: 1 },
-        { foodName: 'Aveia em flocos 20g', qty: 1, kcal: 78, carbs: 13.3, sugars: 0.3, protein: 2.8, fat: 1.5, satFat: 0.3, transFat: 0, fiber: 2, sodium: 1.3 },
-      ],
+      "nome": "R4 · Almoço — Ceviche (12:30)",
+      "horario": "12:30",
+      "itens": [
+        {
+          "foodName": "Arroz branco cozido 200g",
+          "qty": 1,
+          "kcal": 256,
+          "carbs": 56,
+          "sugars": 0,
+          "protein": 5,
+          "fat": 0.4,
+          "satFat": 0,
+          "transFat": 0,
+          "fiber": 0.8,
+          "sodium": 2
+        },
+        {
+          "foodName": "Ceviche 150g",
+          "qty": 1,
+          "kcal": 142.5,
+          "carbs": 6.8,
+          "sugars": 2.3,
+          "protein": 22.5,
+          "fat": 2.7,
+          "satFat": 0.6,
+          "transFat": 0,
+          "fiber": 0.9,
+          "sodium": 525
+        },
+        {
+          "foodName": "Brócolis cozido 175g",
+          "qty": 1,
+          "kcal": 43.8,
+          "carbs": 7.7,
+          "sugars": 0,
+          "protein": 3.7,
+          "fat": 0.9,
+          "satFat": 0.2,
+          "transFat": 0,
+          "fiber": 6,
+          "sodium": 17.5
+        },
+        {
+          "foodName": "Azeite de oliva 10g",
+          "qty": 1,
+          "kcal": 91.5,
+          "carbs": 0,
+          "sugars": 0,
+          "protein": 0,
+          "fat": 10.4,
+          "satFat": 1.5,
+          "transFat": 0,
+          "fiber": 0,
+          "sodium": 0
+        },
+        {
+          "foodName": "Banana nanica 120g",
+          "qty": 1,
+          "kcal": 110,
+          "carbs": 28.6,
+          "sugars": 20,
+          "protein": 1.7,
+          "fat": 0.1,
+          "satFat": 0,
+          "transFat": 0,
+          "fiber": 2.3,
+          "sodium": 1
+        }
+      ]
     },
     {
-      nome: 'R5 · Jantar — Marmita tilápia, batata e brócolis (20:00)',
-      horario: '20:00',
-      itens: [
-        { foodName: 'Tilápia grelhada 200g', qty: 1, kcal: 256, carbs: 0, sugars: 0, protein: 52.4, fat: 5.4, satFat: 1.8, transFat: 0, fiber: 0, sodium: 112 },
-        { foodName: 'Batata inglesa cozida 300g', qty: 1, kcal: 156, carbs: 35.7, sugars: 2.4, protein: 3.6, fat: 0, satFat: 0, transFat: 0, fiber: 3.9, sodium: 6 },
-        { foodName: 'Brócolis cozido 100g', qty: 1, kcal: 25, carbs: 4.4, sugars: 0, protein: 2.1, fat: 0.5, satFat: 0.1, transFat: 0, fiber: 3.4, sodium: 10 },
-        { foodName: 'Azeite de oliva 6g (do cozimento)', qty: 1, kcal: 54.9, carbs: 0, sugars: 0, protein: 0, fat: 6.2, satFat: 0.9, transFat: 0, fiber: 0, sodium: 0 },
-      ],
+      "nome": "R4 · Almoço — Alcatra (12:30)",
+      "horario": "12:30",
+      "itens": [
+        {
+          "foodName": "Arroz branco cozido 200g",
+          "qty": 1,
+          "kcal": 256,
+          "carbs": 56,
+          "sugars": 0,
+          "protein": 5,
+          "fat": 0.4,
+          "satFat": 0,
+          "transFat": 0,
+          "fiber": 0.8,
+          "sodium": 2
+        },
+        {
+          "foodName": "Miolo de alcatra grelhado 150g",
+          "qty": 1,
+          "kcal": 361.5,
+          "carbs": 0,
+          "sugars": 0,
+          "protein": 47.8,
+          "fat": 17.4,
+          "satFat": 5.3,
+          "transFat": 0,
+          "fiber": 0,
+          "sodium": 78
+        },
+        {
+          "foodName": "Brócolis cozido 175g",
+          "qty": 1,
+          "kcal": 43.8,
+          "carbs": 7.7,
+          "sugars": 0,
+          "protein": 3.7,
+          "fat": 0.9,
+          "satFat": 0.2,
+          "transFat": 0,
+          "fiber": 6,
+          "sodium": 17.5
+        },
+        {
+          "foodName": "Azeite de oliva 10g",
+          "qty": 1,
+          "kcal": 91.5,
+          "carbs": 0,
+          "sugars": 0,
+          "protein": 0,
+          "fat": 10.4,
+          "satFat": 1.5,
+          "transFat": 0,
+          "fiber": 0,
+          "sodium": 0
+        },
+        {
+          "foodName": "Banana nanica 120g",
+          "qty": 1,
+          "kcal": 110,
+          "carbs": 28.6,
+          "sugars": 20,
+          "protein": 1.7,
+          "fat": 0.1,
+          "satFat": 0,
+          "transFat": 0,
+          "fiber": 2.3,
+          "sodium": 1
+        }
+      ]
     },
+    {
+      "nome": "R4 · Almoço — Tilápia (12:30)",
+      "horario": "12:30",
+      "itens": [
+        {
+          "foodName": "Arroz branco cozido 200g",
+          "qty": 1,
+          "kcal": 256,
+          "carbs": 56,
+          "sugars": 0,
+          "protein": 5,
+          "fat": 0.4,
+          "satFat": 0,
+          "transFat": 0,
+          "fiber": 0.8,
+          "sodium": 2
+        },
+        {
+          "foodName": "Tilápia grelhada 150g",
+          "qty": 1,
+          "kcal": 192,
+          "carbs": 0,
+          "sugars": 0,
+          "protein": 39.3,
+          "fat": 4.1,
+          "satFat": 1.4,
+          "transFat": 0,
+          "fiber": 0,
+          "sodium": 84
+        },
+        {
+          "foodName": "Brócolis cozido 175g",
+          "qty": 1,
+          "kcal": 43.8,
+          "carbs": 7.7,
+          "sugars": 0,
+          "protein": 3.7,
+          "fat": 0.9,
+          "satFat": 0.2,
+          "transFat": 0,
+          "fiber": 6,
+          "sodium": 17.5
+        },
+        {
+          "foodName": "Azeite de oliva 10g",
+          "qty": 1,
+          "kcal": 91.5,
+          "carbs": 0,
+          "sugars": 0,
+          "protein": 0,
+          "fat": 10.4,
+          "satFat": 1.5,
+          "transFat": 0,
+          "fiber": 0,
+          "sodium": 0
+        },
+        {
+          "foodName": "Banana nanica 120g",
+          "qty": 1,
+          "kcal": 110,
+          "carbs": 28.6,
+          "sugars": 20,
+          "protein": 1.7,
+          "fat": 0.1,
+          "satFat": 0,
+          "transFat": 0,
+          "fiber": 2.3,
+          "sodium": 1
+        }
+      ]
+    },
+    {
+      "nome": "R5 · Lanche da tarde — Whey, aveia e banana (16:00)",
+      "horario": "16:00",
+      "itens": [
+        {
+          "foodName": "Whey protein (pó) 30g",
+          "qty": 1,
+          "kcal": 120,
+          "carbs": 3,
+          "sugars": 2,
+          "protein": 24,
+          "fat": 1.5,
+          "satFat": 0.5,
+          "transFat": 0,
+          "fiber": 0,
+          "sodium": 50
+        },
+        {
+          "foodName": "Leite em pó integral 10g",
+          "qty": 1,
+          "kcal": 49.7,
+          "carbs": 3.8,
+          "sugars": 3.8,
+          "protein": 2.5,
+          "fat": 2.7,
+          "satFat": 1.7,
+          "transFat": 0.1,
+          "fiber": 0,
+          "sodium": 37
+        },
+        {
+          "foodName": "Farelo de aveia 20g",
+          "qty": 1,
+          "kcal": 73.3,
+          "carbs": 11.5,
+          "sugars": 0.3,
+          "protein": 3.1,
+          "fat": 1.6,
+          "satFat": 0.3,
+          "transFat": 0,
+          "fiber": 2,
+          "sodium": 0.7
+        },
+        {
+          "foodName": "Banana nanica 120g",
+          "qty": 1,
+          "kcal": 110,
+          "carbs": 28.6,
+          "sugars": 20,
+          "protein": 1.7,
+          "fat": 0.1,
+          "satFat": 0,
+          "transFat": 0,
+          "fiber": 2.3,
+          "sodium": 1
+        }
+      ]
+    },
+    {
+      "nome": "R6 · Jantar — Frango (20:00)",
+      "horario": "20:00",
+      "itens": [
+        {
+          "foodName": "Arroz branco cozido 180g",
+          "qty": 1,
+          "kcal": 230.4,
+          "carbs": 50.4,
+          "sugars": 0,
+          "protein": 4.5,
+          "fat": 0.4,
+          "satFat": 0,
+          "transFat": 0,
+          "fiber": 0.7,
+          "sodium": 1.8
+        },
+        {
+          "foodName": "Peito de frango cozido 150g",
+          "qty": 1,
+          "kcal": 244.5,
+          "carbs": 0,
+          "sugars": 0,
+          "protein": 47.3,
+          "fat": 4.8,
+          "satFat": 1.5,
+          "transFat": 0,
+          "fiber": 0,
+          "sodium": 54
+        },
+        {
+          "foodName": "Brócolis cozido 200g",
+          "qty": 1,
+          "kcal": 50,
+          "carbs": 8.8,
+          "sugars": 0,
+          "protein": 4.2,
+          "fat": 1,
+          "satFat": 0.2,
+          "transFat": 0,
+          "fiber": 6.8,
+          "sodium": 20
+        },
+        {
+          "foodName": "Azeite de oliva 10g",
+          "qty": 1,
+          "kcal": 91.5,
+          "carbs": 0,
+          "sugars": 0,
+          "protein": 0,
+          "fat": 10.4,
+          "satFat": 1.5,
+          "transFat": 0,
+          "fiber": 0,
+          "sodium": 0
+        },
+        {
+          "foodName": "Banana nanica 120g",
+          "qty": 1,
+          "kcal": 110,
+          "carbs": 28.6,
+          "sugars": 20,
+          "protein": 1.7,
+          "fat": 0.1,
+          "satFat": 0,
+          "transFat": 0,
+          "fiber": 2.3,
+          "sodium": 1
+        }
+      ]
+    },
+    {
+      "nome": "R6 · Jantar — Tilápia (20:00)",
+      "horario": "20:00",
+      "itens": [
+        {
+          "foodName": "Arroz branco cozido 180g",
+          "qty": 1,
+          "kcal": 230.4,
+          "carbs": 50.4,
+          "sugars": 0,
+          "protein": 4.5,
+          "fat": 0.4,
+          "satFat": 0,
+          "transFat": 0,
+          "fiber": 0.7,
+          "sodium": 1.8
+        },
+        {
+          "foodName": "Tilápia grelhada 150g",
+          "qty": 1,
+          "kcal": 192,
+          "carbs": 0,
+          "sugars": 0,
+          "protein": 39.3,
+          "fat": 4.1,
+          "satFat": 1.4,
+          "transFat": 0,
+          "fiber": 0,
+          "sodium": 84
+        },
+        {
+          "foodName": "Brócolis cozido 200g",
+          "qty": 1,
+          "kcal": 50,
+          "carbs": 8.8,
+          "sugars": 0,
+          "protein": 4.2,
+          "fat": 1,
+          "satFat": 0.2,
+          "transFat": 0,
+          "fiber": 6.8,
+          "sodium": 20
+        },
+        {
+          "foodName": "Azeite de oliva 10g",
+          "qty": 1,
+          "kcal": 91.5,
+          "carbs": 0,
+          "sugars": 0,
+          "protein": 0,
+          "fat": 10.4,
+          "satFat": 1.5,
+          "transFat": 0,
+          "fiber": 0,
+          "sodium": 0
+        },
+        {
+          "foodName": "Banana nanica 120g",
+          "qty": 1,
+          "kcal": 110,
+          "carbs": 28.6,
+          "sugars": 20,
+          "protein": 1.7,
+          "fat": 0.1,
+          "satFat": 0,
+          "transFat": 0,
+          "fiber": 2.3,
+          "sodium": 1
+        }
+      ]
+    },
+    {
+      "nome": "R6 · Jantar — Alcatra (20:00)",
+      "horario": "20:00",
+      "itens": [
+        {
+          "foodName": "Arroz branco cozido 180g",
+          "qty": 1,
+          "kcal": 230.4,
+          "carbs": 50.4,
+          "sugars": 0,
+          "protein": 4.5,
+          "fat": 0.4,
+          "satFat": 0,
+          "transFat": 0,
+          "fiber": 0.7,
+          "sodium": 1.8
+        },
+        {
+          "foodName": "Miolo de alcatra grelhado 150g",
+          "qty": 1,
+          "kcal": 361.5,
+          "carbs": 0,
+          "sugars": 0,
+          "protein": 47.8,
+          "fat": 17.4,
+          "satFat": 5.3,
+          "transFat": 0,
+          "fiber": 0,
+          "sodium": 78
+        },
+        {
+          "foodName": "Brócolis cozido 200g",
+          "qty": 1,
+          "kcal": 50,
+          "carbs": 8.8,
+          "sugars": 0,
+          "protein": 4.2,
+          "fat": 1,
+          "satFat": 0.2,
+          "transFat": 0,
+          "fiber": 6.8,
+          "sodium": 20
+        },
+        {
+          "foodName": "Azeite de oliva 10g",
+          "qty": 1,
+          "kcal": 91.5,
+          "carbs": 0,
+          "sugars": 0,
+          "protein": 0,
+          "fat": 10.4,
+          "satFat": 1.5,
+          "transFat": 0,
+          "fiber": 0,
+          "sodium": 0
+        },
+        {
+          "foodName": "Banana nanica 120g",
+          "qty": 1,
+          "kcal": 110,
+          "carbs": 28.6,
+          "sugars": 20,
+          "protein": 1.7,
+          "fat": 0.1,
+          "satFat": 0,
+          "transFat": 0,
+          "fiber": 2.3,
+          "sodium": 1
+        }
+      ]
+    }
   ],
 };
