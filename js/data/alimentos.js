@@ -24,8 +24,19 @@ const ALIMENTOS_PADRAO = [
   { name: 'Banana nanica', categoria: 'fruta', portionLabel: '1 unidade (120g)', portionGrams: 120, kcal: 110, carbs: 28.6, sugars: 20, protein: 1.7, fat: 0.1, satFat: 0, transFat: 0, fiber: 2.3, sodium: 1 },
   { name: 'Batata doce cozida', categoria: 'carboidrato', portionLabel: '100g', portionGrams: 100, kcal: 77, carbs: 18.4, sugars: 3.5, protein: 0.6, fat: 0.1, satFat: 0, transFat: 0, fiber: 2.2, sodium: 3 },
   { name: 'Leite integral', categoria: 'outro', portionLabel: '1 copo (200ml)', portionGrams: 200, kcal: 122, carbs: 9.6, sugars: 9.6, protein: 6.4, fat: 6.6, satFat: 4, transFat: 0.2, fiber: 0, sodium: 76 },
+  // Leite em PÓ integral (TACO). É leite com a água tirada, então os valores por 100g são
+  // ~8x os do líquido: uma colher de sopa rasa (10g) tem a proteína de 80ml de leite.
+  // Atenção à saturada: 17,3g por 100g faz de 10g de pó 1,7g de saturada — pouco sozinho,
+  // mas é o tipo de item que passa despercebido porque 'é só uma colher'.
+  { name: 'Leite em pó integral', categoria: 'outro', portionLabel: '1 colher sopa rasa (10g)', portionGrams: 10, kcal: 49.7, carbs: 3.8, sugars: 3.8, protein: 2.5, fat: 2.7, satFat: 1.7, transFat: 0.1, fiber: 0, sodium: 37 },
   { name: 'Iogurte natural integral', categoria: 'outro', portionLabel: '1 pote (170g)', portionGrams: 170, kcal: 105, carbs: 7.7, sugars: 7.7, protein: 6, fat: 5.9, satFat: 3.8, transFat: 0, fiber: 0, sodium: 76 },
   { name: 'Aveia em flocos', categoria: 'carboidrato', portionLabel: '1 colher sopa (30g)', portionGrams: 30, kcal: 117, carbs: 20, sugars: 0.5, protein: 4.2, fat: 2.3, satFat: 0.4, transFat: 0, fiber: 3, sodium: 2 },
+  // Farelo de aveia: a casca moída, não o flocos. Mais fibra e mais proteína que o flocos
+  // (10 contra 10 de fibra por 100g — mas 15 contra 14 de proteína), e beta-glucana
+  // concentrada, que é a fração ligada à redução de LDL.
+  // Valores de rótulo típico de marca brasileira (Quaker/Yoki), NÃO de um pacote específico:
+  // se o seu trouxer rótulo, mande que eu alinho. Atwater fecha em +1,2%.
+  { name: 'Farelo de aveia', categoria: 'carboidrato', portionLabel: '1 colher sopa (15g)', portionGrams: 15, kcal: 55, carbs: 8.6, sugars: 0.2, protein: 2.3, fat: 1.2, satFat: 0.2, transFat: 0, fiber: 1.5, sodium: 0.5 },
   { name: 'Whey protein (pó)', categoria: 'proteina', portionLabel: '1 scoop (30g)', portionGrams: 30, kcal: 120, carbs: 3, sugars: 2, protein: 24, fat: 1.5, satFat: 0.5, transFat: 0, fiber: 0, sodium: 50 },
   { name: 'Whey Protein Growth Chocolate', categoria: 'proteina', portionLabel: '30g (2 dosadores)', portionGrams: 30, kcal: 122, carbs: 2.7, sugars: 1.7, protein: 23, fat: 2.1, satFat: 0.9, transFat: 0, fiber: 0, sodium: 45 },
   { name: 'Pão de forma integral', categoria: 'carboidrato', portionLabel: '1 fatia (25g)', portionGrams: 25, kcal: 63, carbs: 12.5, sugars: 1.5, protein: 2.4, fat: 0.9, satFat: 0.2, transFat: 0, fiber: 1.7, sodium: 127 },
