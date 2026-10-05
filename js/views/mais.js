@@ -873,7 +873,7 @@ Coxa: 58 cm
               <strong>substitui</strong> uma das refeições, não se soma a elas — com ela, a média da semana fica em ~1840 kcal.
             </p>` : ''}
           <p class="meta" style="border-left:3px solid var(--accent);padding-left:8px">${Util.escapeHtml(META_VICTOR.disclaimer)}</p>
-          <p class="meta">Carrega a meta como objetivo e atualiza as ${META_VICTOR.combos.length} refeições como combos (mesmos horários da dieta do Matheus, com variantes intercambiáveis em cada um). Refeição que saiu do cardápio some da lista.</p>
+          <p class="meta">Carrega a meta como objetivo e atualiza as ${META_VICTOR.combos.length} refeições como combos (mesmos horários da dieta do Matheus, com variantes intercambiáveis em cada um). Refeição que saiu do cardápio some da lista.${META_VICTOR.profissional ? ` Na tela de Combos elas ficam marcadas com o selo <span class="badge">${Util.escapeHtml(META_VICTOR.profissional)}</span>, pra não se misturarem com as que você montou na mão.` : ''}</p>
           <button class="${dietas.some(d => d.fonte === META_VICTOR.fonte) ? 'secondary' : 'primary'}" id="carregar-meta-victor" style="margin-top:8px">
             ${dietas.some(d => d.fonte === META_VICTOR.fonte) ? 'Recarregar (atualiza o que já existe)' : 'Carregar minha meta'}
           </button>
@@ -1609,6 +1609,21 @@ Coxa: 58 cm
     });
   }
 
+  // Quem prescreveu o combo, pra leitura na tela. O 'fonte' é chave interna e não serve de
+  // rótulo; o nome do profissional sai do próprio arquivo da prescrição (campo
+  // 'profissional'), então trocar de nutri não exige mexer aqui. Combo sem fonte conhecida é
+  // o que o Victor montou na mão e não leva selo nenhum — ausência de selo já diz isso.
+  function origemCombo(fonte) {
+    if (!fonte) return null;
+    if (typeof META_VICTOR !== 'undefined' && fonte === META_VICTOR.fonte && META_VICTOR.profissional) {
+      return { nome: META_VICTOR.profissional, atual: true };
+    }
+    if (typeof DIETA_VICTOR !== 'undefined' && fonte === DIETA_VICTOR.fonte && DIETA_VICTOR.profissional) {
+      return { nome: DIETA_VICTOR.profissional, atual: false };
+    }
+    return null;
+  }
+
   function combosListHtml(combos) {
     if (combos.length === 0) {
       return `
@@ -1620,10 +1635,12 @@ Coxa: 58 cm
     }
     return combos.map(c => {
       const totalKcal = c.itens.reduce((s, i) => s + (i.kcal || 0), 0);
+      const origem = origemCombo(c.fonte);
       return `
         <div class="list-item" data-id="${c.id}">
           <div>
             <strong>${Util.escapeHtml(c.nome)}</strong> ${c.horario ? `<span class="meta">⏰ ${c.horario}</span>` : ''}
+            ${origem ? `<div style="margin-top:4px"><span class="badge${origem.atual ? '' : ' pr'}">${Util.escapeHtml(origem.nome)}</span></div>` : ''}
             <div class="meta">${c.itens.map(i => i.foodName).join(', ')}</div>
             <div class="meta">${totalKcal.toFixed(0)} kcal no total</div>
           </div>
@@ -3335,7 +3352,8 @@ Coxa: 58 cm
   // puro daqui — dá pra testá-las com node, sem DOM, como o ParsePlano.
   // gerarRelatorio sai no export pra poder ser testado com dados sintéticos: ele já aceita
   // 'dadosExternos' (o painel da nutri usa), então chamar de fora não é um caminho novo.
-  return { render, aderenciaPaciente, faixaImcTexto, medidasDoPaciente, gerarRelatorio };
+  // origemCombo também é pura: recebe o 'fonte' e devolve o rótulo do profissional.
+  return { render, aderenciaPaciente, faixaImcTexto, medidasDoPaciente, gerarRelatorio, origemCombo };
 })();
 
 if (typeof module !== 'undefined' && module.exports) module.exports = ViewMais;

@@ -86,6 +86,10 @@
 // tocados por este arquivo — esses saem pela tela de Combos, na mão.
 const META_VICTOR = {
   fonte: 'meta-victor-ea-2026-08-18',
+  // Mesmo campo que DIETA_VICTOR usa. É o que identifica os combos na tela de Combos: o
+  // 'fonte' nunca aparece pro usuário, e sem isso as 16 refeições dela ficavam visualmente
+  // iguais às que o Victor montou na mão.
+  profissional: 'Gabrielle Rubio',
   meta: {
     nome: 'Nutri Gabrielle — Semana 1, normocalórica (04/10/2026)',
     kcal: 2700,
