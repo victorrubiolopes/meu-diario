@@ -1,89 +1,68 @@
-// Dieta prescrita pela NUTRICIONISTA (Gabrielle Rubio), recebida em 04/10/2026.
-// Este arquivo mudou de natureza: até 31/08 ele guardava uma meta que EU calculei a partir
-// dos registros do app. Agora guarda uma PRESCRIÇÃO profissional. O que eu faço aqui é
-// transcrever e conferir a aritmética, não propor.
+// Dieta prescrita pela NUTRICIONISTA (Gabrielle Rubio) — SEMANA 2 EM DIANTE, em déficit.
+// Transcrita em 13/10/2026, quando o Victor entrou na segunda fase. O cardápio das duas
+// semanas veio junto, em 04/10; o que estava aqui até agora era a semana 1.
+// O que eu faço neste arquivo é transcrever e conferir a aritmética, não propor.
 //
-// ======================= O QUE MUDOU NO DIAGNÓSTICO =======================
+// ======================= O QUE MUDA DA SEMANA 1 PRA CÁ =======================
 //
-// A nutricionista levantou a hipótese de PLATÔ e prescreveu voltar à manutenção antes de
-// cortar: semana 1 normocalórica (~2700), semana 2 em diante em déficit (~2350).
+// A estrutura é a mesma (6 refeições, mesmos horários, mesmas opções de proteína e fruta).
+// Só as quantidades caem:
 //
-// Eu tinha concluído, com 7 meses de dados, que não era platô — era déficit pequeno o tempo
-// todo (gordura caindo 0,32 kg/mês na 1ª metade do período e 0,12 na 2ª). Estava analisando
-// a janela errada. O histórico que ela tem e eu não tinha: ele saiu de MAIS DE 100 kg para
-// 73 kg numa rotina alta de treinos, depois voltou para 85 e há anos não desce de 80. Perda
-// grande seguida de reganho com piso resistente é o quadro em que a adaptação metabólica
-// pós-perda é real e documentada (gasto 100-300 kcal abaixo do previsto, por anos).
-// Nesse quadro, comer em manutenção antes de cortar é a conduta indicada.
+//   café ...... tapioca 80 -> 60 g | queijo 40 -> 30 g | MEL (15 g) SAI
+//   almoço .... arroz 200 -> 150 g | azeite 10 -> 8 g
+//   lanche .... farelo de aveia 20 -> 15 g
+//   jantar .... arroz 180 -> 125 g | azeite 10 -> 5 g | fruta vira "se necessário"
 //
-// ======================= A CONTA DE QUE A PRESCRIÇÃO DEPENDE =======================
+// Pré-treino e lanche da manhã ficam iguais.
 //
-// Ela avisou que o plano depende dos dados estarem corretos. Não estão, e o tamanho do
-// desencontro é este:
+//   dia típico semana 1 ... 2633 kcal | P 180 | C 340 | G 66 | sat 19,4 | fibra 29
+//   dia típico semana 2 ... 2313 kcal | P 174 | C 288 | G 56 | sat 16,8 | fibra 28
+//                           -320 kcal, e a proteína quase intacta (-6 g)
 //
-//   consumo médio nos dias completos do diário ........ 1652 kcal
-//   gasto estimado de baixo pra cima (TMB Katch-McArdle
-//     de 1847 + 255 de exercício dos registros reais) .. 2700 kcal
-//   déficit implícito ................................. 1048 kcal/dia
-//   perda de gordura que isso produziria em 204 dias .. 27,8 kg
-//   perda de gordura MEDIDA ...........................  1,5 kg
+// O corte é quase todo em carboidrato e gordura, que é o desenho certo pra um déficit:
+// preserva a proteína (2,08 g/kg) e com ela a massa magra. A saturada também caiu, de
+// 19,4 para 16,8 g — relevante porque o LDL dele foi 101 -> 111 -> 120 -> 137 em um ano,
+// com HDL caindo de 54 para 38.
 //
-// O diário prevê 18x mais perda do que a balança mediu. Uma das duas pontas está errada, e
-// a primeira versão deste comentário escolheu a ponta errada: pôs o buraco todo nos fins de
-// semana em branco. RETRATADO. A conta que desmonta isso é direta: pra média fechar em 2700
-// com 16 dias a 1652, os 10 dias sem registro teriam que ser de 4377 kcal CADA. Isso é comer
-// exagerado todo fim de semana por meses, e a nutricionista — que é a esposa dele, convive e
-// vê praticamente todas as refeições, inclusive as livres — diz que não acontece. Observação
-// presencial de anos é evidência melhor do que a minha inferência por subtração.
+// ======================= A FRUTA DO JANTAR =======================
 //
-// A explicação que sobra e que fecha as duas pontas é SUB-REGISTRO NOS DIAS REGISTRADOS,
-// não dias ocultos. Auto-registro alimentar erra 20-30% pra baixo mesmo em quem tenta
-// acertar — porção estimada a olho, óleo do preparo, bebida, o que se belisca em pé. Não é
-// desonestidade, é erro de medida, e há exemplos concretos dos pratos analisados em
-// outubro: 187 kcal de cream cheese dentro de um poke, 18 g de gordura só na pele de uma
-// sobrecoxa, o fio de azeite do ovo frito. Invisível pra quem observa, visível pra balança.
+// O cardápio diz "1 porção de fruta, se necessário" no jantar. ELA ESTÁ DENTRO dos combos,
+// e isso é uma decisão, não um descuido:
 //
-//   1652 kcal com 25% de sub-registro → consumo real ~2200 kcal/dia
-//   peso estável a 2200 de consumo    → GASTO real ~2200 kcal/dia
-//   TMB que fecharia isso             → ~1620, ou 226 abaixo dos 1847 previstos
+//   sem a fruta no jantar ... 2203 kcal (-147 do alvo, -6%)
+//   com a fruta no jantar ... 2313 kcal ( -37 do alvo, -1,6%)
 //
-// Esses 226 kcal caem dentro da faixa de 100-300 que a literatura pós-perda documenta. Ou
-// seja: levar a observação dela a sério não enfraquece a hipótese dela, REFORÇA. Ela acerta
-// nas duas pontas — ele não come exagerado E o gasto está abaixo do previsto. A
-// "convergência independente" que eu celebrava era convergência de um cálculo teórico com
-// outro cálculo teórico; nenhum dos dois foi medido.
+// Com ela, seguir o combo é seguir a prescrição no número que a nutri declarou. Sem ela, o
+// déficit fica mais agressivo do que o planejado (0,45 kg/semana em vez de 0,35). Então o
+// padrão é COM, e a banana do jantar é a primeira coisa a tirar num dia de menos fome —
+// é literalmente o item que ela marcou como opcional.
 //
-// CONSEQUÊNCIA PRÁTICA: a semana 1 é o experimento que separa as hipóteses, e vale combinar
-// com ela ANTES de começar o que cada resultado significa:
+// ======================= A CONTA QUE A SEMANA 1 DEVIA TER MEDIDO =======================
 //
-//   gasto real 2200 → comer 2700 é +500/dia → +0,45 kg na semana
-//   gasto real 2400 → comer 2700 é +300/dia → +0,27 kg na semana
-//   gasto real 2700 → comer 2700 é neutro   →  0,00 kg na semana
+// A semana 1 existia pra responder uma pergunta: 2700 era manutenção ou superávit? A
+// resposta sai da balança, e dependia de ter peso medido no começo e no fim.
 //
-// Se o peso subir 0,4-0,5 kg na semana 1, isso NÃO é recaída nem o plano falhando — é o
-// gasto real aparecendo, e nesse caso a semana 2 em 2350 ainda seria superávit, não déficit.
-// A medida que resolve: peso diário + registro completo por 14 dias, fins de semana
-// incluídos. Com isso o gasto cai por conta própria da equação de balanço, sem depender de
-// TMB prevista, multiplicador de atividade ou palpite meu.
+//   se o gasto real for 2700 .. peso estável na semana 1, e 2350 agora dá -350/dia
+//   se o gasto real for ~2200 . peso SUBIU na semana 1, e 2350 agora é quase manutenção
 //
-// ======================= DUAS RESSALVAS =======================
+// No segundo caso o déficit prometido (0,35 kg/semana) não acontece, e isso só aparece
+// daqui a 3-4 semanas de balança parada. Vale olhar o peso antes de assumir que a fase 2
+// está funcionando — a diferença entre as duas hipóteses é de 500 kcal/dia.
 //
-// 1. NÃO HÁ REFEIÇÃO LIVRE na prescrição, e por isso 'refeicaoLivre' está null. Foi
-//    exatamente esse buraco que estragou o ciclo de 18/08: o alvo não previa livre, ele
-//    manteve o hábito, e as duas livres (2859 e 2689 kcal) caíram inteiras por cima de um
-//    alvo sem espaço pra elas. Precisa ser combinado com ela, não inventado aqui.
-// 2. A SATURADA SUBIU em termos absolutos: 19,4 g/dia contra os 10,4-11,2 do ciclo anterior,
-//    porque a dieta é maior. Como % das calorias ela CAIU, de 11-12% (o que ele comia de
-//    fato) para 6,6%, abaixo do teto de 10%. Vale acompanhar mesmo assim: o LDL dele foi
-//    101 -> 111 -> 120 -> 137 e o HDL caiu de 54 para 38 em um ano.
+// ======================= RESSALVA QUE CONTINUA DE PÉ =======================
+//
+// NÃO HÁ REFEIÇÃO LIVRE na prescrição, e 'refeicaoLivre' segue null. Foi esse buraco que
+// estragou o ciclo de 18/08: o alvo não previa livre, o hábito continuou, e as duas livres
+// registradas (2859 e 2689 kcal) caíram inteiras por cima de um alvo sem espaço pra elas.
+// Num alvo de 2350 isso pesa MAIS que num de 2700. Precisa ser combinado com ela.
 //
 // ======================= NOTA DE MANUTENÇÃO =======================
 //
-// O 'fonte' continua 'meta-victor-ea-2026-08-18' de propósito, apesar de o nome já não
-// descrever o conteúdo: é a chave que o botão Recarregar usa pra SUBSTITUIR os combos
-// antigos. Trocar a chave deixaria os 11 combos do ciclo anterior órfãos na biblioteca.
-// Combos da prescrição do Matheus ('dieta-gorgoteam-2026-08-15') e os feitos à mão NÃO são
-// tocados por este arquivo — esses saem pela tela de Combos, na mão.
+// O 'fonte' continua 'meta-victor-ea-2026-08-18', apesar de o nome já não descrever nada:
+// é a chave que o botão Recarregar usa pra SUBSTITUIR os combos da semana 1 pelos desta.
+// Trocar a chave deixaria os 16 combos da semana 1 órfãos na biblioteca, convivendo com os
+// novos — 32 refeições com nomes iguais e quantidades diferentes. Combos feitos à mão não
+// são tocados por este arquivo.
 const META_VICTOR = {
   fonte: 'meta-victor-ea-2026-08-18',
   // Mesmo campo que DIETA_VICTOR usa. É o que identifica os combos na tela de Combos: o
@@ -91,25 +70,25 @@ const META_VICTOR = {
   // iguais às que o Victor montou na mão.
   profissional: 'Gabrielle Rubio',
   meta: {
-    nome: 'Nutri Gabrielle — Semana 1, normocalórica (04/10/2026)',
-    kcal: 2700,
-    protein: 180,
-    carb: 340,
-    fat: 70,
+    nome: 'Nutri Gabrielle — Semana 2+, déficit (13/10/2026)',
+    kcal: 2350,
+    protein: 175,
+    carb: 288,
+    fat: 56,
     fiber: 28,
   },
   // A prescrição não prevê refeição livre. Null é deliberado: inventar um valor aqui seria
   // repetir o erro de 18/08 pelo avesso. A combinar com a nutricionista.
   refeicaoLivre: null,
-  kcalDiaNormal: 2700,
-  disclaimer: 'Prescrição da nutricionista Gabrielle Rubio (04/10/2026). Semana 1 é normocalórica; da semana 2 em diante o alvo cai para ~2350 kcal. Os combos abaixo são a transcrição do cardápio dela, com os valores calculados sobre a biblioteca do app.',
+  kcalDiaNormal: 2350,
+  disclaimer: 'Prescrição da nutricionista Gabrielle Rubio — fase 2, em déficit (transcrita em 13/10/2026). Mesma estrutura da semana 1 com as quantidades reduzidas: ~320 kcal a menos por dia, cortadas em carboidrato e gordura, com a proteína preservada em 2,1 g/kg. Os combos são a transcrição do cardápio dela, calculados sobre a biblioteca do app.',
   baseCalculo: [
-    'Alvo da semana 1: 2700 kcal (normocalórica). Semana 2 em diante: ~2350 kcal, déficit de ~380/dia = 0,35 kg de gordura por semana.',
-    'Cardápio transcrito dá 2633 kcal, P 180, C 340, G 66, fibra 29 — 2% abaixo do alvo declarado, dentro das faixas do próprio cardápio (legumes 150-200g, "1 porção de fruta").',
-    'Proteína em 2,15 g/kg de peso: faixa alta, adequada pra preservar massa magra no déficit que começa na semana 2.',
-    'O cálculo de baixo pra cima (TMB Katch-McArdle de 1847 sobre massa magra medida de 68,4 kg, mais 255 kcal/dia de exercício tirados dos registros reais) dá ~2700, o mesmo número dela — mas os dois são estimativas teóricas, não medida: convergir não prova. O multiplicador automático do app, com atividade "intensa", daria 3186 — alto demais para 19 treinos em 25 dias.',
-    'ATENÇÃO: o diário registra 1652 kcal/dia nos dias completos, incompatível com peso estável e TMB de 1847. A explicação mais provável é sub-registro de 20-30% nos próprios dias registrados (porção a olho, óleo do preparo, bebida), não dias ocultos — consumo real perto de 2200, e nesse caso o gasto real também é ~2200. Se for isso, 2700 na semana 1 é superávit de ~500/dia e o peso sobe ~0,45 kg: resultado esperado, não recaída.',
-    'A medida que separa as hipóteses: peso diário + registro completo por 14 dias, fins de semana incluídos. Com isso o gasto sai da equação de balanço sem depender de TMB prevista nem de multiplicador de atividade.',
+    'Alvo da fase 2: ~2350 kcal (déficit de ~350/dia sobre uma manutenção estimada em 2700, o que daria ~0,35 kg de gordura por semana).',
+    'Cardápio transcrito: dia de musculação dá 2313 kcal (P 174, C 288, G 56, fibra 28) e dia de corrida 2373 — 1,6% abaixo e 1,0% acima do alvo declarado, dentro das faixas do próprio cardápio (legumes 150-200g, "1 porção de fruta").',
+    'O corte de 320 kcal em relação à semana 1 sai quase todo de carboidrato (-52 g) e gordura (-10 g). A proteína cai só 6 g e fica em 2,08 g/kg — é o desenho certo pra preservar massa magra em déficit.',
+    'A fruta do jantar está marcada como "se necessário" no cardápio e ficou DENTRO dos combos: sem ela o dia dá 2203 kcal, um déficit de 0,45 kg/semana em vez dos 0,35 planejados. É o primeiro item a tirar num dia de menos fome.',
+    'Saturada caiu de 19,4 para 16,8 g/dia (6,5% das calorias, bem abaixo do teto de 10%). Vale acompanhar: o LDL foi 101 -> 111 -> 120 -> 137 e o HDL caiu de 54 para 38 em um ano.',
+    'ATENÇÃO: a semana 1 existia pra medir se 2700 era manutenção ou superávit, e isso depende de ter peso medido no começo e no fim. Sem essa medida, não dá pra saber se 2350 é déficit de 350 ou quase manutenção — a diferença entre as duas hipóteses é de 500 kcal/dia, e um erro aí só aparece depois de 3-4 semanas de balança parada.',
   ],
   combos: [
     {
@@ -168,17 +147,17 @@ const META_VICTOR = {
       "horario": "08:00",
       "itens": [
         {
-          "foodName": "Tapioca (goma hidratada) 80g",
+          "foodName": "Tapioca (goma hidratada) 60g",
           "qty": 1,
-          "kcal": 142.4,
-          "carbs": 35.2,
-          "sugars": 0.3,
-          "protein": 0.2,
+          "kcal": 106.8,
+          "carbs": 26.4,
+          "sugars": 0.2,
+          "protein": 0.1,
           "fat": 0,
           "satFat": 0,
           "transFat": 0,
-          "fiber": 0.5,
-          "sodium": 1.6
+          "fiber": 0.4,
+          "sodium": 1.2
         },
         {
           "foodName": "Ovo cozido 150g",
@@ -194,17 +173,17 @@ const META_VICTOR = {
           "sodium": 219
         },
         {
-          "foodName": "Queijo minas frescal 40g",
+          "foodName": "Queijo minas frescal 30g",
           "qty": 1,
-          "kcal": 116,
-          "carbs": 1.3,
-          "sugars": 1.3,
-          "protein": 7.2,
-          "fat": 8.8,
-          "satFat": 5.6,
+          "kcal": 87,
+          "carbs": 1,
+          "sugars": 1,
+          "protein": 5.4,
+          "fat": 6.6,
+          "satFat": 4.2,
           "transFat": 0,
           "fiber": 0,
-          "sodium": 173.3
+          "sodium": 130
         },
         {
           "foodName": "Banana nanica 120g",
@@ -218,19 +197,6 @@ const META_VICTOR = {
           "transFat": 0,
           "fiber": 2.3,
           "sodium": 1
-        },
-        {
-          "foodName": "Mel de abelha 15g",
-          "qty": 1,
-          "kcal": 38.3,
-          "carbs": 11,
-          "sugars": 11,
-          "protein": 0.1,
-          "fat": 0,
-          "satFat": 0,
-          "transFat": 0,
-          "fiber": 0.1,
-          "sodium": 2.3
         }
       ]
     },
@@ -239,17 +205,17 @@ const META_VICTOR = {
       "horario": "08:00",
       "itens": [
         {
-          "foodName": "Tapioca (goma hidratada) 80g",
+          "foodName": "Tapioca (goma hidratada) 60g",
           "qty": 1,
-          "kcal": 142.4,
-          "carbs": 35.2,
-          "sugars": 0.3,
-          "protein": 0.2,
+          "kcal": 106.8,
+          "carbs": 26.4,
+          "sugars": 0.2,
+          "protein": 0.1,
           "fat": 0,
           "satFat": 0,
           "transFat": 0,
-          "fiber": 0.5,
-          "sodium": 1.6
+          "fiber": 0.4,
+          "sodium": 1.2
         },
         {
           "foodName": "Ovo cozido 150g",
@@ -265,17 +231,17 @@ const META_VICTOR = {
           "sodium": 219
         },
         {
-          "foodName": "Queijo mussarela 40g",
+          "foodName": "Queijo mussarela 30g",
           "qty": 1,
-          "kcal": 120,
-          "carbs": 0.8,
-          "sugars": 0.8,
-          "protein": 8.8,
-          "fat": 9.2,
-          "satFat": 5.5,
+          "kcal": 90,
+          "carbs": 0.6,
+          "sugars": 0.6,
+          "protein": 6.6,
+          "fat": 6.9,
+          "satFat": 4.1,
           "transFat": 0,
           "fiber": 0,
-          "sodium": 234.6
+          "sodium": 176
         },
         {
           "foodName": "Mamão 180g",
@@ -289,19 +255,6 @@ const META_VICTOR = {
           "transFat": 0,
           "fiber": 3.1,
           "sodium": 5.4
-        },
-        {
-          "foodName": "Mel de abelha 15g",
-          "qty": 1,
-          "kcal": 38.3,
-          "carbs": 11,
-          "sugars": 11,
-          "protein": 0.1,
-          "fat": 0,
-          "satFat": 0,
-          "transFat": 0,
-          "fiber": 0.1,
-          "sodium": 2.3
         }
       ]
     },
@@ -386,17 +339,17 @@ const META_VICTOR = {
       "horario": "12:30",
       "itens": [
         {
-          "foodName": "Arroz branco cozido 200g",
+          "foodName": "Arroz branco cozido 150g",
           "qty": 1,
-          "kcal": 256,
-          "carbs": 56,
+          "kcal": 192,
+          "carbs": 42,
           "sugars": 0,
-          "protein": 5,
-          "fat": 0.4,
+          "protein": 3.8,
+          "fat": 0.3,
           "satFat": 0,
           "transFat": 0,
-          "fiber": 0.8,
-          "sodium": 2
+          "fiber": 0.6,
+          "sodium": 1.5
         },
         {
           "foodName": "Peito de frango cozido 150g",
@@ -425,14 +378,14 @@ const META_VICTOR = {
           "sodium": 17.5
         },
         {
-          "foodName": "Azeite de oliva 10g",
+          "foodName": "Azeite de oliva 8g",
           "qty": 1,
-          "kcal": 91.5,
+          "kcal": 73.2,
           "carbs": 0,
           "sugars": 0,
           "protein": 0,
-          "fat": 10.4,
-          "satFat": 1.5,
+          "fat": 8.3,
+          "satFat": 1.2,
           "transFat": 0,
           "fiber": 0,
           "sodium": 0
@@ -457,17 +410,17 @@ const META_VICTOR = {
       "horario": "12:30",
       "itens": [
         {
-          "foodName": "Arroz branco cozido 200g",
+          "foodName": "Arroz branco cozido 150g",
           "qty": 1,
-          "kcal": 256,
-          "carbs": 56,
+          "kcal": 192,
+          "carbs": 42,
           "sugars": 0,
-          "protein": 5,
-          "fat": 0.4,
+          "protein": 3.8,
+          "fat": 0.3,
           "satFat": 0,
           "transFat": 0,
-          "fiber": 0.8,
-          "sodium": 2
+          "fiber": 0.6,
+          "sodium": 1.5
         },
         {
           "foodName": "Ceviche 150g",
@@ -496,14 +449,14 @@ const META_VICTOR = {
           "sodium": 17.5
         },
         {
-          "foodName": "Azeite de oliva 10g",
+          "foodName": "Azeite de oliva 8g",
           "qty": 1,
-          "kcal": 91.5,
+          "kcal": 73.2,
           "carbs": 0,
           "sugars": 0,
           "protein": 0,
-          "fat": 10.4,
-          "satFat": 1.5,
+          "fat": 8.3,
+          "satFat": 1.2,
           "transFat": 0,
           "fiber": 0,
           "sodium": 0
@@ -528,17 +481,17 @@ const META_VICTOR = {
       "horario": "12:30",
       "itens": [
         {
-          "foodName": "Arroz branco cozido 200g",
+          "foodName": "Arroz branco cozido 150g",
           "qty": 1,
-          "kcal": 256,
-          "carbs": 56,
+          "kcal": 192,
+          "carbs": 42,
           "sugars": 0,
-          "protein": 5,
-          "fat": 0.4,
+          "protein": 3.8,
+          "fat": 0.3,
           "satFat": 0,
           "transFat": 0,
-          "fiber": 0.8,
-          "sodium": 2
+          "fiber": 0.6,
+          "sodium": 1.5
         },
         {
           "foodName": "Miolo de alcatra grelhado 150g",
@@ -567,14 +520,14 @@ const META_VICTOR = {
           "sodium": 17.5
         },
         {
-          "foodName": "Azeite de oliva 10g",
+          "foodName": "Azeite de oliva 8g",
           "qty": 1,
-          "kcal": 91.5,
+          "kcal": 73.2,
           "carbs": 0,
           "sugars": 0,
           "protein": 0,
-          "fat": 10.4,
-          "satFat": 1.5,
+          "fat": 8.3,
+          "satFat": 1.2,
           "transFat": 0,
           "fiber": 0,
           "sodium": 0
@@ -599,17 +552,17 @@ const META_VICTOR = {
       "horario": "12:30",
       "itens": [
         {
-          "foodName": "Arroz branco cozido 200g",
+          "foodName": "Arroz branco cozido 150g",
           "qty": 1,
-          "kcal": 256,
-          "carbs": 56,
+          "kcal": 192,
+          "carbs": 42,
           "sugars": 0,
-          "protein": 5,
-          "fat": 0.4,
+          "protein": 3.8,
+          "fat": 0.3,
           "satFat": 0,
           "transFat": 0,
-          "fiber": 0.8,
-          "sodium": 2
+          "fiber": 0.6,
+          "sodium": 1.5
         },
         {
           "foodName": "Tilápia grelhada 150g",
@@ -638,14 +591,14 @@ const META_VICTOR = {
           "sodium": 17.5
         },
         {
-          "foodName": "Azeite de oliva 10g",
+          "foodName": "Azeite de oliva 8g",
           "qty": 1,
-          "kcal": 91.5,
+          "kcal": 73.2,
           "carbs": 0,
           "sugars": 0,
           "protein": 0,
-          "fat": 10.4,
-          "satFat": 1.5,
+          "fat": 8.3,
+          "satFat": 1.2,
           "transFat": 0,
           "fiber": 0,
           "sodium": 0
@@ -696,17 +649,17 @@ const META_VICTOR = {
           "sodium": 37
         },
         {
-          "foodName": "Farelo de aveia 20g",
+          "foodName": "Farelo de aveia 15g",
           "qty": 1,
-          "kcal": 73.3,
-          "carbs": 11.5,
-          "sugars": 0.3,
-          "protein": 3.1,
-          "fat": 1.6,
-          "satFat": 0.3,
+          "kcal": 55,
+          "carbs": 8.6,
+          "sugars": 0.2,
+          "protein": 2.3,
+          "fat": 1.2,
+          "satFat": 0.2,
           "transFat": 0,
-          "fiber": 2,
-          "sodium": 0.7
+          "fiber": 1.5,
+          "sodium": 0.5
         },
         {
           "foodName": "Banana nanica 120g",
@@ -728,17 +681,17 @@ const META_VICTOR = {
       "horario": "20:00",
       "itens": [
         {
-          "foodName": "Arroz branco cozido 180g",
+          "foodName": "Arroz branco cozido 125g",
           "qty": 1,
-          "kcal": 230.4,
-          "carbs": 50.4,
+          "kcal": 160,
+          "carbs": 35,
           "sugars": 0,
-          "protein": 4.5,
-          "fat": 0.4,
+          "protein": 3.1,
+          "fat": 0.3,
           "satFat": 0,
           "transFat": 0,
-          "fiber": 0.7,
-          "sodium": 1.8
+          "fiber": 0.5,
+          "sodium": 1.3
         },
         {
           "foodName": "Peito de frango cozido 150g",
@@ -767,14 +720,14 @@ const META_VICTOR = {
           "sodium": 20
         },
         {
-          "foodName": "Azeite de oliva 10g",
+          "foodName": "Azeite de oliva 5g",
           "qty": 1,
-          "kcal": 91.5,
+          "kcal": 45.8,
           "carbs": 0,
           "sugars": 0,
           "protein": 0,
-          "fat": 10.4,
-          "satFat": 1.5,
+          "fat": 5.2,
+          "satFat": 0.7,
           "transFat": 0,
           "fiber": 0,
           "sodium": 0
@@ -799,17 +752,17 @@ const META_VICTOR = {
       "horario": "20:00",
       "itens": [
         {
-          "foodName": "Arroz branco cozido 180g",
+          "foodName": "Arroz branco cozido 125g",
           "qty": 1,
-          "kcal": 230.4,
-          "carbs": 50.4,
+          "kcal": 160,
+          "carbs": 35,
           "sugars": 0,
-          "protein": 4.5,
-          "fat": 0.4,
+          "protein": 3.1,
+          "fat": 0.3,
           "satFat": 0,
           "transFat": 0,
-          "fiber": 0.7,
-          "sodium": 1.8
+          "fiber": 0.5,
+          "sodium": 1.3
         },
         {
           "foodName": "Tilápia grelhada 150g",
@@ -838,14 +791,14 @@ const META_VICTOR = {
           "sodium": 20
         },
         {
-          "foodName": "Azeite de oliva 10g",
+          "foodName": "Azeite de oliva 5g",
           "qty": 1,
-          "kcal": 91.5,
+          "kcal": 45.8,
           "carbs": 0,
           "sugars": 0,
           "protein": 0,
-          "fat": 10.4,
-          "satFat": 1.5,
+          "fat": 5.2,
+          "satFat": 0.7,
           "transFat": 0,
           "fiber": 0,
           "sodium": 0
@@ -870,17 +823,17 @@ const META_VICTOR = {
       "horario": "20:00",
       "itens": [
         {
-          "foodName": "Arroz branco cozido 180g",
+          "foodName": "Arroz branco cozido 125g",
           "qty": 1,
-          "kcal": 230.4,
-          "carbs": 50.4,
+          "kcal": 160,
+          "carbs": 35,
           "sugars": 0,
-          "protein": 4.5,
-          "fat": 0.4,
+          "protein": 3.1,
+          "fat": 0.3,
           "satFat": 0,
           "transFat": 0,
-          "fiber": 0.7,
-          "sodium": 1.8
+          "fiber": 0.5,
+          "sodium": 1.3
         },
         {
           "foodName": "Miolo de alcatra grelhado 150g",
@@ -909,14 +862,14 @@ const META_VICTOR = {
           "sodium": 20
         },
         {
-          "foodName": "Azeite de oliva 10g",
+          "foodName": "Azeite de oliva 5g",
           "qty": 1,
-          "kcal": 91.5,
+          "kcal": 45.8,
           "carbs": 0,
           "sugars": 0,
           "protein": 0,
-          "fat": 10.4,
-          "satFat": 1.5,
+          "fat": 5.2,
+          "satFat": 0.7,
           "transFat": 0,
           "fiber": 0,
           "sodium": 0
