@@ -274,6 +274,19 @@ const ALIMENTOS_PADRAO = [
   // separados. Os 12g de pesto sozinhos já respondem por 54 das 193 kcal, e por 5,3 dos
   // 6,1g de gordura: num prato de massa ao pesto, o molho é o que pesa, não a massa.
   { name: 'Massa ao pesto', categoria: 'carboidrato', portionLabel: '100g', portionGrams: 100, kcal: 193, carbs: 28, sugars: 1.1, protein: 5.9, fat: 6.1, satFat: 1.1, transFat: 0, fiber: 1.7, sodium: 133 },
+  // Risoto de palmito do self-service. NÃO existe tabela pra ele, então é derivado dos itens
+  // desta própria biblioteca, na proporção de um risoto de buffet por 100g:
+  //   68g 'Arroz branco cozido' + 18g 'Palmito em conserva' + 4g 'Manteiga'
+  //   + 5g 'Queijo prato' (substituto do parmesão, que não temos) + 5g 'Creme de leite'
+  // Atwater fecha em -0,5%. O parmesão real tem ~50 kcal/100g a mais que o prato e bem mais
+  // sódio, então este número erra um pouco PRA BAIXO — está dito aqui pra ninguém tratar
+  // como medida.
+  //
+  // O que importa na hora de lançar: risoto NÃO é arroz. São 148 kcal/100g contra 128 do
+  // arroz branco, e sobretudo 6g de gordura contra 0,2 — manteiga, queijo e creme. Em 110g
+  // de risoto isso vira 6,7g de gordura que o arroz não teria. O palmito engana: ele é o
+  // ingrediente mais magro do prato e o que dá o nome.
+  { name: 'Risoto de palmito', categoria: 'carboidrato', portionLabel: '100g', portionGrams: 100, kcal: 148, carbs: 20.1, sugars: 0.5, protein: 3.2, fat: 6, satFat: 3.6, transFat: 0, fiber: 0.8, sodium: 98 },
   { name: 'Pão caseiro sovado', categoria: 'carboidrato', portionLabel: '100g', portionGrams: 100, kcal: 311, carbs: 61.5, sugars: 2, protein: 8.4, fat: 2.8, satFat: 0.6, transFat: 0, fiber: 2.4, sodium: 431 },
   { name: 'Torrada (pão francês)', categoria: 'carboidrato', portionLabel: '1 unidade (10g)', portionGrams: 10, kcal: 38, carbs: 7.5, sugars: 0.2, protein: 1.1, fat: 0.3, satFat: 0.1, transFat: 0, fiber: 0.3, sodium: 83 },
   { name: 'Pipoca (com óleo, sem sal)', categoria: 'outro', portionLabel: '1 xícara (15g)', portionGrams: 15, kcal: 67, carbs: 10.5, sugars: 0.2, protein: 1.5, fat: 2.4, satFat: 0.4, transFat: 0, fiber: 2.1, sodium: 1 },
