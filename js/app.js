@@ -14,6 +14,28 @@ const App = (() => {
     subStack: [],    // telas anteriores, pro botão voltar
   };
 
+  // 'state.date' nasce com o hoje DO MOMENTO EM QUE O APP CARREGOU, e isso não basta em
+  // celular: o app fica suspenso em segundo plano por dias, e ao voltar a data continua
+  // sendo a da última vez que abriu. Foi assim que um treino feito num dia foi parar no
+  // anterior — a tela parecia certa, só a data é que estava velha.
+  //
+  // 'hojeConhecido' guarda qual era o hoje na última vez que a gente olhou, e é o que
+  // permite distinguir os dois casos que importam:
+  //   - o usuário estava parado no hoje e o dia virou  -> acompanha, vai pro novo hoje;
+  //   - o usuário navegou pra outro dia de propósito   -> NÃO mexe, a escolha dele manda.
+  // Sem essa distinção o app arrastaria pra hoje a tela de um dia que a pessoa abriu pra
+  // conferir, que é um bug pior do que o que está sendo consertado.
+  let hojeConhecido = Util.todayISO();
+  function virarODiaSePreciso() {
+    const hoje = Util.todayISO();
+    if (hoje === hojeConhecido) return false;
+    const estavaNoHoje = state.date === hojeConhecido;
+    hojeConhecido = hoje;
+    if (!estavaNoHoje) return false;
+    state.date = hoje;
+    return true;
+  }
+
   const $app = document.getElementById('app');
   const $title = document.getElementById('page-title');
   const $dateNav = document.getElementById('date-nav');
@@ -76,6 +98,10 @@ const App = (() => {
   }
 
   function render() {
+    // Antes de qualquer coisa: se o dia virou desde a última olhada, a data acompanha.
+    // Fica aqui porque render() é por onde toda navegação passa — não adianta corrigir só
+    // no retorno do segundo plano, o app também pode ficar aberto atravessando a meia-noite.
+    virarODiaSePreciso();
     atualizarSino();
     const showDate = DATE_TABS.includes(state.tab) || SUB_DATE_VIEWS.includes(state.subView);
     $dateNav.style.display = showDate ? '' : 'none';
@@ -589,6 +615,13 @@ const App = (() => {
     lembrarPesagem();
     initOnboardingGate();
     atualizarOnboardingGate();
+
+    // Volta do segundo plano: o render() já corrige a data, mas só na próxima navegação.
+    // Aqui a tela acompanha na hora em que a pessoa volta pro app, que é quando ela vai
+    // digitar — e é exatamente o caso que gerou o bug (celular suspenso de um dia pro outro).
+    document.addEventListener('visibilitychange', () => {
+      if (document.visibilityState === 'visible' && virarODiaSePreciso()) render();
+    });
 
     $datePrev.addEventListener('click', () => {
       state.date = Util.addDaysISO(state.date, -1);
