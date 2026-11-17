@@ -222,6 +222,54 @@
 // e os 2350 viram déficit real de ~300/dia (1,2 kg/mês) SEM mexer na comida. Esse número é
 // de gasto e não depende de nada acima — vale mesmo com a causa do VO₂máx em aberto.
 //
+// ======================= O TREINO MOVE MENOS QUE A COMIDA =======================
+//
+// Reconstrução do gasto com exercício a partir das 2158 atividades do Strava. Método: a
+// caloria que o relógio gravou na atividade (bruta) MENOS o basal do tempo em movimento,
+// o que dá o líquido — mesma régua que o app usa em dietas.js.
+//
+//   ano    gasto com treino
+//   2023 ..... 379 kcal/dia
+//   2024 ..... 529 kcal/dia   <- pico, o ano do trajeto de bike
+//   2025 ..... 406 kcal/dia
+//   2026 ..... 340 kcal/dia
+//
+// DE 2024 PRA CÁ SÃO -189 kcal/dia. Em um ano isso dá 69000 kcal, o equivalente a ~9 kg se
+// a comida não tivesse mudado junto. Não é que ele engordou 9 kg — é o tamanho do vento
+// contra que apareceu, e a explicação mais provável de qualquer ganho desde 2024.
+//
+// NÃO DÁ PRA CORRELACIONAR PESO COM TREINO, e isso é limite de dado, não de método: não
+// existe nenhum registro de peso anterior a 05/03/2026. São 11 pontos em 7 meses numa faixa
+// de 2 kg. Qualquer r calculado aí seria ruído com cara de resultado. O Strava tem campo de
+// peso do atleta, mas só 3 das 2158 atividades o têm preenchido, todas com 70,0 kg — é o
+// padrão velho do perfil, não uma série.
+//
+// O QUE A JANELA COM OS DOIS DADOS MOSTRA (mar a set/2026):
+//
+//   mês      gasto treino   peso
+//   mar          368        85,3
+//   abr          228        84,6
+//   mai          403        85,4
+//   jun          418        84,4
+//   jul          357        84,1
+//   ago          304        83,7
+//   set          297        83,6
+//
+// De maio em diante o gasto com treino CAIU (403 -> 297) e o peso caiu JUNTO. Se o exercício
+// mandasse no peso dele, teria sido o contrário.
+//
+//   >>> O PESO DELE É CONDUZIDO PELA COMIDA, NÃO PELO TREINO. O treino move 200 a 400
+//   kcal/dia; o sub-registro sozinho é 821. São dois problemas separados: a alavanca do peso
+//   está no prato, a do condicionamento está no treino. Tratar como um só leva a cortar
+//   comida quando o que caiu foi volume de corrida, ou a treinar mais quando o que escapa é
+//   o registro alimentar.
+//
+// VOLUME DE CORRIDA ATUAL, como fato sem causa atribuída: o bloco de ago/2025 a mar/2026
+// rodou 144 km/mês com 1,6 longões (>15 km) por mês — maior período sustentado da série.
+// De ago/2026 pra cá são 70 km/mês e ZERO longões em 4 meses. O índice de forma estagnou
+// em ~12,7 exatamente desde agosto. Se foi taper proposital, ficha nova, joelho ou agenda,
+// ele não disse e eu NÃO vou atribuir — foi assim que errei três vezes em 17/11.
+//
 // ======================= RESSALVA QUE CONTINUA DE PÉ =======================
 //
 // NÃO HÁ REFEIÇÃO LIVRE na prescrição, e 'refeicaoLivre' segue null. Foi esse buraco que
@@ -267,6 +315,8 @@ const META_VICTOR = {
     'A COMPOSIÇÃO ESTÁ INDO BEM: de 05/03 a 25/09 o peso caiu 1,7 kg, dos quais 1,5 kg foram de GORDURA e só 0,2 kg de massa magra (19,6% -> 18,2%, queda monotônica nas 11 medições). É recomposição da qualidade certa, e a proteína alta da prescrição é o que está fazendo isso. O ritmo é que é lento: 0,24 kg/mês.',
     'A BIKE: em 2024 o trabalho mudou pra mais longe e ele passou a ir de bicicleta, 26 km/dia, 5x por semana; no começo de 2025 parou e passou a ir de carro. São ~690 kcal líquidas por dia de bike, ou ~490 kcal/dia na média — a maior mudança de gasto do período. O podômetro bate com a data: 2024 é o pico da série inteira (7806 passos/dia contra 4381 em 2023). Retomando 3x/semana em dezembro: +296 kcal/dia, gasto a ~2660, e os 2350 viram déficit de ~300/dia (1,2 kg/mês) sem mexer na comida.',
     'LESÃO NO JOELHO na prova "Live XP 30k" de 08/03/2026: 30,33 km em 187 min, ritmo 6:11/km, FC média 150. No dia seguinte ele deu 691 passos no dia inteiro. Perdeu rendimento, nunca parou de correr, está voltando aos poucos. Pelo Strava (2.158 atividades desde 2015), o VOLUME de corrida quase não mudou — 1.424 km em 2025 contra 1.148 em 2026 — e a distância por corrida caiu 29% em abril mas voltou em maio. O que NÃO voltou foi o rendimento: um índice de velocidade dividida pela fração da reserva de FC usada sai de 14,3 em fevereiro para 12,2 em abril, recupera metade até julho (13,4) e estagna desde agosto em ~12,7. São ~11% de perda, e o VO₂máx concorda por outro caminho (-4,5%). Ritmo e FC média seguem parecidos com os de 2025: o que mudou é que o mesmo ritmo custa mais.',
+    'O TREINO MOVE MENOS QUE A COMIDA, e isso muda onde mexer. Reconstruindo o gasto com exercício pelas 2.158 atividades do Strava: 379 kcal/dia em 2023, 529 em 2024, 406 em 2025 e 340 em 2026 — de 2024 pra cá são -189 kcal/dia, ou o equivalente a ~9 kg em um ano se a comida não tivesse mudado junto. Mas na única janela com peso E treino medidos (mar a set/2026), o gasto com treino caiu de 403 para 297 e o peso caiu JUNTO, de 85,4 para 83,6. Se o exercício mandasse no peso, teria sido o contrário. O treino move 200 a 400 kcal/dia; o sub-registro sozinho é 821. A alavanca do peso está no prato, a do condicionamento está no treino — são dois problemas separados.',
+    'NÃO DÁ PRA CORRELACIONAR PESO COM TREINO, e é limite de dado: não existe registro de peso anterior a 05/03/2026. São 11 pontos em 7 meses numa faixa de 2 kg, e qualquer correlação calculada aí seria ruído com cara de resultado. Pesando toda semana, em um ano são 52 pontos contra uma série de treino de 11 anos que já está pronta — aí a pergunta passa a ter resposta.',
     'A BIKE ERA A MAIOR FONTE DE VOLUME AERÓBICO DELE, e o Strava data isso com precisão: 4.518 km pedalados em 2024 (297 pedaladas, 14,1 km cada — o trajeto do trabalho), contra 1.863 km em 2025 e apenas 39 km em 2026. Começou em janeiro de 2024, quando a distância por pedalada saltou de 7,7 para 16 km, e acabou em junho de 2025, com um retorno isolado em setembro. Vale ~324 kcal/dia no pico contra 3 hoje. É a maior mudança de gasto da história dele, maior que qualquer ajuste de dieta já feito.',
     'NÃO foi o peso que tirou o condicionamento, foi o joelho. No período pós-lesão o peso CAIU: 85,3 kg em 05/03 para 83,6 em 25/09, com 1,5 dos 1,7 kg saindo de gordura. Se houve ganho, foi antes de março de 2026, onde não existe registro.',
     'A BIKE DEIXA DE SER SÓ CALORIA com a lesão na história: pedalar é aeróbico SEM IMPACTO, reconstrói a base aeróbica que o VO₂máx mede sem carregar o joelho. Isso inverte a ressalva de carga: o risco não é somar os 210 min/semana de bike, é apressar a volta do volume de corrida.',
