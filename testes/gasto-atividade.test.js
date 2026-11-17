@@ -14,6 +14,10 @@
 //   - MET 5 pra musculação era vigoroso demais: o medido dá 3,6-3,9 BRUTO (FC média de 86 a
 //     100 bpm, um terço da sessão em movimento), ou seja o 3,5 moderado do Compêndio.
 //
+// A mesma comparação descartou estimar musculação por %FC da reserva: ela erra de +58% a
+// +114% contra as 8 sessões medidas. Pra corrida fica em +7% a +23%, usável, mas o ACSM é
+// preferível porque usa distância e tempo, que o app guarda, em vez de FC média.
+//
 // O que este teste trava:
 //   - a equação de corrida do ACSM e a invariância do custo por km, contra os 4 casos medidos;
 //   - que o ramo de caminhada não voltou (é ele que quebra o intervalado);
