@@ -45,9 +45,68 @@
 //   se o gasto real for 2700 .. peso estável na semana 1, e 2350 agora dá -350/dia
 //   se o gasto real for ~2200 . peso SUBIU na semana 1, e 2350 agora é quase manutenção
 //
-// No segundo caso o déficit prometido (0,35 kg/semana) não acontece, e isso só aparece
-// daqui a 3-4 semanas de balança parada. Vale olhar o peso antes de assumir que a fase 2
-// está funcionando — a diferença entre as duas hipóteses é de 500 kcal/dia.
+// RESPONDIDA EM 17/11/2026, por outro caminho: exportação do relógio (Garmin) + backup do
+// app. É a SEGUNDA hipótese. Ver o bloco abaixo.
+//
+// ======================= MEDIDO EM 17/11/2026 =======================
+//
+// Três fontes que não se falam: 19 dias de atividade medida pelo relógio, 12 meses de
+// VO₂máx, e o backup do app com 11 medições de composição corporal.
+//
+// GASTO TOTAL ~2360 kcal/dia, não 2700.
+//   TMB 1792 (Mifflin-St Jeor: 84,5 kg, 1,74 m, 29 anos, masculino)
+//   x 1,2  -> trabalho sentado o dia todo, confirmado por ele; sem bônus de NEAT
+//   + 210  -> o que o treino REALMENTE adiciona, medido: 20 atividades em 19 dias,
+//             647 min, 4799 kcal brutas, menos o basal das sessões. São 34 min/dia.
+//   = 2361
+//   Confere com a balança: -1,7 kg em 204 dias = -64 kcal/dia de saldo, o que põe o
+//   consumo real em ~2297. Duas rotas independentes.
+//
+//   >>> LOGO: 2350 É MANUTENÇÃO, não déficit de 350. O déficit prometido de 0,35 kg/semana
+//   não acontece com essa prescrição sozinha. Isso é medição, não proposta — a decisão de
+//   o que fazer com ela é da nutricionista.
+//
+//   Por que o multiplicador errava 730 kcal: "Intenso (6-7x/semana)" (1,725) dá 3092. Ele
+//   treina 6x por semana, então o rótulo encaixa. Mas o multiplicador não mede frequência,
+//   mede custo — e 34 min/dia de esforço moderado custam pouco. O gasto medido cai entre
+//   'sedentário' (2151) e 'leve' (2465). O perfil dele já foi corrigido pra 'leve'.
+//
+// SUB-REGISTRO DE 36%.
+//   consumo real implícito .. 2297 kcal/dia (gasto 2361 menos o saldo da balança)
+//   registrado no app ....... 1475 kcal/dia (66 dias com registro, 05/03 a 25/09)
+//   diferença ............... 821 kcal/dia
+//   E isso só nos dias COM registro: 139 dos 205 dias do período não têm nada. A fase 2
+//   tem 7 dias registrados de 36 (19%), e nada depois de 23/10.
+//   Em 05/10 este arquivo estimou 20-30% de sub-registro. O medido é 36%: direção certa,
+//   magnitude baixa. Qualquer leitura de adesão pelo app precisa deste fator.
+//
+// A COMPOSIÇÃO ESTÁ INDO BEM, e isso é o que a prescrição tem de mérito.
+//   05/03: 85,3 kg, 19,6% -> 16,7 kg de gordura, 68,6 de magra
+//   25/09: 83,6 kg, 18,2% -> 15,2 kg de gordura, 68,4 de magra
+//   -1,5 kg de gordura contra -0,2 de magra: 88% da perda foi gordura. Lento
+//   (0,24 kg/mês) mas da qualidade certa, e o percentual de gordura cai de forma
+//   monotônica nas 11 medições. A proteína alta está fazendo o trabalho dela.
+//
+// ======================= A BIKE: O FATO QUE FALTAVA AQUI =======================
+//
+// Até o começo de 2025 o Victor ia e voltava do trabalho de bicicleta, 13 km cada trecho
+// (26 km/dia, ~35 min por trecho, 22,3 km/h), 5x por semana. Parou e passou a ir de carro.
+// Ele disse que engordou depois disso. ESTE FATO NÃO ESTAVA ESCRITO EM LUGAR NENHUM do
+// projeto até 17/11/2026, e a falta dele me levou a uma conclusão errada: eu vi a queda do
+// VO₂máx, não tinha a causa, e inferi ganho de peso que o backup desmente.
+//
+//   26 km a 22,3 km/h = 8 MET (Compêndio, faixa 12-13,9 mph)
+//   70 min x 7 MET líquidos x 84,5 kg = ~690 kcal líquidas por dia de bike
+//   a 5x/semana isso era ~490 kcal/dia na média. Foi a maior mudança de gasto do período.
+//
+// E EXPLICA O VO₂MÁX, que caiu 52,6 -> 49,2 mL/kg/min em 12 meses, sem uma reversão.
+// Como o peso CAIU no período, a capacidade absoluta caiu mais do que o número por quilo
+// sugere: 4,35 -> 4,13 L/min (-5%). Não é artefato de denominador, é perda real — ele
+// trocou ~350 min/semana de base aeróbica por ~74 (1,9 corrida intervalada de 39 min).
+//
+// RETOMADA em dezembro/2026, 3x/semana: +296 kcal/dia na média, gasto vai a ~2660, e os
+// 2350 viram déficit real de ~300/dia (1,2 kg/mês) SEM mexer na comida. Previsão testável:
+// se o VO₂máx não tiver subido até março/2027, a explicação acima está errada.
 //
 // ======================= RESSALVA QUE CONTINUA DE PÉ =======================
 //
@@ -88,7 +147,10 @@ const META_VICTOR = {
     'O corte de 320 kcal em relação à semana 1 sai quase todo de carboidrato (-52 g) e gordura (-10 g). A proteína cai só 6 g e fica em 2,08 g/kg — é o desenho certo pra preservar massa magra em déficit.',
     'A fruta do jantar está marcada como "se necessário" no cardápio e ficou DENTRO dos combos: sem ela o dia dá 2203 kcal, um déficit de 0,45 kg/semana em vez dos 0,35 planejados. É o primeiro item a tirar num dia de menos fome.',
     'Saturada caiu de 19,4 para 16,8 g/dia (6,5% das calorias, bem abaixo do teto de 10%). Vale acompanhar: o LDL foi 101 -> 111 -> 120 -> 137 e o HDL caiu de 54 para 38 em um ano.',
-    'ATENÇÃO: a semana 1 existia pra medir se 2700 era manutenção ou superávit, e isso depende de ter peso medido no começo e no fim. Sem essa medida, não dá pra saber se 2350 é déficit de 350 ou quase manutenção — a diferença entre as duas hipóteses é de 500 kcal/dia, e um erro aí só aparece depois de 3-4 semanas de balança parada.',
+    'MEDIDO EM 17/11: o gasto total é ~2360 kcal/dia, não 2700 — então 2350 é MANUTENÇÃO, e não déficit de 350. A conta: TMB 1792 (Mifflin, 84,5 kg, 1,74 m, 29 anos) x 1,2 (trabalho sentado o dia todo) + 210 kcal/dia que o treino realmente adiciona, medidos pelo relógio em 19 dias (20 atividades, 647 min, 34 min/dia). Confere com a balança por outro caminho: -1,7 kg em 204 dias são -64 kcal/dia de saldo. O multiplicador "Intenso (6-7x/semana)" dava 3092 e errava 730 kcal — ele treina 6x por semana, mas 34 min/dia de esforço moderado custam pouco.',
+    'MEDIDO EM 17/11: o diário sub-registra 821 kcal/dia, 36% do consumo real (registrado 1475 vs real ~2297), e isso só nos dias COM registro — 139 dos 205 dias não têm nada, e a fase 2 tem 7 dias de 36. Não é desleixo de quem anota: é o erro conhecido de registro alimentar (porção estimada a olho, óleo do preparo, bebida). Qualquer leitura de adesão por este app precisa desse fator.',
+    'A COMPOSIÇÃO ESTÁ INDO BEM: de 05/03 a 25/09 o peso caiu 1,7 kg, dos quais 1,5 kg foram de GORDURA e só 0,2 kg de massa magra (19,6% -> 18,2%, queda monotônica nas 11 medições). É recomposição da qualidade certa, e a proteína alta da prescrição é o que está fazendo isso. O ritmo é que é lento: 0,24 kg/mês.',
+    'A BIKE: até o começo de 2025 ele fazia 26 km/dia de bicicleta no trajeto do trabalho, 5x por semana, e parou (passou a ir de carro). São ~690 kcal líquidas por dia de bike, ou ~490 kcal/dia na média — a maior mudança de gasto do período, e o que explica o VO₂máx cair de 52,6 para 49,2 mL/kg/min em 12 meses (capacidade absoluta 4,35 -> 4,13 L/min, perda real e não efeito de peso). Retomando 3x/semana em dezembro: +296 kcal/dia, gasto a ~2660, e os 2350 viram déficit de ~300/dia (1,2 kg/mês) sem mexer na comida.',
   ],
   combos: [
     {
