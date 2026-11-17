@@ -184,6 +184,7 @@ const App = (() => {
     'exercicio-novo': 'Cadastrar exercício',
     'planos-treino': 'Planos de Treino',
     'treino-pacotes': 'Pacotes de treino',
+    'corrida-pacotes': 'Pacotes de corrida',
     'plano-editar': 'Editar treino',
     combos: 'Combos de Refeição',
     'combo-novo': 'Novo combo',
