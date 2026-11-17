@@ -55,7 +55,16 @@
 //
 // GASTO TOTAL ~2360 kcal/dia, não 2700.
 //   TMB 1792 (Mifflin-St Jeor: 84,5 kg, 1,74 m, 29 anos, masculino)
-//   x 1,2  -> trabalho sentado o dia todo, confirmado por ele; sem bônus de NEAT
+//   x 1,2  -> trabalho sentado o dia todo. ERA a maior incerteza desta conta, e foi MEDIDO
+//             em 17/11 pela exportação de podômetro do Samsung (2446 dias desde 2020):
+//               NEAT 127 (mediana dos 10 dias sem treino em 93) + TEF 230 (10% de 2300)
+//               sobre TMB 1792 = 2149, ou seja fator 1,199 contra o 1,200 assumido.
+//             Diferença de 2 kcal/dia no TDEE. A suposição se confirmou.
+//             De quebra: mediana de 4686 passos/dia nos últimos 90 dias, abaixo do corte
+//             de 5000 que classifica sedentário, e caindo ano a ano (7806 em 2024, 7079
+//             em 2025, 5455 em 2026). Os 34 min/dia de treino não compensam as outras
+//             15 horas acordado. Passos NÃO datam a parada da bike (pedalar não gera
+//             passo); é uma queda separada e somada.
 //   + 210  -> o que o treino REALMENTE adiciona, medido: 20 atividades em 19 dias,
 //             647 min, 4799 kcal brutas, menos o basal das sessões. São 34 min/dia.
 //   = 2361
@@ -147,7 +156,8 @@ const META_VICTOR = {
     'O corte de 320 kcal em relação à semana 1 sai quase todo de carboidrato (-52 g) e gordura (-10 g). A proteína cai só 6 g e fica em 2,08 g/kg — é o desenho certo pra preservar massa magra em déficit.',
     'A fruta do jantar está marcada como "se necessário" no cardápio e ficou DENTRO dos combos: sem ela o dia dá 2203 kcal, um déficit de 0,45 kg/semana em vez dos 0,35 planejados. É o primeiro item a tirar num dia de menos fome.',
     'Saturada caiu de 19,4 para 16,8 g/dia (6,5% das calorias, bem abaixo do teto de 10%). Vale acompanhar: o LDL foi 101 -> 111 -> 120 -> 137 e o HDL caiu de 54 para 38 em um ano.',
-    'MEDIDO EM 17/11: o gasto total é ~2360 kcal/dia, não 2700 — então 2350 é MANUTENÇÃO, e não déficit de 350. A conta: TMB 1792 (Mifflin, 84,5 kg, 1,74 m, 29 anos) x 1,2 (trabalho sentado o dia todo) + 210 kcal/dia que o treino realmente adiciona, medidos pelo relógio em 19 dias (20 atividades, 647 min, 34 min/dia). Confere com a balança por outro caminho: -1,7 kg em 204 dias são -64 kcal/dia de saldo. O multiplicador "Intenso (6-7x/semana)" dava 3092 e errava 730 kcal — ele treina 6x por semana, mas 34 min/dia de esforço moderado custam pouco.',
+    'MEDIDO EM 17/11: o gasto total é ~2360 kcal/dia, não 2700 — então 2350 é MANUTENÇÃO, e não déficit de 350. A conta: TMB 1792 (Mifflin, 84,5 kg, 1,74 m, 29 anos) x 1,2 (trabalho sentado o dia todo) + 210 kcal/dia que o treino realmente adiciona, medidos pelo relógio em 19 dias (20 atividades, 647 min, 34 min/dia). Confere com a balança por outro caminho: -1,7 kg em 204 dias são -64 kcal/dia de saldo. O multiplicador "Intenso (6-7x/semana)" dava 3092 e errava 730 kcal — ele treina 6x por semana, mas 34 min/dia de esforço moderado custam pouco. O fator 1,2 também foi MEDIDO, pela exportação de podômetro (2446 dias): deu 1,199, diferença de 2 kcal/dia.',
+    'MOVIMENTAÇÃO DIÁRIA EM FAIXA SEDENTÁRIA: mediana de 4686 passos/dia nos últimos 90 dias, abaixo do corte de 5000. E caindo ano a ano: 7806 em 2024, 7079 em 2025, 5455 em 2026. Trabalho sentado o dia todo, e os 34 min/dia de treino não compensam as outras 15 horas acordado. É o maior espaço de ganho fora da dieta — e é exatamente o que a volta da bike ataca.',
     'MEDIDO EM 17/11: o diário sub-registra 821 kcal/dia, 36% do consumo real (registrado 1475 vs real ~2297), e isso só nos dias COM registro — 139 dos 205 dias não têm nada, e a fase 2 tem 7 dias de 36. Não é desleixo de quem anota: é o erro conhecido de registro alimentar (porção estimada a olho, óleo do preparo, bebida). Qualquer leitura de adesão por este app precisa desse fator.',
     'A COMPOSIÇÃO ESTÁ INDO BEM: de 05/03 a 25/09 o peso caiu 1,7 kg, dos quais 1,5 kg foram de GORDURA e só 0,2 kg de massa magra (19,6% -> 18,2%, queda monotônica nas 11 medições). É recomposição da qualidade certa, e a proteína alta da prescrição é o que está fazendo isso. O ritmo é que é lento: 0,24 kg/mês.',
     'A BIKE: até o começo de 2025 ele fazia 26 km/dia de bicicleta no trajeto do trabalho, 5x por semana, e parou (passou a ir de carro). São ~690 kcal líquidas por dia de bike, ou ~490 kcal/dia na média — a maior mudança de gasto do período, e o que explica o VO₂máx cair de 52,6 para 49,2 mL/kg/min em 12 meses (capacidade absoluta 4,35 -> 4,13 L/min, perda real e não efeito de peso). Retomando 3x/semana em dezembro: +296 kcal/dia, gasto a ~2660, e os 2350 viram déficit de ~300/dia (1,2 kg/mês) sem mexer na comida.',
