@@ -105,18 +105,30 @@
 // ======================= A BIKE: O FATO QUE FALTAVA AQUI =======================
 //
 // Em 2024 o trabalho do Victor mudou pra mais longe e ele passou a ir e voltar de bicicleta
-// — 13 km cada trecho (26 km/dia, ~35 min por trecho, 22,3 km/h), 5x por semana. No começo
-// de 2025 parou e passou a ir de carro. ESTE FATO NÃO ESTAVA ESCRITO EM LUGAR NENHUM do
-// projeto até 17/11/2026, e a falta dele me levou a uma conclusão errada: eu vi a queda do
-// VO₂máx, não tinha a causa, e inferi ganho de peso que o backup desmente.
+// — 13 km cada trecho (26 km/dia, ~35 min por trecho, 22,3 km/h). ESTE FATO NÃO ESTAVA
+// ESCRITO EM LUGAR NENHUM do projeto até 17/11/2026, e a falta dele me levou a uma conclusão
+// errada: eu vi a queda do VO₂máx, não tinha a causa, e inferi ganho de peso que o backup
+// desmente.
 //
-//   26 km a 22,3 km/h = 8 MET (Compêndio, faixa 12-13,9 mph)
-//   70 min x 7 MET líquidos x 84,5 kg = ~690 kcal líquidas por dia de bike
-//   a 5x/semana isso era ~490 kcal/dia na média. Foi a maior mudança de gasto do período.
+// O STRAVA DATA ISSO COM PRECISÃO (842 pedaladas na exportação):
 //
-// O podômetro bate com a data: 2024 é o pico da série inteira (7806 passos/dia de mediana,
-// contra 4381 em 2023 e 5455 em 2026). Não PROVA a bike, pelo motivo da nota de cuidado lá
-// em cima, mas o degrau está no ano que ele descreve.
+//   mês        pedaladas   km     km por pedalada
+//   2023 ....... 21-36    ~200          7,7      <- pedal curto, antes do trabalho novo
+//   2024-01 ....    33     526         16,0      <- COMEÇA aqui: a distância por pedal dobra
+//   2024 (ano) .   297    4518         14,1      <- o ano cheio de trajeto
+//   2025-03 ....    27     373         13,8      <- último mês forte
+//   2025-04/06 . 13-19 200/244/176     ~13,5     <- afunilando
+//   2025-07/08 .     0       0                   <- para
+//   2025-09 ....     8     138         17,3      <- volta breve
+//   2025-10+ ...     0       0                   <- acaba de vez
+//   2026 (ano) .     3      39                   <- nada
+//
+// Corrige a memória dele e o que eu tinha escrito: não foi "começo de 2025", foi MEADOS —
+// último mês forte março/2025, fim efetivo em junho, com um retorno isolado em setembro.
+//
+// A MAIOR PERDA DE VOLUME AERÓBICO DA HISTÓRIA DELE: 4518 km em 2024 para 39 km em 2026.
+// A 0,31 kcal/kg/km e 84,5 kg, o trajeto valia ~324 kcal/dia em 2024 e vale 3 hoje.
+// (Confere com a projeção da retomada: 3x/semana x 26 km = 11,1 km/dia = ~291 kcal/dia.)
 //
 // ======================= LESÃO NO JOELHO: PROVA DE 30 KM, 08/03/2026 =======================
 //
@@ -140,34 +152,44 @@
 // captura do Samsung não explica nada, porque ele conta passo de andar pela casa. É alguém
 // que não conseguiu se mover.
 //
-// O QUE CAIU FOI DISTÂNCIA POR CORRIDA, NÃO FREQUÊNCIA. Cruzando a contagem mensal do
-// Garmin com os passos de corrida do Samsung:
+// A PROVA: "Live XP 30k", 30,33 km em 187 min, ritmo 6:11/km, FC média 150, máxima 171.
+// Confirmada pela exportação do Strava, que o Victor mandou em 17/11 — 2158 atividades
+// desde ago/2015, uma linha por atividade com distância, tempo em movimento, FC e caloria.
+// É a fonte boa; tudo que eu tinha medido por passo antes disso está superado.
 //
-//   mês      corridas   passos de corrida por corrida
-//   jan/26      17              5620
-//   fev         17              6135
-//   mar         12              7250
-//   abr         10              4168   <- -43% contra março, MESMO APARELHO
-//   mai         15              1527
-//   jun         16               392
-//   ago         13               285
-//   out         11               234
+// O QUE CAIU, E O QUE NÃO CAIU (números do Strava, não mais do podômetro):
 //
-// A frequência nunca caiu: 11 a 17 corridas por mês o ano inteiro. Em agosto foram 13
-// corridas e o Samsung viu 285 passos por corrida — 240 metros, fisicamente impossível.
-// Confirma o "nunca parei" dele.
+//   volume anual, km            2023    2024    2025    2026(321d)
+//     corrida ................  1188    1489    1424    1148
+//     pedalada ...............  1796    4518    1863      39
 //
-// Então a leitura correta é em duas partes:
-//   1. mar -> abr: queda REAL de 43% na distância por corrida, dentro do mesmo relógio
-//      (hsZnytrBvw vai de ago/25 a abr/26). É a lesão, medida.
-//   2. mai em diante: o dado NÃO VALE. Troca de relógio Samsung em maio e ele passa a correr
-//      com o Garmin. Qualquer "queda" depois disso é captura, não treino.
+//   corrida mês a mês, 2026     km    km/corr   ritmo   FC méd   índice de forma
+//     jan ...................  130      7,8     6:10     137       14,11
+//     fev ...................  146      7,7     6:24     132       14,27   <- melhor do ano
+//     mar ...................  109      8,4     6:39     138       12,81   <- a prova
+//     abr ...................   54      6,0     6:36     144       12,21   <- fundo
+//     mai ...................  131      8,8     6:14     144       12,93
+//     jun ...................  150      9,4     6:00     145       13,30
+//     jul ...................  125      8,9     6:09     142       13,39   <- recuperação parcial
+//     ago ...................   91      7,0     6:13     147       12,58
+//     out ...................   72      6,6     6:34     143       12,35
+//     nov (17 dias) .........   26      5,1     6:41     138       12,84
 //
-// Eu cheguei a escrever que "o volume de corrida desabou" com r=0,91 contra o VO₂máx. Errado
-// na forma: o 0,91 é majoritariamente o relógio deixando de gravar. O que não dá pra medir
-// com nenhum arquivo que eu tenho é RITMO e distância por corrida ao longo do ano — para
-// isso é preciso a exportação DETALHADA do Garmin (uma linha por atividade, com distância e
-// tempo), rolando a lista até o começo do período. A que veio tem só a contagem mensal.
+//   índice de forma = velocidade (km/h) dividida pela fração da reserva de FC usada
+//   (reserva 130 = 177 - 47). Mais alto é melhor: mais velocidade pelo mesmo esforço.
+//
+// DUAS CORREÇÕES ao que eu escrevi antes nesta mesma noite, ambas por confiar no podômetro:
+//
+//   1. "O volume de corrida desabou" — NÃO desabou. 1424 km em 2025 contra 1148 em 2026 é
+//      -19%, não os -93% que os passos sugeriam. O r=0,91 contra o VO₂máx era o relógio
+//      deixando de gravar, como eu já suspeitava, e agora está provado.
+//   2. "Distância por corrida caiu 43% e seguiu caindo" — caiu 29% em abril (8,4 -> 6,0 km)
+//      e VOLTOU em maio (8,8) e junho (9,4), acima do pré-lesão. Errado nas duas metades.
+//
+// O QUE DE FATO NÃO VOLTOU é o rendimento: o índice estava em 14,3 em fevereiro, foi a 12,2
+// em abril, recuperou metade até julho (13,4) e ESTAGNOU desde agosto, em ~12,7. São ~11% de
+// perda, e o VO₂máx diz o mesmo por outro caminho (-4,5%). Ritmo e FC média seguem parecidos
+// com os de 2025 — o que mudou é que o mesmo ritmo custa mais.
 //
 // É A EXPLICAÇÃO DO VO₂MÁX, e aqui o relato dele vale mais que a minha correlação. O número
 // caiu 52,6 -> 49,2 mL/kg/min; como o peso CAIU no período, a capacidade absoluta caiu mais
@@ -244,7 +266,8 @@ const META_VICTOR = {
     'MEDIDO EM 17/11: o diário sub-registra 821 kcal/dia, 36% do consumo real (registrado 1475 vs real ~2297), e isso só nos dias COM registro — 139 dos 205 dias não têm nada, e a fase 2 tem 7 dias de 36. Não é desleixo de quem anota: é o erro conhecido de registro alimentar (porção estimada a olho, óleo do preparo, bebida). Qualquer leitura de adesão por este app precisa desse fator.',
     'A COMPOSIÇÃO ESTÁ INDO BEM: de 05/03 a 25/09 o peso caiu 1,7 kg, dos quais 1,5 kg foram de GORDURA e só 0,2 kg de massa magra (19,6% -> 18,2%, queda monotônica nas 11 medições). É recomposição da qualidade certa, e a proteína alta da prescrição é o que está fazendo isso. O ritmo é que é lento: 0,24 kg/mês.',
     'A BIKE: em 2024 o trabalho mudou pra mais longe e ele passou a ir de bicicleta, 26 km/dia, 5x por semana; no começo de 2025 parou e passou a ir de carro. São ~690 kcal líquidas por dia de bike, ou ~490 kcal/dia na média — a maior mudança de gasto do período. O podômetro bate com a data: 2024 é o pico da série inteira (7806 passos/dia contra 4381 em 2023). Retomando 3x/semana em dezembro: +296 kcal/dia, gasto a ~2660, e os 2350 viram déficit de ~300/dia (1,2 kg/mês) sem mexer na comida.',
-    'LESÃO NO JOELHO numa prova de 30 km em 08/03/2026 (domingo): perdeu ritmo e reduziu volume de corrida, nunca parou, está voltando aos poucos e já melhorou. É a explicação da queda do VO₂máx (52,6 para 49,2 mL/kg/min; como o peso caiu, a capacidade absoluta caiu mais: 4,35 -> 4,13 L/min). O podômetro data isso sozinho: 08/03 é o maior dia dos 2446 da série (29.561 passos de corrida, 39,5 km) e no dia seguinte ele deu 691 passos no dia inteiro. O que caiu foi DISTÂNCIA por corrida, não frequência: ele seguiu correndo 11 a 17 vezes por mês o ano todo, mas a distância por corrida cai 43% de março para abril (7.250 para 4.168 passos, no mesmo relógio). A curva do VO₂máx confirma que a recuperação está em curso: -2,8 de dezembro a maio, -0,6 de junho a novembro, estável há 6 meses.',
+    'LESÃO NO JOELHO na prova "Live XP 30k" de 08/03/2026: 30,33 km em 187 min, ritmo 6:11/km, FC média 150. No dia seguinte ele deu 691 passos no dia inteiro. Perdeu rendimento, nunca parou de correr, está voltando aos poucos. Pelo Strava (2.158 atividades desde 2015), o VOLUME de corrida quase não mudou — 1.424 km em 2025 contra 1.148 em 2026 — e a distância por corrida caiu 29% em abril mas voltou em maio. O que NÃO voltou foi o rendimento: um índice de velocidade dividida pela fração da reserva de FC usada sai de 14,3 em fevereiro para 12,2 em abril, recupera metade até julho (13,4) e estagna desde agosto em ~12,7. São ~11% de perda, e o VO₂máx concorda por outro caminho (-4,5%). Ritmo e FC média seguem parecidos com os de 2025: o que mudou é que o mesmo ritmo custa mais.',
+    'A BIKE ERA A MAIOR FONTE DE VOLUME AERÓBICO DELE, e o Strava data isso com precisão: 4.518 km pedalados em 2024 (297 pedaladas, 14,1 km cada — o trajeto do trabalho), contra 1.863 km em 2025 e apenas 39 km em 2026. Começou em janeiro de 2024, quando a distância por pedalada saltou de 7,7 para 16 km, e acabou em junho de 2025, com um retorno isolado em setembro. Vale ~324 kcal/dia no pico contra 3 hoje. É a maior mudança de gasto da história dele, maior que qualquer ajuste de dieta já feito.',
     'NÃO foi o peso que tirou o condicionamento, foi o joelho. No período pós-lesão o peso CAIU: 85,3 kg em 05/03 para 83,6 em 25/09, com 1,5 dos 1,7 kg saindo de gordura. Se houve ganho, foi antes de março de 2026, onde não existe registro.',
     'A BIKE DEIXA DE SER SÓ CALORIA com a lesão na história: pedalar é aeróbico SEM IMPACTO, reconstrói a base aeróbica que o VO₂máx mede sem carregar o joelho. Isso inverte a ressalva de carga: o risco não é somar os 210 min/semana de bike, é apressar a volta do volume de corrida.',
   ],
