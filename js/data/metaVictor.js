@@ -63,8 +63,14 @@
 //             De quebra: mediana de 4686 passos/dia nos últimos 90 dias, abaixo do corte
 //             de 5000 que classifica sedentário, e caindo ano a ano (7806 em 2024, 7079
 //             em 2025, 5455 em 2026). Os 34 min/dia de treino não compensam as outras
-//             15 horas acordado. Passos NÃO datam a parada da bike (pedalar não gera
-//             passo); é uma queda separada e somada.
+//             15 horas acordado.
+//             CUIDADO ao usar passos pra datar a bike. Eu escrevi aqui que "pedalar não
+//             gera passo" e isso é firme demais: relógio de pulso costuma contar passo
+//             fantasma pedalando (vibração e movimento de braço), e este arquivo classifica
+//             TODO passo como caminhada ou corrida — não existe terceira categoria, então
+//             passo fantasma de bike entraria mudo dentro de "caminhada". Conferido: a soma
+//             caminhada+corrida fecha o total em 100% dos dias. Logo, passos não datam nem
+//             descartam a bike.
 //   + 210  -> o que o treino REALMENTE adiciona, medido: 20 atividades em 19 dias,
 //             647 min, 4799 kcal brutas, menos o basal das sessões. São 34 min/dia.
 //   = 2361
@@ -98,9 +104,9 @@
 //
 // ======================= A BIKE: O FATO QUE FALTAVA AQUI =======================
 //
-// Até o começo de 2025 o Victor ia e voltava do trabalho de bicicleta, 13 km cada trecho
-// (26 km/dia, ~35 min por trecho, 22,3 km/h), 5x por semana. Parou e passou a ir de carro.
-// Ele disse que engordou depois disso. ESTE FATO NÃO ESTAVA ESCRITO EM LUGAR NENHUM do
+// Em 2024 o trabalho do Victor mudou pra mais longe e ele passou a ir e voltar de bicicleta
+// — 13 km cada trecho (26 km/dia, ~35 min por trecho, 22,3 km/h), 5x por semana. No começo
+// de 2025 parou e passou a ir de carro. ESTE FATO NÃO ESTAVA ESCRITO EM LUGAR NENHUM do
 // projeto até 17/11/2026, e a falta dele me levou a uma conclusão errada: eu vi a queda do
 // VO₂máx, não tinha a causa, e inferi ganho de peso que o backup desmente.
 //
@@ -108,14 +114,36 @@
 //   70 min x 7 MET líquidos x 84,5 kg = ~690 kcal líquidas por dia de bike
 //   a 5x/semana isso era ~490 kcal/dia na média. Foi a maior mudança de gasto do período.
 //
-// E EXPLICA O VO₂MÁX, que caiu 52,6 -> 49,2 mL/kg/min em 12 meses, sem uma reversão.
-// Como o peso CAIU no período, a capacidade absoluta caiu mais do que o número por quilo
-// sugere: 4,35 -> 4,13 L/min (-5%). Não é artefato de denominador, é perda real — ele
-// trocou ~350 min/semana de base aeróbica por ~74 (1,9 corrida intervalada de 39 min).
+// O podômetro bate com a data: 2024 é o pico da série inteira (7806 passos/dia de mediana,
+// contra 4381 em 2023 e 5455 em 2026). Não PROVA a bike, pelo motivo da nota de cuidado lá
+// em cima, mas o degrau está no ano que ele descreve.
 //
-// RETOMADA em dezembro/2026, 3x/semana: +296 kcal/dia na média, gasto vai a ~2660, e os
-// 2350 viram déficit real de ~300/dia (1,2 kg/mês) SEM mexer na comida. Previsão testável:
-// se o VO₂máx não tiver subido até março/2027, a explicação acima está errada.
+// ======================= O VO₂MÁX: NÃO ATRIBUÍDO =======================
+//
+// O VO₂máx caiu 52,6 -> 49,2 mL/kg/min em 12 meses, sem uma reversão. Como o peso CAIU no
+// período, a capacidade absoluta caiu mais do que o número por quilo sugere: 4,35 -> 4,13
+// L/min (-5%). A QUEDA É REAL; a CAUSA é que não está estabelecida.
+//
+// Eu escrevi aqui, mais cedo em 17/11, que a bike "EXPLICA o VO₂máx". Retiro. Há pelo menos
+// dois candidatos e eu não consigo separá-los:
+//
+//   1. a bike, que parou no começo de 2025;
+//   2. o volume de CORRIDA, que desabou em 2026 — passos de corrida por dia caíram de
+//      ~3000 (jan-mar) para ~100-600 (ago-nov). A correlação com o VO₂máx nos 12 meses em
+//      que tenho os dois é r = 0,91.
+//
+// O 0,91 parece decisivo e NÃO é: o Victor usa o Garmin pra correr e o Samsung perde a
+// maior parte dessas corridas. Conferido contra 5 corridas que o Garmin registrou entre
+// 04/11 e 17/11: o Samsung viu 5349 de 21742 passos, 25% — e numa delas viu 9 passos contra
+// 6662. Ou seja, parte do "desabou" é o aparelho, não o treino. Pra piorar, o período em que
+// a série despenca (abr-mai/2026) coincide com uma troca de relógio Samsung.
+//
+// O que resolveria: volume de corrida pelo GARMIN (que é onde as corridas estão de fato),
+// mês a mês, contra a mesma curva de VO₂máx. Até lá, não atribuir.
+//
+// RETOMADA da bike em dezembro/2026, 3x/semana: +296 kcal/dia na média, gasto vai a ~2660,
+// e os 2350 viram déficit real de ~300/dia (1,2 kg/mês) SEM mexer na comida. Esse número é
+// de gasto e não depende de nada acima — vale mesmo com a causa do VO₂máx em aberto.
 //
 // ======================= RESSALVA QUE CONTINUA DE PÉ =======================
 //
@@ -160,7 +188,8 @@ const META_VICTOR = {
     'MOVIMENTAÇÃO DIÁRIA EM FAIXA SEDENTÁRIA: mediana de 4686 passos/dia nos últimos 90 dias, abaixo do corte de 5000. E caindo ano a ano: 7806 em 2024, 7079 em 2025, 5455 em 2026. Trabalho sentado o dia todo, e os 34 min/dia de treino não compensam as outras 15 horas acordado. É o maior espaço de ganho fora da dieta — e é exatamente o que a volta da bike ataca.',
     'MEDIDO EM 17/11: o diário sub-registra 821 kcal/dia, 36% do consumo real (registrado 1475 vs real ~2297), e isso só nos dias COM registro — 139 dos 205 dias não têm nada, e a fase 2 tem 7 dias de 36. Não é desleixo de quem anota: é o erro conhecido de registro alimentar (porção estimada a olho, óleo do preparo, bebida). Qualquer leitura de adesão por este app precisa desse fator.',
     'A COMPOSIÇÃO ESTÁ INDO BEM: de 05/03 a 25/09 o peso caiu 1,7 kg, dos quais 1,5 kg foram de GORDURA e só 0,2 kg de massa magra (19,6% -> 18,2%, queda monotônica nas 11 medições). É recomposição da qualidade certa, e a proteína alta da prescrição é o que está fazendo isso. O ritmo é que é lento: 0,24 kg/mês.',
-    'A BIKE: até o começo de 2025 ele fazia 26 km/dia de bicicleta no trajeto do trabalho, 5x por semana, e parou (passou a ir de carro). São ~690 kcal líquidas por dia de bike, ou ~490 kcal/dia na média — a maior mudança de gasto do período, e o que explica o VO₂máx cair de 52,6 para 49,2 mL/kg/min em 12 meses (capacidade absoluta 4,35 -> 4,13 L/min, perda real e não efeito de peso). Retomando 3x/semana em dezembro: +296 kcal/dia, gasto a ~2660, e os 2350 viram déficit de ~300/dia (1,2 kg/mês) sem mexer na comida.',
+    'A BIKE: em 2024 o trabalho mudou pra mais longe e ele passou a ir de bicicleta, 26 km/dia, 5x por semana; no começo de 2025 parou e passou a ir de carro. São ~690 kcal líquidas por dia de bike, ou ~490 kcal/dia na média — a maior mudança de gasto do período. O podômetro bate com a data: 2024 é o pico da série inteira (7806 passos/dia contra 4381 em 2023). Retomando 3x/semana em dezembro: +296 kcal/dia, gasto a ~2660, e os 2350 viram déficit de ~300/dia (1,2 kg/mês) sem mexer na comida.',
+    'O VO₂MÁX CAIU, MAS A CAUSA NÃO ESTÁ ESTABELECIDA: de 52,6 para 49,2 mL/kg/min em 12 meses, sem reversão, e como o peso caiu a capacidade absoluta caiu mais (4,35 -> 4,13 L/min). A queda é real. Há dois candidatos que eu não consigo separar: a parada da bike no começo de 2025, e o volume de corrida, que desabou em 2026. Esta segunda hipótese tem correlação de 0,91 com a curva, o que parece decisivo e não é: ele corre com o Garmin, e o Samsung perdeu 75% dos passos de corrida numa amostra de 5 corridas conferidas. Para resolver, é preciso o volume de corrida pelo Garmin.',
   ],
   combos: [
     {
