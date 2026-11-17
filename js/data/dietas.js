@@ -368,24 +368,80 @@ function sugerirRefeicoesDoDia(date, shuffleSeed = 0, meta = null) {
   return _escalarParaMeta(resultado, meta);
 }
 
-// Estimativa de calorias gastas em atividades do dia (corrida + musculação),
-// usada para preencher automaticamente o campo de gasto extra em Início.
+// ======================= GASTO ESTIMADO DE ATIVIDADE =======================
+//
+// ONDE ESTE NÚMERO É LIDO: no campo "Calorias extras gastas" do Início e, sobretudo, no
+// relatório que vai pra nutricionista. Ele NÃO entra no orçamento de calorias do dia — o
+// restante continua sendo 'meta − consumido'. Isso é deliberado: a meta prescrita já
+// pressupõe os treinos, e somar gasto de exercício por cima transformaria a prescrição em
+// outra coisa, usando um número que erra fácil 30% em musculação.
+//
+// TUDO AQUI É LÍQUIDO (acima do repouso). A versão anterior somava o gasto BRUTO, que
+// inclui o metabolismo basal que a pessoa teria gastado parada: numa sessão de 1 hora a
+// 83 kg isso são ~87 kcal que não são do exercício. Como o relatório põe esse número ao
+// lado do TDEE (que já contém o basal), o bruto convidava à dupla contagem.
+const KCAL_POR_LITRO_O2 = 5;      // equivalente calórico do oxigênio, aproximação usual
+const VO2_REPOUSO = 3.5;          // mL/kg/min = 1 MET, o que se gasta parado
+const VEL_CORRIDA_MIN = 134;      // m/min (~8 km/h): abaixo disso o ACSM manda usar caminhada
+
+// Equações metabólicas do ACSM, em terreno plano (sem inclinação):
+//   caminhada: VO₂ = 0,1 × velocidade + 3,5
+//   corrida:   VO₂ = 0,2 × velocidade + 3,5
+// O termo 3,5 é o repouso e sai fora porque queremos o líquido.
+//
+// Por que trocar a regra de bolso 'peso × km × 1,036': aquela ignora o ritmo. Pra CORRIDA
+// ela é boa (o custo por km quase não varia com a velocidade), mas pra CAMINHADA erra muito
+// — 5 km a 83 kg davam 430 kcal contra ~294 reais, 46% a mais. Como o app guarda distância
+// E tempo, dá pra saber qual dos dois foi, pela velocidade média.
+//
+// Limite conhecido: uma corrida com muita caminhada no meio tem velocidade média baixa e
+// cai na equação de caminhada, subestimando. Sem o dado por trecho (que só viria de
+// relógio), velocidade média é o único sinal disponível.
+function kcalCorridaLiquido(distanceKm, timeMin, peso) {
+  if (!distanceKm || !timeMin || !peso) return 0;
+  const velocidade = (distanceKm * 1000) / timeMin;   // m/min
+  const vo2Liquido = velocidade >= VEL_CORRIDA_MIN ? 0.2 * velocidade : 0.1 * velocidade;
+  return (vo2Liquido * peso / 1000) * KCAL_POR_LITRO_O2 * timeMin;
+}
+
+// Musculação continua em MET, porque não existe jeito melhor com o que o app guarda: séries
+// e cargas dizem o trabalho mecânico, mas converter isso em caloria depende de eficiência
+// muscular, que varia demais entre pessoas e exercícios.
+//
+// MET 5 vem do Compêndio de Atividades Físicas, entre os dois códigos que descrevem o treino
+// do Victor: 3,5 ("múltiplos exercícios, 8-15 repetições") e 6,0 ("vigorosa, body building").
+// O 3,5 pressupõe descanso folgado; a ficha dele tem 35s entre séries, o que deixa a sessão
+// mais densa. O -1 é o repouso, que sai pra dar o líquido.
+const MET_MUSCULACAO = 5;
+function kcalMusculacaoLiquido(duracaoMin, peso) {
+  if (!duracaoMin || !peso) return 0;
+  return (MET_MUSCULACAO - 1) * peso * (duracaoMin / 60);
+}
+
+// Devolve o gasto do dia separado por modalidade. O relatório usa a separação; quem só
+// precisa do total chama calcularGastoEstimado.
+function detalharGastoEstimado(date, dados) {
+  const peso = dados ? dados.peso : Util.getPesoAtual();
+  if (!peso) return { corrida: 0, musculacao: 0, total: 0 };
+  const corridas = dados ? (dados.corridas || []).filter(c => c.date === date) : Storage.getByDate('corridas', date);
+  const treinos = dados ? (dados.treino || []).filter(t => t.date === date) : Storage.getByDate('treino', date);
+
+  let corrida = 0;
+  corridas.forEach(c => { corrida += kcalCorridaLiquido(c.distanceKm, c.timeMin, peso); });
+  let musculacao = 0;
+  // Sem duração informada não dá pra estimar nada: um treino de 20 min e um de 90 min
+  // gastam coisas muito diferentes, e chutar um valor fixo seria inventar.
+  treinos.forEach(t => { musculacao += kcalMusculacaoLiquido(t.duracaoMin, peso); });
+
+  return {
+    corrida: Math.round(corrida),
+    musculacao: Math.round(musculacao),
+    total: Math.round(corrida + musculacao),
+  };
+}
+
 function calcularGastoEstimado(date) {
-  const peso = Util.getPesoAtual();
-  if (!peso) return 0;
-  let total = 0;
-
-  Storage.getByDate('corridas', date).forEach(c => {
-    // Regra geral: ~1 kcal por kg de peso corporal por km percorrido (corrida).
-    if (c.distanceKm) total += peso * c.distanceKm * 1.036;
-  });
-
-  Storage.getByDate('treino', date).forEach(t => {
-    // MET ~5 (musculação moderada) — só entra na conta se a duração foi informada.
-    if (t.duracaoMin) total += 5 * peso * (t.duracaoMin / 60);
-  });
-
-  return Math.round(total);
+  return detalharGastoEstimado(date).total;
 }
 
 // Cria/atualiza o registro de gasto extra do dia com a estimativa automática,
