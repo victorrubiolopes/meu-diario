@@ -449,10 +449,15 @@ function kcalCorridaLiquido(distanceKm, timeMin, peso) {
 // MOVIMENTO é um terço da sessão (22,6 de 69,6 min em 13/11): o resto é descanso entre
 // séries, parado. Densidade de descanso curto não transforma a sessão em vigorosa.
 //
-// NÃO usar %FC da reserva pra musculação: comparado com estas 8 medições, ela erra ~60% pra
-// cima. A FC sobe no treino de força fora de proporção com o consumo de oxigênio (contração
-// estática, massa muscular menor, resposta pressórica). Pra corrida ela funciona — fica 9%
-// acima do medido —, mas pra força não.
+// NÃO usar %FC da reserva pra musculação. Comparada com estas 8 medições (ancorando %VO₂ da
+// reserva no VO₂máx de 49,2 do relógio, repouso 47 e máximo 177), ela erra de +58% a +114%,
+// com média acima de +70%. A faixa é larga porque não tenho peso e TMB medidos, mas o sinal
+// não muda em nenhum ponto dela: a FC sobe no treino de força fora de proporção com o consumo
+// de oxigênio (contração estática, massa muscular menor, resposta pressórica).
+//
+// Pra corrida ela é usável: +7% a +23% sobre o medido. Mesmo assim o ACSM é preferível, por
+// depender de distância e tempo — dois números que o app já guarda — em vez de FC média, que
+// só vem de relógio.
 const MET_MUSCULACAO = 3.5;
 function kcalMusculacaoLiquido(duracaoMin, peso) {
   if (!duracaoMin || !peso) return 0;
