@@ -372,15 +372,20 @@ const App = (() => {
     // gravados guardam o número da fórmula velha, e só seriam recalculados se o dia fosse
     // editado de novo — o relatório pra nutricionista ficaria somando duas réguas diferentes.
     //
+    // A chave está em _v2 porque a fórmula foi corrigida DUAS vezes. A v1 ainda escolhia a
+    // equação pela velocidade média (subestimava intervalado pela metade) e usava MET 5 na
+    // musculação (alto demais). Quem já rodou a v1 tem gasto gravado com essas duas réguas e
+    // precisa recalcular de novo — por isso a chave nova em vez de reaproveitar a antiga.
+    //
     // Só mexe no que é 'auto': um valor que a pessoa digitou na mão é dado dela, não
     // estimativa, e sobrescrever seria apagar a correção que ela fez de propósito.
-    if (typeof calcularGastoEstimado === 'function' && !localStorage.getItem('gastos_recalculados_acsm')) {
+    if (typeof calcularGastoEstimado === 'function' && !localStorage.getItem('gastos_recalculados_acsm_v2')) {
       Storage.getAll('gastos').forEach(g => {
         if (g.source === 'manual' || !g.date) return;
         const novo = calcularGastoEstimado(g.date);
         if (novo !== g.kcal) Storage.update('gastos', g.id, { kcal: novo, source: 'auto' });
       });
-      localStorage.setItem('gastos_recalculados_acsm', '1');
+      localStorage.setItem('gastos_recalculados_acsm_v2', '1');
     }
 
     // Migração: "emagrecimento" virou 3 níveis (adaptação/moderado/agressivo). Quem já tinha

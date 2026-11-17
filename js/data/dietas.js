@@ -382,37 +382,78 @@ function sugerirRefeicoesDoDia(date, shuffleSeed = 0, meta = null) {
 // lado do TDEE (que já contém o basal), o bruto convidava à dupla contagem.
 const KCAL_POR_LITRO_O2 = 5;      // equivalente calórico do oxigênio, aproximação usual
 const VO2_REPOUSO = 3.5;          // mL/kg/min = 1 MET, o que se gasta parado
-const VEL_CORRIDA_MIN = 134;      // m/min (~8 km/h): abaixo disso o ACSM manda usar caminhada
 
-// Equações metabólicas do ACSM, em terreno plano (sem inclinação):
-//   caminhada: VO₂ = 0,1 × velocidade + 3,5
-//   corrida:   VO₂ = 0,2 × velocidade + 3,5
-// O termo 3,5 é o repouso e sai fora porque queremos o líquido.
+// Equação metabólica do ACSM pra corrida em terreno plano (sem inclinação):
+//   VO₂ = 0,2 × velocidade + 3,5
+// O termo 3,5 é o repouso e sai fora porque queremos o líquido. O termo da velocidade
+// cancela com a distância, então o custo líquido dá 1,0 kcal/kg/km em qualquer ritmo.
 //
-// Por que trocar a regra de bolso 'peso × km × 1,036': aquela ignora o ritmo. Pra CORRIDA
-// ela é boa (o custo por km quase não varia com a velocidade), mas pra CAMINHADA erra muito
-// — 5 km a 83 kg davam 430 kcal contra ~294 reais, 46% a mais. Como o app guarda distância
-// E tempo, dá pra saber qual dos dois foi, pela velocidade média.
+// ATENÇÃO — AQUI JÁ HOUVE UM BUG. Esta função escolhia entre a equação de caminhada
+// (0,1 × velocidade) e a de corrida pela velocidade MÉDIA, com corte em 134 m/min. A ideia
+// era pegar quem registrasse caminhada na tela de corrida. O efeito real foi subestimar pela
+// metade os treinos intervalados, que é justamente o que a ficha de corrida prescreve.
 //
-// Limite conhecido: uma corrida com muita caminhada no meio tem velocidade média baixa e
-// cai na equação de caminhada, subestimando. Sem o dado por trecho (que só viria de
-// relógio), velocidade média é o único sinal disponível.
+// O que mostrou o erro: exportação do relógio, 4 corridas de rua.
+//
+//   data     km    min   m/min   kcal/km   lado do corte antigo
+//   17/11   5,20   35,6   146      91,3    corrida
+//   10/11   5,88   43,1   136      93,7    corrida
+//   07/11   3,15   22,7   139      85,7    corrida
+//   12/11   3,93   31,2   126      91,9    CAIA EM CAMINHADA -> metade
+//
+// O custo por km é praticamente o mesmo nas quatro (86-94 kcal/km), e a de 12/11 — a única
+// abaixo do corte — custou o MESMO por km que as outras. A velocidade média é baixa porque o
+// descanso da ficha é PARADO: tempo parado soma minuto e não soma distância, então o custo
+// POR KM continua sendo o de corrida. Era a média que enganava, não o gasto.
+//
+// Por isso não há mais ramo de caminhada: `corridas` só guarda date/distanceKm/timeMin/notes,
+// não existe tipo "caminhada" no app, e velocidade média não distingue corrida intervalada de
+// caminhada. Se algum dia entrar registro de caminhada, ela ganha a equação dela (0,1), que
+// não é essa. A regra de bolso antiga (peso × km × 1,036) acertava a corrida por acidente:
+// é quase exatamente o 1,0 kcal/kg/km que o ACSM dá.
 function kcalCorridaLiquido(distanceKm, timeMin, peso) {
   if (!distanceKm || !timeMin || !peso) return 0;
   const velocidade = (distanceKm * 1000) / timeMin;   // m/min
-  const vo2Liquido = velocidade >= VEL_CORRIDA_MIN ? 0.2 * velocidade : 0.1 * velocidade;
-  return (vo2Liquido * peso / 1000) * KCAL_POR_LITRO_O2 * timeMin;
+  return (0.2 * velocidade * peso / 1000) * KCAL_POR_LITRO_O2 * timeMin;
 }
 
 // Musculação continua em MET, porque não existe jeito melhor com o que o app guarda: séries
 // e cargas dizem o trabalho mecânico, mas converter isso em caloria depende de eficiência
 // muscular, que varia demais entre pessoas e exercícios.
 //
-// MET 5 vem do Compêndio de Atividades Físicas, entre os dois códigos que descrevem o treino
-// do Victor: 3,5 ("múltiplos exercícios, 8-15 repetições") e 6,0 ("vigorosa, body building").
-// O 3,5 pressupõe descanso folgado; a ficha dele tem 35s entre séries, o que deixa a sessão
-// mais densa. O -1 é o repouso, que sai pra dar o líquido.
-const MET_MUSCULACAO = 5;
+// MET 3,5 é o código do Compêndio de Atividades Físicas pra "múltiplos exercícios, 8-15
+// repetições, esforço moderado". O -1 é o repouso, que sai pra dar o líquido.
+//
+// Aqui também havia erro: era 5, escolhido entre o 3,5 e o 6,0 ("vigorosa, body building")
+// com o argumento de que 35s de descanso deixa a sessão densa. Argumento plausível e errado.
+//
+// A exportação do relógio tem 8 sessões de força medidas, com FC média e caloria:
+//
+//   data     min   kcal   kcal/min   FC média   séries   tempo em movimento
+//   01/11   43,3   257      5,93       100        24        15,6 min
+//   11/11   46,5   264      5,68        99        22        16,4 min
+//   03/11   38,3   213      5,56        97        18        14,3 min
+//   30/10   50,9   278      5,47        97        30        20,6 min
+//   05/11   40,0   212      5,30        95        22        13,0 min
+//   08/11   47,1   248      5,26        96        25        19,2 min
+//   15/11   38,9   167      4,30        87        23        14,6 min
+//   13/11   69,6   286      4,11        86        27        22,6 min
+//
+// Média 5,2 kcal/min BRUTO. A 80-86 kg isso é MET bruto de 3,6-3,9 — ou seja, o Compêndio
+// moderado, não o vigoroso. Fica em 3,5 (e não no 3,8 medido) porque o app atende outras
+// pessoas além do Victor e o valor do Compêndio é o defensável pra todas; a diferença é de
+// 10%, dentro do erro do método.
+//
+// Duas coisas explicam por que o 5 era alto. A FC média é de 86 a 100 bpm — com repouso de
+// 47, isso é 30 a 41% da reserva, que é esforço moderado e não vigoroso. E o tempo em
+// MOVIMENTO é um terço da sessão (22,6 de 69,6 min em 13/11): o resto é descanso entre
+// séries, parado. Densidade de descanso curto não transforma a sessão em vigorosa.
+//
+// NÃO usar %FC da reserva pra musculação: comparado com estas 8 medições, ela erra ~60% pra
+// cima. A FC sobe no treino de força fora de proporção com o consumo de oxigênio (contração
+// estática, massa muscular menor, resposta pressórica). Pra corrida ela funciona — fica 9%
+// acima do medido —, mas pra força não.
+const MET_MUSCULACAO = 3.5;
 function kcalMusculacaoLiquido(duracaoMin, peso) {
   if (!duracaoMin || !peso) return 0;
   return (MET_MUSCULACAO - 1) * peso * (duracaoMin / 60);
