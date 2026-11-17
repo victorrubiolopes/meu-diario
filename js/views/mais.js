@@ -1919,7 +1919,13 @@ Coxa: 58 cm
     const carbMedia = diasComComida.length ? comidasCompletas.reduce((s, c) => s + (c.carbs || 0), 0) / diasComComida.length : null;
     const gorduraMedia = diasComComida.length ? comidasCompletas.reduce((s, c) => s + (c.fat || 0), 0) / diasComComida.length : null;
     const aguaMedia = media(aguas, 'ml');
-    const gastoMedio = media(gastos, 'kcal');
+    // Média sobre TODOS os dias do período, não só os que têm registro de gasto. A versão
+    // anterior dividia por gastos.length: quem treina 4 dias em 7 via a média dos 4 rotulada
+    // como "kcal/dia", inflando o gasto diário em 40% pra quem lê (inclusive pra uma IA).
+    const gastoTotal = gastos.reduce((s, g) => s + (g.kcal || 0), 0);
+    const gastoMedio = dias > 0 ? gastoTotal / dias : null;
+    const diasComAtividade = gastos.filter(g => (g.kcal || 0) > 0).length;
+    const gastoManual = gastos.some(g => g.source === 'manual');
 
     const tendencia = typeof calcularTendenciaPeso === 'function'
       ? calcularTendenciaPeso(dadosExternos ? { perfil, medidas: ler('medidas'), dietasCustomList: dadosExternos.dietas_custom } : undefined)
@@ -2005,8 +2011,15 @@ Coxa: 58 cm
     if (proteinaMedia != null) {
       linhas.push(`Macros médios: P ${proteinaMedia.toFixed(0)}g · C ${carbMedia.toFixed(0)}g · G ${gorduraMedia.toFixed(0)}g por dia`);
     }
-    if (gastoMedio != null) {
-      linhas.push(`Calorias extras gastas (manual): média de ${gastoMedio.toFixed(0)} kcal/dia`);
+    if (gastoMedio != null && gastoTotal > 0) {
+      // Diz a origem de verdade (antes dizia "manual" mesmo quando era estimativa) e separa
+      // o que é média do período do que é média dos dias em que houve treino — são números
+      // diferentes e confundi-los muda a leitura do gasto.
+      linhas.push(`Gasto de atividade (estimado${gastoManual ? ', com ajustes manuais' : ''}): média de ${gastoMedio.toFixed(0)} kcal/dia no período`);
+      if (diasComAtividade > 0) {
+        linhas.push(`  Houve atividade em ${diasComAtividade} de ${dias} dias · média de ${(gastoTotal / diasComAtividade).toFixed(0)} kcal nos dias com treino`);
+      }
+      linhas.push('  Valores LÍQUIDOS (acima do repouso), para somar ao TDEE sem contar o basal duas vezes. Corrida pelas equações do ACSM (distância e tempo); musculação por MET 5 sobre a duração informada — treino sem duração não entra.');
     }
     if (aguaMedia != null) {
       linhas.push(`Água: média de ${aguaMedia.toFixed(0)}ml/dia`);

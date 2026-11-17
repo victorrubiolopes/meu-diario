@@ -367,6 +367,22 @@ const App = (() => {
       localStorage.setItem('cleanup_plano_bronyer', '1');
     }
 
+    // Migração: a estimativa de gasto passou a ser LÍQUIDA e a usar as equações do ACSM pra
+    // corrida (antes era regra de bolso bruta, que errava 46% na caminhada). Os registros já
+    // gravados guardam o número da fórmula velha, e só seriam recalculados se o dia fosse
+    // editado de novo — o relatório pra nutricionista ficaria somando duas réguas diferentes.
+    //
+    // Só mexe no que é 'auto': um valor que a pessoa digitou na mão é dado dela, não
+    // estimativa, e sobrescrever seria apagar a correção que ela fez de propósito.
+    if (typeof calcularGastoEstimado === 'function' && !localStorage.getItem('gastos_recalculados_acsm')) {
+      Storage.getAll('gastos').forEach(g => {
+        if (g.source === 'manual' || !g.date) return;
+        const novo = calcularGastoEstimado(g.date);
+        if (novo !== g.kcal) Storage.update('gastos', g.id, { kcal: novo, source: 'auto' });
+      });
+      localStorage.setItem('gastos_recalculados_acsm', '1');
+    }
+
     // Migração: "emagrecimento" virou 3 níveis (adaptação/moderado/agressivo). Quem já tinha
     // esse objetivo selecionado vai pro nível "moderado" (mais parecido com o déficit fixo
     // antigo de ~500kcal), em vez de cair silenciosamente em "manutenção".
