@@ -30,6 +30,7 @@ const ViewMais = (() => {
       case 'exercicio-novo': return renderExercicioNovo($app, state, api);
       case 'planos-treino': return renderPlanosTreino($app, state, api);
       case 'treino-pacotes': return renderTreinoPacotes($app, state, api);
+      case 'corrida-pacotes': return renderCorridaPacotes($app, state, api);
       case 'plano-editar': return renderPlanoEditar($app, state, api);
       case 'combos': return renderCombos($app, state, api);
       case 'combo-novo': return renderComboNovo($app, state, api);
@@ -1256,6 +1257,11 @@ Coxa: 58 cm
   // entender que existem dois caminhos antes de escolher um.
   function renderPlanosTreino($app, state, api) {
     const planos = Storage.getAll('treino_planos').sort((a, b) => a.ordem - b.ordem);
+    // A entrada de corrida só aparece quando existe pacote visível: sem isso seria um caminho
+    // que abre numa tela vazia. Corrida mora aqui, e não na aba Treino → Corrida, porque
+    // aquela é a tela de REGISTRO do dia — escolher pacote é coisa de configurar, não de usar
+    // todo dia, e enfiar isso lá só adicionaria atrito no caminho mais percorrido.
+    const temPacoteCorrida = typeof CORRIDAS_PREDEFINIDAS !== 'undefined' && pacotesCorridaVisiveis().length > 0;
 
     $app.innerHTML = `
       <div class="card">
@@ -1263,6 +1269,7 @@ Coxa: 58 cm
       </div>
       ${menuCardHtml([
         escolhaHtml('id="ir-pacotes"', '📦', 'Usar um pacote pronto', 'Treinos já montados por objetivo. Dá pra editar tudo depois.'),
+        ...(temPacoteCorrida ? [escolhaHtml('id="ir-pacotes-corrida"', '🏃', 'Usar um pacote de corrida', 'Treinos de corrida prontos. Aparecem na aba Treino → Corrida.')] : []),
         escolhaHtml('id="criar-plano"', '✏️', 'Criar meu próprio treino', 'Você escolhe os exercícios, séries e cargas do zero.'),
       ])}
       ${planos.length ? `
@@ -1283,6 +1290,8 @@ Coxa: 58 cm
     `;
 
     document.getElementById('ir-pacotes').addEventListener('click', () => api.goToSub('treino-pacotes'));
+    const btnCorrida = document.getElementById('ir-pacotes-corrida');
+    if (btnCorrida) btnCorrida.addEventListener('click', () => api.goToSub('corrida-pacotes'));
     document.getElementById('criar-plano').addEventListener('click', () => {
       const maxOrdem = planos.reduce((m, p) => Math.max(m, p.ordem), 0);
       const novo = Storage.add('treino_planos', {
@@ -1296,6 +1305,61 @@ Coxa: 58 cm
     });
     $app.querySelectorAll('[data-plano]').forEach(btn => {
       btn.addEventListener('click', () => api.goToSub('plano-editar', btn.dataset.plano));
+    });
+  }
+
+  // Mesma regra de visibilidade dos pacotes de musculação: 'pessoal: true' só pro dono.
+  function pacotesCorridaVisiveis() {
+    if (typeof CORRIDAS_PREDEFINIDAS === 'undefined') return [];
+    return Object.keys(CORRIDAS_PREDEFINIDAS).filter(id => souDonoDoApp() || !CORRIDAS_PREDEFINIDAS[id].pessoal);
+  }
+
+  // Tela de pacotes de corrida. Espelha renderTreinoPacotes, mas grava em 'corrida_planos',
+  // que é coleção própria: corrida não tem série nem carga, tem distância, tempo e protocolo.
+  function renderCorridaPacotes($app, state, api) {
+    const ids = pacotesCorridaVisiveis();
+    $app.innerHTML = `
+      <div class="card">
+        <p class="meta">Depois de carregar, os treinos aparecem na aba <strong>Treino → Corrida</strong>, acima do formulário de registro. Ficam editáveis como qualquer outro.</p>
+      </div>
+      ${ids.map(id => {
+        const pack = CORRIDAS_PREDEFINIDAS[id];
+        return `
+          <div class="card">
+            <h2 style="font-size:1rem;margin:0 0 4px">${Util.escapeHtml(pack.label)}</h2>
+            <p class="meta" style="margin-top:0">${Util.escapeHtml(pack.descricao || '')}</p>
+            <p class="meta">${pack.planos.length} treino(s): ${Util.escapeHtml(pack.planos.map(p => p.nome).join(' · '))}</p>
+            <button class="primary" data-usar-pacote-corrida="${Util.escapeHtml(id)}" style="margin-top:8px">Usar este pacote</button>
+          </div>`;
+      }).join('')}
+    `;
+
+    $app.querySelectorAll('[data-usar-pacote-corrida]').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const id = btn.dataset.usarPacoteCorrida;
+        const pack = CORRIDAS_PREDEFINIDAS[id];
+        if (!confirm(`Adicionar ${pack.planos.length} treino(s) de corrida do pacote "${pack.label}" aos seus planos?`)) return;
+        // Upsert POR NOME, igual ao caminho da nutri em cloud.js: recarregar o mesmo pacote
+        // atualiza o que já existe em vez de duplicar, e preserva a ordem de quem já estava.
+        const locais = Storage.getAll('corrida_planos');
+        const maxOrdem = locais.reduce((m, p) => Math.max(m, p.ordem || 0), 0);
+        pack.planos.forEach((cp, i) => {
+          const plano = {
+            nome: cp.nome,
+            tipo: cp.tipo || '',
+            distanceKm: cp.distanceKm != null ? cp.distanceKm : null,
+            timeMin: cp.timeMin != null ? cp.timeMin : null,
+            descricao: cp.descricao || '',
+            fonte: id,
+          };
+          const j = locais.findIndex(x => (x.nome || '').trim().toLowerCase() === cp.nome.trim().toLowerCase());
+          if (j >= 0) { plano.id = locais[j].id; plano.ordem = locais[j].ordem; locais[j] = plano; }
+          else { plano.id = Storage.uid(); plano.ordem = maxOrdem + i + 1; locais.push(plano); }
+        });
+        Storage.saveAll('corrida_planos', locais);
+        // Volta pra raiz em vez de ficar na tela de pacotes: o resultado da ação está lá.
+        api.back();
+      });
     });
   }
 
