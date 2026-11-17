@@ -118,28 +118,83 @@
 // contra 4381 em 2023 e 5455 em 2026). Não PROVA a bike, pelo motivo da nota de cuidado lá
 // em cima, mas o degrau está no ano que ele descreve.
 //
-// ======================= O VO₂MÁX: NÃO ATRIBUÍDO =======================
+// ======================= LESÃO NO JOELHO: PROVA DE 30 KM, 08/03/2026 =======================
 //
-// O VO₂máx caiu 52,6 -> 49,2 mL/kg/min em 12 meses, sem uma reversão. Como o peso CAIU no
-// período, a capacidade absoluta caiu mais do que o número por quilo sugere: 4,35 -> 4,13
-// L/min (-5%). A QUEDA É REAL; a CAUSA é que não está estabelecida.
+// O Victor LESIONOU O JOELHO numa prova de 30 km. Perdeu ritmo, reduziu volume, NUNCA PAROU
+// de correr, e está voltando aos poucos. Já melhorou. Informado por ele em 17/11/2026 — é o
+// segundo fato grande que explicava a trajetória dele e não estava escrito aqui (o primeiro
+// foi a bike). O padrão é o mesmo: eu tinha o efeito nos dados e não tinha a causa.
 //
-// Eu escrevi aqui, mais cedo em 17/11, que a bike "EXPLICA o VO₂máx". Retiro. Há pelo menos
-// dois candidatos e eu não consigo separá-los:
+// A DATA SAI DO PODÔMETRO, e é inequívoca. Domingo 08/03/2026 é o maior dia dos 2446 da
+// série: 29561 passos de corrida, 39,5 km, 259 min. Nenhum outro dia em 7 anos chega perto.
 //
-//   1. a bike, que parou no começo de 2025;
-//   2. o volume de CORRIDA, que desabou em 2026 — passos de corrida por dia caíram de
-//      ~3000 (jan-mar) para ~100-600 (ago-nov). A correlação com o VO₂máx nos 12 meses em
-//      que tenho os dois é r = 0,91.
+//   08/03 dom   37671 passos   29561 de corrida   39,5 km   <- a prova
+//   09/03 seg     691 passos       1 de corrida    0,5 km   <- o dia seguinte
+//   10/03 ter    5167               7
+//   11/03 qua    5120               9
+//   12/03 qui    5348               7
+//   13/03 sex    2480              31
+//   14/03 sab   14163            9425             14,2 km   <- tentou voltar em 6 dias
 //
-// O 0,91 parece decisivo e NÃO é: o Victor usa o Garmin pra correr e o Samsung perde a
-// maior parte dessas corridas. Conferido contra 5 corridas que o Garmin registrou entre
-// 04/11 e 17/11: o Samsung viu 5349 de 21742 passos, 25% — e numa delas viu 9 passos contra
-// 6662. Ou seja, parte do "desabou" é o aparelho, não o treino. Pra piorar, o período em que
-// a série despenca (abr-mai/2026) coincide com uma troca de relógio Samsung.
+// Os 691 passos de 09/03 são o TOTAL do dia, não só corrida — nesse ponto o problema de
+// captura do Samsung não explica nada, porque ele conta passo de andar pela casa. É alguém
+// que não conseguiu se mover.
 //
-// O que resolveria: volume de corrida pelo GARMIN (que é onde as corridas estão de fato),
-// mês a mês, contra a mesma curva de VO₂máx. Até lá, não atribuir.
+// O QUE CAIU FOI DISTÂNCIA POR CORRIDA, NÃO FREQUÊNCIA. Cruzando a contagem mensal do
+// Garmin com os passos de corrida do Samsung:
+//
+//   mês      corridas   passos de corrida por corrida
+//   jan/26      17              5620
+//   fev         17              6135
+//   mar         12              7250
+//   abr         10              4168   <- -43% contra março, MESMO APARELHO
+//   mai         15              1527
+//   jun         16               392
+//   ago         13               285
+//   out         11               234
+//
+// A frequência nunca caiu: 11 a 17 corridas por mês o ano inteiro. Em agosto foram 13
+// corridas e o Samsung viu 285 passos por corrida — 240 metros, fisicamente impossível.
+// Confirma o "nunca parei" dele.
+//
+// Então a leitura correta é em duas partes:
+//   1. mar -> abr: queda REAL de 43% na distância por corrida, dentro do mesmo relógio
+//      (hsZnytrBvw vai de ago/25 a abr/26). É a lesão, medida.
+//   2. mai em diante: o dado NÃO VALE. Troca de relógio Samsung em maio e ele passa a correr
+//      com o Garmin. Qualquer "queda" depois disso é captura, não treino.
+//
+// Eu cheguei a escrever que "o volume de corrida desabou" com r=0,91 contra o VO₂máx. Errado
+// na forma: o 0,91 é majoritariamente o relógio deixando de gravar. O que não dá pra medir
+// com nenhum arquivo que eu tenho é RITMO e distância por corrida ao longo do ano — para
+// isso é preciso a exportação DETALHADA do Garmin (uma linha por atividade, com distância e
+// tempo), rolando a lista até o começo do período. A que veio tem só a contagem mensal.
+//
+// É A EXPLICAÇÃO DO VO₂MÁX, e aqui o relato dele vale mais que a minha correlação. O número
+// caiu 52,6 -> 49,2 mL/kg/min; como o peso CAIU no período, a capacidade absoluta caiu mais
+// do que o valor por quilo sugere: 4,35 -> 4,13 L/min (-5%).
+//
+// A curva bate com a história em dois pontos:
+//
+//   1. A queda PAROU. Dez a mai: -2,8. Jun a nov: -0,6, praticamente estável há 6 meses.
+//      Isso é o "já melhorei" aparecendo no dado.
+//   2. O volume de corrida cai 60% na semana seguinte à prova e segue caindo. A queda começa
+//      em março, ANTES da troca de relógio Samsung de maio, então essa parte é real.
+//
+// CUIDADO que continua valendo: o Samsung perde a maior parte das corridas, porque ele corre
+// com o Garmin. Conferido contra 5 corridas registradas pelo Garmin entre 04 e 17/11: o
+// Samsung viu 5349 de 21742 passos (25%), e numa delas 9 contra 6662. Então a magnitude da
+// queda nos passos está exagerada — os "83 passos/dia em outubro" NÃO são ele sem correr.
+// Volume de corrida só é mensurável pelo GARMIN.
+//
+// NÃO É PESO. Ele atribui parte da perda de condicionamento a ter engordado. As medições
+// dele dizem o contrário no período que dá pra ver: 85,3 kg em 05/03 -> 83,6 em 25/09, com
+// 1,5 dos 1,7 kg perdidos saindo de gordura. Se houve ganho, foi ANTES de março/2026, onde
+// não há registro. Durante todo o pós-lesão o peso caiu.
+//
+// O QUE A BIKE VIRA COM ISSO: deixa de ser só caloria. Pedalar é aeróbico SEM IMPACTO — ela
+// reconstrói a base aeróbica que o VO₂máx mede sem carregar o joelho. Pra quem volta de
+// lesão de corrida é quase a ferramenta ideal, e inverte a ressalva de carga que eu tinha
+// escrito: o risco não é somar a bike, é apressar a volta do volume de corrida.
 //
 // RETOMADA da bike em dezembro/2026, 3x/semana: +296 kcal/dia na média, gasto vai a ~2660,
 // e os 2350 viram déficit real de ~300/dia (1,2 kg/mês) SEM mexer na comida. Esse número é
@@ -189,7 +244,9 @@ const META_VICTOR = {
     'MEDIDO EM 17/11: o diário sub-registra 821 kcal/dia, 36% do consumo real (registrado 1475 vs real ~2297), e isso só nos dias COM registro — 139 dos 205 dias não têm nada, e a fase 2 tem 7 dias de 36. Não é desleixo de quem anota: é o erro conhecido de registro alimentar (porção estimada a olho, óleo do preparo, bebida). Qualquer leitura de adesão por este app precisa desse fator.',
     'A COMPOSIÇÃO ESTÁ INDO BEM: de 05/03 a 25/09 o peso caiu 1,7 kg, dos quais 1,5 kg foram de GORDURA e só 0,2 kg de massa magra (19,6% -> 18,2%, queda monotônica nas 11 medições). É recomposição da qualidade certa, e a proteína alta da prescrição é o que está fazendo isso. O ritmo é que é lento: 0,24 kg/mês.',
     'A BIKE: em 2024 o trabalho mudou pra mais longe e ele passou a ir de bicicleta, 26 km/dia, 5x por semana; no começo de 2025 parou e passou a ir de carro. São ~690 kcal líquidas por dia de bike, ou ~490 kcal/dia na média — a maior mudança de gasto do período. O podômetro bate com a data: 2024 é o pico da série inteira (7806 passos/dia contra 4381 em 2023). Retomando 3x/semana em dezembro: +296 kcal/dia, gasto a ~2660, e os 2350 viram déficit de ~300/dia (1,2 kg/mês) sem mexer na comida.',
-    'O VO₂MÁX CAIU, MAS A CAUSA NÃO ESTÁ ESTABELECIDA: de 52,6 para 49,2 mL/kg/min em 12 meses, sem reversão, e como o peso caiu a capacidade absoluta caiu mais (4,35 -> 4,13 L/min). A queda é real. Há dois candidatos que eu não consigo separar: a parada da bike no começo de 2025, e o volume de corrida, que desabou em 2026. Esta segunda hipótese tem correlação de 0,91 com a curva, o que parece decisivo e não é: ele corre com o Garmin, e o Samsung perdeu 75% dos passos de corrida numa amostra de 5 corridas conferidas. Para resolver, é preciso o volume de corrida pelo Garmin.',
+    'LESÃO NO JOELHO numa prova de 30 km em 08/03/2026 (domingo): perdeu ritmo e reduziu volume de corrida, nunca parou, está voltando aos poucos e já melhorou. É a explicação da queda do VO₂máx (52,6 para 49,2 mL/kg/min; como o peso caiu, a capacidade absoluta caiu mais: 4,35 -> 4,13 L/min). O podômetro data isso sozinho: 08/03 é o maior dia dos 2446 da série (29.561 passos de corrida, 39,5 km) e no dia seguinte ele deu 691 passos no dia inteiro. O que caiu foi DISTÂNCIA por corrida, não frequência: ele seguiu correndo 11 a 17 vezes por mês o ano todo, mas a distância por corrida cai 43% de março para abril (7.250 para 4.168 passos, no mesmo relógio). A curva do VO₂máx confirma que a recuperação está em curso: -2,8 de dezembro a maio, -0,6 de junho a novembro, estável há 6 meses.',
+    'NÃO foi o peso que tirou o condicionamento, foi o joelho. No período pós-lesão o peso CAIU: 85,3 kg em 05/03 para 83,6 em 25/09, com 1,5 dos 1,7 kg saindo de gordura. Se houve ganho, foi antes de março de 2026, onde não existe registro.',
+    'A BIKE DEIXA DE SER SÓ CALORIA com a lesão na história: pedalar é aeróbico SEM IMPACTO, reconstrói a base aeróbica que o VO₂máx mede sem carregar o joelho. Isso inverte a ressalva de carga: o risco não é somar os 210 min/semana de bike, é apressar a volta do volume de corrida.',
   ],
   combos: [
     {
