@@ -464,13 +464,43 @@ function kcalMusculacaoLiquido(duracaoMin, peso) {
   return (MET_MUSCULACAO - 1) * peso * (duracaoMin / 60);
 }
 
+// Cardio avulso: bike ergométrica, elíptico, esteira, escada. Tudo por MET do Compêndio de
+// Atividades Físicas, faixa moderada, menos 1 pra dar o líquido — mesma régua da musculação.
+//
+// A ERGOMÉTRICA É 6,0 E NÃO 7,0, e isso veio de uma medição que reprovou a tabela. O código
+// geral do Compêndio pra bicicleta estacionária é 7,0; com ele, a única sessão medida que
+// existe (30/10/2026, 22,7 min, 187 kcal BRUTAS a 84,5 kg) daria 194 kcal LÍQUIDAS — líquido
+// maior que o bruto medido, o que é impossível. O medido dá MET 5,85 bruto, que é a faixa
+// "leve a moderada" do Compêndio, não a geral. Com 6,0 a conta fecha em +4% do medido.
+//
+// É o mesmo erro que MET_MUSCULACAO cometeu com o 5: pegar o código mais vigoroso que a
+// descrição permite em vez do que a pessoa faz. Se aparecerem sessões medidas de elíptico ou
+// escada, recalibrar essas também — hoje elas são só tabela, sem verificação.
+const MET_CARDIO = {
+  'Bicicleta ergométrica': 6.0,
+  'Bicicleta (rua)': 7.5,
+  'Elíptico': 5.0,
+  'Esteira (caminhada)': 4.3,
+  'Escada / simulador': 9.0,
+  'Remo': 7.0,
+  'Outro': 5.0,
+};
+const MET_CARDIO_PADRAO = 5.0;
+
+function kcalCardioLiquido(modalidade, duracaoMin, peso) {
+  if (!duracaoMin || !peso) return 0;
+  const met = MET_CARDIO[modalidade] || MET_CARDIO_PADRAO;
+  return (met - 1) * peso * (duracaoMin / 60);
+}
+
 // Devolve o gasto do dia separado por modalidade. O relatório usa a separação; quem só
 // precisa do total chama calcularGastoEstimado.
 function detalharGastoEstimado(date, dados) {
   const peso = dados ? dados.peso : Util.getPesoAtual();
-  if (!peso) return { corrida: 0, musculacao: 0, total: 0 };
+  if (!peso) return { corrida: 0, musculacao: 0, cardio: 0, total: 0 };
   const corridas = dados ? (dados.corridas || []).filter(c => c.date === date) : Storage.getByDate('corridas', date);
   const treinos = dados ? (dados.treino || []).filter(t => t.date === date) : Storage.getByDate('treino', date);
+  const cardios = dados ? (dados.cardio || []).filter(c => c.date === date) : Storage.getByDate('cardio', date);
 
   let corrida = 0;
   corridas.forEach(c => { corrida += kcalCorridaLiquido(c.distanceKm, c.timeMin, peso); });
@@ -478,11 +508,14 @@ function detalharGastoEstimado(date, dados) {
   // Sem duração informada não dá pra estimar nada: um treino de 20 min e um de 90 min
   // gastam coisas muito diferentes, e chutar um valor fixo seria inventar.
   treinos.forEach(t => { musculacao += kcalMusculacaoLiquido(t.duracaoMin, peso); });
+  let cardio = 0;
+  cardios.forEach(c => { cardio += kcalCardioLiquido(c.modalidade, c.timeMin, peso); });
 
   return {
     corrida: Math.round(corrida),
     musculacao: Math.round(musculacao),
-    total: Math.round(corrida + musculacao),
+    cardio: Math.round(cardio),
+    total: Math.round(corrida + musculacao + cardio),
   };
 }
 

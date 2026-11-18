@@ -10,7 +10,7 @@ const Cloud = (() => {
   // aqui mandava a biblioteca inteira (centenas de itens) de novo a cada push — é o que
   // deixava a sincronização lenta, principalmente depois que a biblioteca de alimentos cresceu.
   const SYNC_KEYS = [
-    'treino', 'corridas', 'alimentacao', 'medidas', 'tarefas', 'tarefas_conclusoes',
+    'treino', 'corridas', 'cardio', 'alimentacao', 'medidas', 'tarefas', 'tarefas_conclusoes',
     'dietas_custom', 'treino_planos', 'corrida_planos', 'combos', 'agua', 'gastos', 'refeicao_fotos', 'refeicoes_livres',
     'exames_resultados',
     'notificacoes',

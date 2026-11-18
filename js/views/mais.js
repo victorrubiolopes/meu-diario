@@ -2019,7 +2019,7 @@ Coxa: 58 cm
       if (diasComAtividade > 0) {
         linhas.push(`  Houve atividade em ${diasComAtividade} de ${dias} dias · média de ${(gastoTotal / diasComAtividade).toFixed(0)} kcal nos dias com treino`);
       }
-      linhas.push('  Valores LÍQUIDOS (acima do repouso), para somar ao TDEE sem contar o basal duas vezes. Corrida pelas equações do ACSM (distância e tempo); musculação por MET 5 sobre a duração informada — treino sem duração não entra.');
+      linhas.push('  Valores LÍQUIDOS (acima do repouso), para somar ao TDEE sem contar o basal duas vezes. Corrida pelas equações do ACSM (distância e tempo); musculação por MET 3,5 e cardio por MET do Compêndio de Atividades Físicas, ambos sobre a duração — treino sem duração informada não entra.');
     }
     if (aguaMedia != null) {
       linhas.push(`Água: média de ${aguaMedia.toFixed(0)}ml/dia`);

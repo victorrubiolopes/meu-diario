@@ -166,6 +166,10 @@ const Util = (() => {
         tipo: 'corridas', id: c.id, date: c.date,
         resumo: `Corrida — ${c.distanceKm}km em ${c.timeMin}min`,
       })),
+      ...Storage.getAll('cardio').map(c => ({
+        tipo: 'cardio', id: c.id, date: c.date,
+        resumo: `${c.modalidade || 'Cardio'} — ${c.timeMin}min${c.distanceKm ? ` · ${c.distanceKm}km` : ''}`,
+      })),
     ].sort((a, b) => b.date.localeCompare(a.date));
     return limit ? lista.slice(0, limit) : lista;
   }
