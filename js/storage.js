@@ -2,6 +2,7 @@ const Storage = (() => {
   const KEYS = {
     treino: 'treino_entries',
     corridas: 'corridas_entries',
+    cardio: 'cardio_entries',
     alimentacao: 'alimentacao_entries',
     medidas: 'medidas_entries',
     tarefas: 'tarefas_entries',

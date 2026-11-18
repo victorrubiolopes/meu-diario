@@ -124,13 +124,20 @@ const ViewTreino = (() => {
   }
 
   function render($app, state, api) {
-    const tipoHistorico = state.treinoSub === 'musculacao' ? 'treino' : 'corridas';
+    const TIPO_POR_SUB = { musculacao: 'treino', corrida: 'corridas', cardio: 'cardio' };
+    const TITULO_POR_SUB = {
+      musculacao: 'Histórico de musculação',
+      corrida: 'Histórico de corridas',
+      cardio: 'Histórico de cardio',
+    };
+    const tipoHistorico = TIPO_POR_SUB[state.treinoSub] || 'treino';
     const historico = Util.historicoTreinos().filter(h => h.tipo === tipoHistorico).slice(0, 15);
-    const tituloHistorico = state.treinoSub === 'musculacao' ? 'Histórico de musculação' : 'Histórico de corridas';
+    const tituloHistorico = TITULO_POR_SUB[state.treinoSub] || TITULO_POR_SUB.musculacao;
     $app.innerHTML = `
       <div class="tabs-sub">
         <button data-sub="musculacao" class="${state.treinoSub === 'musculacao' ? 'active' : ''}">Musculação</button>
         <button data-sub="corrida" class="${state.treinoSub === 'corrida' ? 'active' : ''}">Corrida</button>
+        <button data-sub="cardio" class="${state.treinoSub === 'cardio' ? 'active' : ''}">Cardio</button>
       </div>
       <div id="treino-content"></div>
       <div class="card dashboard-section">
@@ -175,6 +182,7 @@ const ViewTreino = (() => {
     });
     const content = document.getElementById('treino-content');
     if (state.treinoSub === 'musculacao') renderMusculacao(content, state, api);
+    else if (state.treinoSub === 'cardio') renderCardio(content, state, api);
     else renderCorrida(content, state, api);
   }
 
@@ -809,6 +817,82 @@ const ViewTreino = (() => {
     }
 
     renderCards();
+  }
+
+  // Cardio avulso — bike enquanto espera, esteira, elíptico, escada. Nasceu de um caso real:
+  // pedalar depois da musculação não tinha onde ser lançado, e virava treino que aconteceu e
+  // não existe no diário.
+  //
+  // Fica em sub-aba e não em tela própria porque é registro diário: a regra do projeto é que
+  // comida, treino e peso saem em 2 toques e navegação ali só adiciona atrito. A distância é
+  // opcional de propósito — na ergométrica muita gente não olha, e o gasto sai do tempo e da
+  // modalidade de qualquer jeito.
+  const CARDIO_MODALIDADES = [
+    'Bicicleta ergométrica', 'Bicicleta (rua)', 'Elíptico',
+    'Esteira (caminhada)', 'Escada / simulador', 'Remo', 'Outro',
+  ];
+
+  function renderCardio(content, state, api) {
+    const itens = Storage.getByDate('cardio', state.date).sort((a, b) => (a.order || 0) - (b.order || 0));
+    // Repete a última modalidade usada: quem pedala enquanto espera pedala sempre a mesma coisa.
+    const todos = Storage.getAll('cardio').sort((a, b) => (b.order || 0) - (a.order || 0));
+    const ultima = todos.length > 0 ? todos[0].modalidade : CARDIO_MODALIDADES[0];
+
+    content.innerHTML = `
+      <div class="card">
+        <h2>Registrar cardio</h2>
+        <label>Modalidade</label>
+        <select id="cardio-mod">
+          ${CARDIO_MODALIDADES.map(m => `<option value="${Util.escapeHtml(m)}" ${m === ultima ? 'selected' : ''}>${Util.escapeHtml(m)}</option>`).join('')}
+        </select>
+        <div class="row">
+          <div>
+            <label>Tempo (minutos)</label>
+            <input type="number" step="1" id="cardio-time" placeholder="20">
+          </div>
+          <div>
+            <label>Distância (km) <span class="meta">opcional</span></label>
+            <input type="number" step="0.01" id="cardio-dist" placeholder="—">
+          </div>
+        </div>
+        <label>Notas</label>
+        <textarea id="cardio-notes" placeholder="Intensidade, enquanto esperava..."></textarea>
+        <button class="primary" id="save-cardio">Registrar</button>
+      </div>
+      <div class="card">
+        <h2>Cardio do dia</h2>
+        <div id="cardio-list">
+          ${itens.length === 0 ? '<div class="empty">Nenhum cardio registrado ainda</div>' : itens.map(c => `
+            <div class="list-item" data-id="${c.id}">
+              <div>
+                <strong>${Util.escapeHtml(c.modalidade || 'Cardio')} — ${c.timeMin}min</strong>
+                ${c.distanceKm ? `<div class="meta">${c.distanceKm} km</div>` : ''}
+                ${c.notes ? `<div class="meta">${Util.escapeHtml(c.notes)}</div>` : ''}
+              </div>
+              <button class="link" data-remove-cardio="${c.id}" aria-label="Excluir">✕</button>
+            </div>
+          `).join('')}
+        </div>
+      </div>
+    `;
+
+    document.getElementById('save-cardio').addEventListener('click', () => {
+      const timeMin = Number(document.getElementById('cardio-time').value);
+      if (!timeMin) return;   // o tempo é o único campo de que a estimativa precisa
+      const modalidade = document.getElementById('cardio-mod').value;
+      const distanceKm = Number(document.getElementById('cardio-dist').value) || null;
+      const notes = document.getElementById('cardio-notes').value.trim();
+      Storage.add('cardio', { date: state.date, modalidade, timeMin, distanceKm, notes, order: Date.now() });
+      atualizarGastoAuto(state.date);
+      api.render();
+    });
+    content.querySelectorAll('[data-remove-cardio]').forEach(btn => {
+      btn.addEventListener('click', () => {
+        Storage.remove('cardio', btn.dataset.removeCardio);
+        atualizarGastoAuto(state.date);
+        api.render();
+      });
+    });
   }
 
   function renderCorrida(content, state, api) {
