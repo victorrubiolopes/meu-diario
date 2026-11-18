@@ -185,7 +185,9 @@ const ViewTreino = (() => {
     if (restTimerInterval) { clearInterval(restTimerInterval); restTimerInterval = null; }
     restState = null;
     const todosHoje = Storage.getByDate('treino', state.date);
-    const biblioteca = Storage.getAll('exercicios_biblioteca');
+    // 'let' porque definir o link de vídeo direto do card (data-setvideo) grava na biblioteca
+    // e precisa reler — senão o card repintaria com o link antigo até trocar de tela.
+    let biblioteca = Storage.getAll('exercicios_biblioteca');
     const planos = Storage.getAll('treino_planos').sort((a, b) => a.ordem - b.ordem);
     const sugerido = Util.planoSugerido();
     const ultimoFeito = Util.ultimoTreinoFeito();
@@ -529,19 +531,25 @@ const ViewTreino = (() => {
     }
 
     // Player embutido do YouTube quando há link específico; senão, link de busca externo.
+    //
+    // O botão de definir/trocar link fica AQUI, no card do exercício, e não só na biblioteca:
+    // achar o vídeo certo acontece na hora de executar o movimento, e obrigar a sair do treino,
+    // abrir Mais, achar o exercício na lista e voltar é atrito no meio da série. Grava na
+    // biblioteca do mesmo jeito (é lá que mora videoUrl), só muda de onde se chega nele.
     function videoBlock(r, i) {
       const doLib = biblioteca.find(e => e.name.trim().toLowerCase() === r.name.trim().toLowerCase());
       const videoUrl = doLib && doLib.videoUrl;
       const embedId = Util.youtubeEmbedId ? Util.youtubeEmbedId(videoUrl) : null;
+      const setBtn = `<button type="button" class="ex-video-link" data-setvideo="${i}" style="color:var(--text-muted);margin-left:14px">${videoUrl ? 'trocar link' : 'definir link'}</button>`;
       if (embedId) {
         const isOpen = expandedVideos.has(i);
         return `
-          <button type="button" class="ex-video-link" data-togglevideo="${i}">${isOpen ? '▲ Ocultar vídeo' : '▶ Ver vídeo do exercício'}</button>
+          <button type="button" class="ex-video-link" data-togglevideo="${i}">${isOpen ? '▲ Ocultar vídeo' : '▶ Ver vídeo do exercício'}</button>${setBtn}
           ${isOpen ? `<div class="ex-video-embed"><iframe width="100%" height="100%" src="https://www.youtube.com/embed/${embedId}" title="Vídeo do exercício" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe></div>` : ''}
         `;
       }
       const url = videoUrl || Util.youtubeSearchUrl(r.name);
-      return `<a href="${url}" target="_blank" rel="noopener" class="ex-video-link">▶ Ver vídeo do exercício</a>`;
+      return `<a href="${url}" target="_blank" rel="noopener" class="ex-video-link">▶ Ver vídeo do exercício${videoUrl ? '' : ' (busca automática)'}</a>${setBtn}`;
     }
 
     function syncNames() {
@@ -645,6 +653,33 @@ const ViewTreino = (() => {
           const i = Number(btn.dataset.togglevideo);
           if (expandedVideos.has(i)) expandedVideos.delete(i); else expandedVideos.add(i);
           renderCards();
+        });
+      });
+      cardsEl.querySelectorAll('[data-setvideo]').forEach(btn => {
+        btn.addEventListener('click', () => {
+          // syncNames ANTES de qualquer coisa: o nome pode ter sido digitado e ainda não estar
+          // em rows, e é por ele que se acha o exercício na biblioteca.
+          syncNames();
+          const i = Number(btn.dataset.setvideo);
+          const nome = (rows[i] && rows[i].name || '').trim();
+          if (!nome) { alert('Dê um nome ao exercício antes de definir o vídeo.'); return; }
+          const doLib = biblioteca.find(e => e.name.trim().toLowerCase() === nome.toLowerCase());
+          const novo = prompt(`Link do vídeo de "${nome}" (em branco volta para a busca automática do YouTube):`, (doLib && doLib.videoUrl) || '');
+          if (novo === null) return;
+          const link = novo.trim();
+          if (doLib) {
+            Storage.update('exercicios_biblioteca', doLib.id, { videoUrl: link });
+          } else if (link) {
+            // Exercício digitado na mão e ainda fora da biblioteca: cria a entrada, senão o link
+            // não teria onde morar e se perderia ao sair da tela. Grupo e equipamento ficam em
+            // branco pra preencher depois — o que importa agora é não perder o link.
+            Storage.add('exercicios_biblioteca', { name: nome, grupo: '', equipamento: '', videoUrl: link, custom: true });
+          } else {
+            return;   // sem link e fora da biblioteca: não há o que gravar
+          }
+          if (link && typeof Cloud !== 'undefined' && Cloud.isEnabled() && Cloud.sugerirVideo) Cloud.sugerirVideo(nome, link);
+          biblioteca = Storage.getAll('exercicios_biblioteca');
+          renderCards();   // NUNCA api.render(): apagaria as séries já marcadas nesta tela
         });
       });
     }
