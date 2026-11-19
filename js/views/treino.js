@@ -898,6 +898,7 @@ const ViewTreino = (() => {
   function renderCorrida(content, state, api) {
     const runs = Storage.getByDate('corridas', state.date).sort((a, b) => (a.order || 0) - (b.order || 0));
     const planosCorrida = Storage.getAll('corrida_planos').sort((a, b) => (a.ordem || 0) - (b.ordem || 0));
+    const todasCorridas = Storage.getAll('corridas');
 
     function resumoPlano(p) {
       const partes = [];
@@ -907,21 +908,34 @@ const ViewTreino = (() => {
       return partes.join(' · ');
     }
 
+    // Quando cada treino foi feito pela última vez. Num pacote de 8 intervalados, a pergunta
+    // que a pessoa faz ao abrir a tela é "qual eu ainda não fiz" — sem isso ela precisa
+    // lembrar de cabeça ou vasculhar o histórico.
+    // Casa por planoId; cai na nota só para corridas antigas, gravadas antes de existir o campo.
+    function ultimaVez(p) {
+      const feitas = todasCorridas.filter(c => c.planoId === p.id || (!c.planoId && c.notes === p.nome));
+      if (feitas.length === 0) return null;
+      return feitas.map(c => c.date).sort().pop();
+    }
+
     content.innerHTML = `
       ${planosCorrida.length > 0 ? `
         <div class="card">
           <h2>🏃 Seus treinos de corrida</h2>
-          ${planosCorrida.map(p => `
+          ${planosCorrida.map(p => {
+            const feito = ultimaVez(p);
+            return `
             <div class="list-item">
               <div>
                 <strong>${Util.escapeHtml(p.nome)}</strong>
                 ${resumoPlano(p) ? `<div class="meta">${Util.escapeHtml(resumoPlano(p))}</div>` : ''}
                 ${p.descricao ? `<div class="meta">${Util.escapeHtml(p.descricao)}</div>` : ''}
+                <div class="meta" style="color:${feito ? 'var(--text-muted)' : 'var(--accent)'}">${feito ? `✓ última vez em ${Util.fmtDate(feito)}` : 'ainda não feito'}</div>
               </div>
-              ${(p.distanceKm || p.timeMin) ? `<button class="secondary" data-usar-corrida="${p.id}" style="font-size:0.75rem;padding:6px 10px">Usar</button>` : ''}
+              <button class="secondary" data-usar-corrida="${p.id}" style="font-size:0.75rem;padding:6px 10px">Usar</button>
             </div>
-          `).join('')}
-          <p class="meta" style="font-size:0.72rem">"Usar" preenche a distância e o tempo abaixo — ajuste pro que você realmente fez antes de registrar.</p>
+          `; }).join('')}
+          <p class="meta" style="font-size:0.72rem">"Usar" marca qual treino você fez e preenche distância e tempo quando o plano define — nos intervalados eles ficam em branco de propósito, porque o total depende do dia. Ajuste pro que o relógio marcou antes de registrar.</p>
         </div>
       ` : ''}
       <div class="card">
@@ -947,12 +961,16 @@ const ViewTreino = (() => {
         </div>
       </div>
     `;
+    // Qual plano o "Usar" marcou. Fica fora do formulário porque é a única informação da tela
+    // que o usuário não digita — e é ela que faz o "última vez em" funcionar no próximo acesso.
+    let planoSelecionado = null;
+
     document.getElementById('save-run').addEventListener('click', () => {
       const distanceKm = Number(document.getElementById('run-distance').value);
       const timeMin = Number(document.getElementById('run-time').value);
       const notes = document.getElementById('run-notes').value.trim();
       if (!distanceKm || !timeMin) return;
-      Storage.add('corridas', { date: state.date, distanceKm, timeMin, notes, order: Date.now() });
+      Storage.add('corridas', { date: state.date, distanceKm, timeMin, notes, planoId: planoSelecionado, order: Date.now() });
       atualizarGastoAuto(state.date);
       api.render();
     });
@@ -960,6 +978,7 @@ const ViewTreino = (() => {
       btn.addEventListener('click', () => {
         const p = planosCorrida.find(x => x.id === btn.dataset.usarCorrida);
         if (!p) return;
+        planoSelecionado = p.id;
         // Sempre atribui os dois campos (vazio quando o plano não define): senão sobra o
         // número do plano usado antes, e você registra a meta do treino errado sem perceber.
         document.getElementById('run-distance').value = p.distanceKm || '';
