@@ -52,10 +52,19 @@ ok(PACOTE.planos.every(p => p.tipo && p.tipo.trim()), 'todos têm tipo, que é o
 console.log('\n--- distância e tempo ficam nulos de propósito ---');
 ok(PACOTE.planos.every(p => p.distanceKm === null), 'distanceKm null em todos');
 ok(PACOTE.planos.every(p => p.timeMin === null), 'timeMin null em todos');
-// A tela só mostra o botão "Usar" quando um dos dois existe — é isso que impede o app de
-// sugerir um total inventado como se fosse a meta do treino.
+// O que os nulos têm que garantir é que o app não SUGIRA um total inventado — não que o
+// treino fique inacessível.
+//
+// Esta asserção já disse o contrário: "o botão Usar depende de haver distância ou tempo".
+// Ela travava um bug. Como os 8 planos do pacote têm os dois campos nulos, a condição
+// escondia o botão em todos eles e a lista de treinos virava decorativa — dava pra ver os
+// treinos e não dava pra usar nenhum. O teste passava porque media a implementação em vez
+// do efeito dela.
 const treino = fs.readFileSync(path.join(raiz, 'js/views/treino.js'), 'utf8');
-ok(/\(p\.distanceKm \|\| p\.timeMin\) \?/.test(treino), 'o botão "Usar" depende de haver distância ou tempo');
+ok(/document\.getElementById\('run-distance'\)\.value = p\.distanceKm \|\| ''/.test(treino),
+  'plano sem distância deixa o campo VAZIO em vez de sugerir número');
+ok(/document\.getElementById\('run-time'\)\.value = p\.timeMin \|\| ''/.test(treino),
+  'plano sem tempo deixa o campo VAZIO em vez de sugerir número');
 
 console.log('\n--- a numeração é a da ficha, com os buracos ---');
 const nums = PACOTE.planos.map(p => Number((p.nome.match(/Corrida (\d+)/) || [])[1]));
@@ -100,6 +109,27 @@ const iPac = html.indexOf('js/data/corridaMfit.js');
 ok(iReg > 0, 'corridasPredefinidas.js está no index');
 ok(iPac > 0, 'corridaMfit.js está no index');
 ok(iReg < iPac, 'o registro carrega ANTES do pacote, senão ele não teria onde se registrar');
+
+console.log('\n--- dá pra USAR qualquer plano, inclusive os sem distância/tempo ---');
+// Bug real: o botão "Usar" só saía quando o plano tinha distanceKm ou timeMin, e os 8
+// intervalados da MFIT têm os dois em null DE PROPÓSITO (num intervalado o total depende do
+// dia). Resultado: nenhum deles tinha botão e a lista virava decorativa.
+const tCorrida = treino.slice(treino.indexOf('function renderCorrida'), treino.indexOf('function runItemHtml'));
+ok(!/\$\{\(p\.distanceKm \|\| p\.timeMin\) \?[^}]*data-usar-corrida/.test(tCorrida),
+  'o botão NÃO depende mais de o plano ter distância ou tempo');
+ok(/data-usar-corrida="\$\{p\.id\}"/.test(tCorrida), 'todo plano da lista ganha botão Usar');
+
+const semMedida = PACOTE.planos.filter(p => !p.distanceKm && !p.timeMin);
+ok(semMedida.length === PACOTE.planos.length,
+  `todos os ${PACOTE.planos.length} planos do pacote são sem distância/tempo — é esse o caso que o bug escondia`);
+
+console.log('\n--- "já fiz o treino 1": a tela responde isso sozinha ---');
+ok(/function ultimaVez/.test(tCorrida), 'calcula quando cada plano foi feito pela última vez');
+ok(/c\.planoId === p\.id/.test(tCorrida), 'casa por planoId, não por texto da nota');
+ok(/!c\.planoId && c\.notes === p\.nome/.test(tCorrida), 'ainda reconhece corridas antigas, gravadas antes do campo existir');
+ok(/ainda não feito/.test(tCorrida), 'destaca o que nunca foi feito');
+ok(/planoSelecionado = p\.id/.test(tCorrida), 'Usar marca qual plano foi escolhido');
+ok(/planoId: planoSelecionado/.test(tCorrida), 'e o registro da corrida guarda esse plano');
 
 console.log(falhas === 0 ? '\nTODOS OS TESTES PASSARAM\n' : `\n${falhas} TESTE(S) FALHARAM\n`);
 process.exit(falhas === 0 ? 0 : 1);
