@@ -226,7 +226,7 @@ const ViewTreino = (() => {
           return `
             <div class="card">
               <h2>✅ Treino concluído</h2>
-              <p><strong>${planoNome ? Util.escapeHtml(planoNome) : 'Treino livre'}</strong> — ${resumoExercicios}${t.duracaoMin ? ` · ${t.duracaoMin} min` : ''}</p>
+              <p><strong>${planoNome ? Util.escapeHtml(planoNome) : 'Treino livre'}</strong> — ${resumoExercicios}${t.duracaoMin ? ` · ${t.duracaoMin} min` : ''}${resumoFC(t) ? ` · ${resumoFC(t)}` : ''}</p>
               <button class="secondary" data-editar-treino="${t.id}">Editar treino</button>
               <button class="danger-btn" data-delete-treino="${t.id}">Excluir este treino</button>
             </div>
@@ -314,6 +314,12 @@ const ViewTreino = (() => {
       <div class="card">
         <label>Duração (min) — vem do cronômetro ao finalizar; preencha só pra corrigir</label>
         <input type="number" id="treino-duracao" placeholder="${sessao.inicioTs ? 'automático (cronômetro)' : 'Ex: 50'}" value="${existing && existing.duracaoMin ? existing.duracaoMin : ''}">
+        <label class="meta" style="margin-top:4px">Frequência cardíaca <span style="font-weight:400">— opcional, do relógio</span></label>
+        <div class="row">
+          <div><label class="meta">Média</label><input type="number" id="treino-fcmed" placeholder="—" value="${existing && existing.fcMedia ? existing.fcMedia : ''}"></div>
+          <div><label class="meta">Máxima</label><input type="number" id="treino-fcmax" placeholder="—" value="${existing && existing.fcMax ? existing.fcMax : ''}"></div>
+          <div><label class="meta">Mínima</label><input type="number" id="treino-fcmin" placeholder="—" value="${existing && existing.fcMin ? existing.fcMin : ''}"></div>
+        </div>
         <label>Notas do treino</label>
         <textarea id="treino-notes" placeholder="Sensação, observações...">${Util.escapeHtml(existing ? existing.notes : '')}</textarea>
         <button class="primary" id="save-treino">✅ Finalizar treino</button>
@@ -414,9 +420,9 @@ const ViewTreino = (() => {
       // digitar de novo. Só entra quando o campo está vazio, pra respeitar correção manual.
       if (finalizando && !duracaoMin) duracaoMin = minutosCronometro();
       if (entryId) {
-        Storage.update('treino', entryId, { exercises: cleaned, notes, planoId: planoIdAtual, duracaoMin });
+        Storage.update('treino', entryId, { exercises: cleaned, notes, planoId: planoIdAtual, duracaoMin, ...lerFC('treino') });
       } else if (cleaned.length) {
-        const novo = Storage.add('treino', { date: state.date, exercises: cleaned, notes, planoId: planoIdAtual, duracaoMin });
+        const novo = Storage.add('treino', { date: state.date, exercises: cleaned, notes, planoId: planoIdAtual, duracaoMin, ...lerFC('treino') });
         entryId = novo.id;
         // Sem isso, um refresh antes daqui nunca sabe que essa entrada já existe: a sessão
         // restaurada volta pro template do plano (perdendo as cargas já digitadas) e o próximo
@@ -855,6 +861,12 @@ const ViewTreino = (() => {
             <input type="number" step="0.01" id="cardio-dist" placeholder="—">
           </div>
         </div>
+        <label class="meta" style="margin-top:4px">Frequência cardíaca <span style="font-weight:400">— opcional, do relógio</span></label>
+        <div class="row">
+          <div><label class="meta">Média</label><input type="number" id="cardio-fcmed" placeholder="—" value=""></div>
+          <div><label class="meta">Máxima</label><input type="number" id="cardio-fcmax" placeholder="—" value=""></div>
+          <div><label class="meta">Mínima</label><input type="number" id="cardio-fcmin" placeholder="—" value=""></div>
+        </div>
         <label>Notas</label>
         <textarea id="cardio-notes" placeholder="Intensidade, enquanto esperava..."></textarea>
         <button class="primary" id="save-cardio">Registrar</button>
@@ -867,6 +879,7 @@ const ViewTreino = (() => {
               <div>
                 <strong>${Util.escapeHtml(c.modalidade || 'Cardio')} — ${c.timeMin}min</strong>
                 ${c.distanceKm ? `<div class="meta">${c.distanceKm} km</div>` : ''}
+                ${resumoFC(c) ? `<div class="meta">${resumoFC(c)}</div>` : ''}
                 ${c.notes ? `<div class="meta">${Util.escapeHtml(c.notes)}</div>` : ''}
               </div>
               <button class="link" data-remove-cardio="${c.id}" aria-label="Excluir">✕</button>
@@ -882,7 +895,7 @@ const ViewTreino = (() => {
       const modalidade = document.getElementById('cardio-mod').value;
       const distanceKm = Number(document.getElementById('cardio-dist').value) || null;
       const notes = document.getElementById('cardio-notes').value.trim();
-      Storage.add('cardio', { date: state.date, modalidade, timeMin, distanceKm, notes, order: Date.now() });
+      Storage.add('cardio', { date: state.date, modalidade, timeMin, distanceKm, notes, ...lerFC('cardio'), order: Date.now() });
       atualizarGastoAuto(state.date);
       api.render();
     });
@@ -893,6 +906,32 @@ const ViewTreino = (() => {
         api.render();
       });
     });
+  }
+
+  // "FC 140 · máx 169" — só o que foi preenchido, pra não poluir com travessões vazios.
+  function resumoFC(r) {
+    const partes = [];
+    if (r.fcMedia) partes.push(`FC ${r.fcMedia}`);
+    if (r.fcMax) partes.push(`máx ${r.fcMax}`);
+    if (r.fcMin) partes.push(`mín ${r.fcMin}`);
+    return partes.join(' · ');
+  }
+
+  // Lê os três campos opcionais de frequência cardíaca de um formulário.
+  //
+  // Os valores são GRAVADOS mas NÃO entram na estimativa de caloria, e isso é deliberado:
+  // medido contra as 8 sessões de força e as 4 corridas do relógio, estimar gasto por %FC da
+  // reserva erra de +58% a +114% na musculação (a FC sobe no treino de força fora de
+  // proporção com o consumo de oxigênio) e de +7% a +23% na corrida, onde o ACSM por
+  // distância e tempo é melhor e usa dados que o app já tem. Servem pra acompanhar esforço e
+  // recuperação ao longo do tempo, não pra converter em caloria.
+  function lerFC(prefixo) {
+    const num = id => {
+      const el = document.getElementById(id);
+      const v = el ? Number(el.value) : 0;
+      return v > 0 ? v : null;   // vazio vira null; 0 bpm seria dado falso
+    };
+    return { fcMedia: num(prefixo + '-fcmed'), fcMax: num(prefixo + '-fcmax'), fcMin: num(prefixo + '-fcmin') };
   }
 
   function renderCorrida(content, state, api) {
@@ -950,6 +989,12 @@ const ViewTreino = (() => {
             <input type="number" step="0.1" id="run-time" placeholder="20">
           </div>
         </div>
+        <label class="meta" style="margin-top:4px">Frequência cardíaca <span style="font-weight:400">— opcional, do relógio</span></label>
+        <div class="row">
+          <div><label class="meta">Média</label><input type="number" id="run-fcmed" placeholder="—" value=""></div>
+          <div><label class="meta">Máxima</label><input type="number" id="run-fcmax" placeholder="—" value=""></div>
+          <div><label class="meta">Mínima</label><input type="number" id="run-fcmin" placeholder="—" value=""></div>
+        </div>
         <label>Notas</label>
         <textarea id="run-notes" placeholder="Percurso, sensação..."></textarea>
         <button class="primary" id="save-run">Registrar</button>
@@ -970,7 +1015,7 @@ const ViewTreino = (() => {
       const timeMin = Number(document.getElementById('run-time').value);
       const notes = document.getElementById('run-notes').value.trim();
       if (!distanceKm || !timeMin) return;
-      Storage.add('corridas', { date: state.date, distanceKm, timeMin, notes, planoId: planoSelecionado, order: Date.now() });
+      Storage.add('corridas', { date: state.date, distanceKm, timeMin, notes, planoId: planoSelecionado, ...lerFC('run'), order: Date.now() });
       atualizarGastoAuto(state.date);
       api.render();
     });
@@ -1007,6 +1052,7 @@ const ViewTreino = (() => {
         <div>
           <strong>${r.distanceKm}km em ${r.timeMin}min</strong> ${isPR ? '<span class="badge pr">🏆 PR</span>' : ''}
           <div class="meta">Pace: ${min}:${String(sec).padStart(2, '0')} min/km ${r.notes ? '· ' + Util.escapeHtml(r.notes) : ''}</div>
+          ${resumoFC(r) ? `<div class="meta">${resumoFC(r)}</div>` : ''}
         </div>
         <button class="link" data-remove="${r.id}">✕</button>
       </div>
