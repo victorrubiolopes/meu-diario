@@ -50,13 +50,16 @@ ok(/: null;\s*\}/.test(thumb), 'sem vídeo devolve null em vez de uma URL quebra
 
 console.log('\n--- sem vídeo não quebra ---');
 ok(/🏋️/.test(previa), 'exercício sem vídeo ganha um marcador neutro');
-ok(/\$\{exs\.length - comVideo\} sem vídeo/.test(previa), 'avisa quantos ainda não têm vídeo');
+ok(/\$\{exs\.length - comVideo\} sem imagem/.test(previa), 'avisa quantos ainda não têm imagem');
 ok(/loading="lazy"/.test(previa), 'as imagens carregam sob demanda, não todas de uma vez');
 
-console.log('\n--- nenhuma busca de imagem externa ---');
-// Se um dia alguém quiser mudar isso, que seja uma decisão consciente e não um acidente.
-ok(!/googleusercontent|bing\.|unsplash|pexels|wger|exercisedb/i.test(treino),
-  'não busca imagem em banco de terceiros');
+console.log('\n--- as fontes de imagem são só as duas previstas ---');
+// Vídeo cadastrado pelo usuário e o free-exercise-db (domínio público, mapa manual em
+// js/data/ilustracoes.js). Qualquer outra fonte aqui seria busca por texto, que erra em
+// silêncio — ver o caso Abdução/Adução no cabeçalho de ilustracoes.js.
+ok(!/googleusercontent|bing\.|unsplash|pexels|wger\.de/i.test(treino),
+  'não busca imagem em banco não verificado');
+ok(/ilustracaoExercicio/.test(treino), 'a ilustração vem pelo mapa manual, não por busca');
 
 console.log('\n--- trocar o plano repinta só a prévia ---');
 const handler = treino.slice(treino.indexOf("selPlano.addEventListener('change'"), treino.indexOf("document.getElementById('iniciar-treino')"));

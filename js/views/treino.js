@@ -204,17 +204,27 @@ const ViewTreino = (() => {
     // Prévia do treino, antes de começar. Sem ela a tela pedia uma decisão ("qual treino você
     // vai fazer?") mostrando só o nome do plano — e nome de plano não diz o que tem dentro.
     //
-    // A ILUSTRAÇÃO SAI DO PRÓPRIO VÍDEO que já está na biblioteca: a miniatura do YouTube é
-    // servida pra isso e casa exatamente com o exercício, porque foi o Victor que escolheu o
-    // vídeo. Não há busca de imagem na web nem banco de ilustrações de terceiros — seria
-    // problema de licença e, pior, de casamento: os nomes aqui são em português e os bancos
-    // abertos são em inglês, então "Agachamento búlgaro" acharia qualquer coisa ou nada.
-    // Exercício sem vídeo mostra um marcador neutro, e o botão de definir link está a um
-    // toque de distância no card durante o treino.
+    // A IMAGEM DO EXERCÍCIO TEM TRÊS NÍVEIS, nesta ordem:
+    //
+    //   1. miniatura do VÍDEO que o próprio usuário cadastrou — é a que casa com certeza,
+    //      porque foi ele que escolheu o vídeo;
+    //   2. ilustração do free-exercise-db (domínio público), pelo mapa escrito à mão em
+    //      js/data/ilustracoes.js;
+    //   3. ícone neutro.
+    //
+    // O vídeo vem primeiro de propósito: se a pessoa se deu ao trabalho de cadastrar um, é
+    // porque aquele é o movimento que ela quer ver. A ilustração cobre os outros 128.
+    //
+    // O que NÃO existe aqui é busca de imagem na web. Não é excesso de zelo: na montagem do
+    // mapa, a sugestão automática para "Abdução de quadril em pé" foi "Cable Hip Adduction",
+    // o movimento OPOSTO. Erro de imagem em app de treino é silencioso e a pessoa faz o
+    // exercício errado achando que está certo. Por isso o mapa é manual e verificado, e o
+    // fallback é não mostrar nada em vez de mostrar qualquer coisa.
     function thumbExercicio(nome) {
       const doLib = biblioteca.find(e => e.name.trim().toLowerCase() === (nome || '').trim().toLowerCase());
       const id = doLib && Util.youtubeEmbedId ? Util.youtubeEmbedId(doLib.videoUrl) : null;
-      return id ? `https://img.youtube.com/vi/${id}/mqdefault.jpg` : null;
+      if (id) return `https://img.youtube.com/vi/${id}/mqdefault.jpg`;
+      return typeof ilustracaoExercicio === 'function' ? ilustracaoExercicio(nome) : null;
     }
 
     function previaHtml(plano) {
@@ -228,7 +238,7 @@ const ViewTreino = (() => {
       const comVideo = exs.filter(e => thumbExercicio(e.name)).length;
       return `
         <div style="margin-top:12px">
-          <div class="meta" style="margin-bottom:6px">${exs.length} exercício${exs.length === 1 ? '' : 's'} neste treino${comVideo < exs.length ? ` · ${exs.length - comVideo} sem vídeo` : ''}</div>
+          <div class="meta" style="margin-bottom:6px">${exs.length} exercício${exs.length === 1 ? '' : 's'} neste treino${comVideo < exs.length ? ` · ${exs.length - comVideo} sem imagem` : ''}</div>
           ${exs.map(e => {
             const thumb = thumbExercicio(e.name);
             const serie = [e.sets && e.reps ? `${e.sets}x${e.reps}` : (e.sets || e.reps || ''), e.descanso].filter(Boolean).join(' · ');
