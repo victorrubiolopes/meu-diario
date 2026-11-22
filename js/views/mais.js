@@ -1735,7 +1735,7 @@ Coxa: 58 cm
         return `
           <div class="card">
             <h2>Cópias de segurança automáticas</h2>
-            <p class="meta">O app guarda o estado anterior antes de sincronizar com a nuvem ou importar um backup. Ficam as 3 últimas — use se algum registro sumir. Restaurar <strong>traz de volta</strong> o que estava na cópia; não apaga o que você registrou depois.</p>
+            <p class="meta">O app guarda o estado anterior antes de sincronizar com a nuvem ou importar um backup. Ficam as 3 últimas — use se algum registro sumir. Restaurar <strong>junta</strong> a cópia com o diário de hoje: o que sumiu volta e nada do que você registrou depois é apagado. Só não serve pra desfazer uma <em>edição</em> — registro que continua lá, com valor trocado, fica com o valor atual.</p>
             <div class="menu-list" style="margin-top:10px">
               ${copias.map(c => `
                 <div class="menu-item" data-restaurar="${c.id}">
@@ -1819,8 +1819,8 @@ Coxa: 58 cm
         const quando = new Date(copia.em).toLocaleString('pt-BR');
         if (!window.confirm(
           `Restaurar a cópia de ${quando} (${copia.registros} registros)?\n\n` +
-          'Os registros dessa cópia voltam pro diário. O que você registrou depois continua lá ' +
-          '— a sincronização junta os dois, não troca um pelo outro.'
+          'Os registros dessa cópia que não existem mais voltam pro diário. Nada do que você ' +
+          'registrou depois é apagado: onde o registro ainda existe, vale a versão de agora.'
         )) return;
         Storage.restaurarCopiaSeguranca(copia.id);
         alert(`✅ Cópia de ${quando} restaurada.`);
