@@ -201,6 +201,53 @@ const ViewTreino = (() => {
     const ultimoFeito = Util.ultimoTreinoFeito();
     const sessao = _sessaoAtiva(state.date, planos);
 
+    // Prévia do treino, antes de começar. Sem ela a tela pedia uma decisão ("qual treino você
+    // vai fazer?") mostrando só o nome do plano — e nome de plano não diz o que tem dentro.
+    //
+    // A ILUSTRAÇÃO SAI DO PRÓPRIO VÍDEO que já está na biblioteca: a miniatura do YouTube é
+    // servida pra isso e casa exatamente com o exercício, porque foi o Victor que escolheu o
+    // vídeo. Não há busca de imagem na web nem banco de ilustrações de terceiros — seria
+    // problema de licença e, pior, de casamento: os nomes aqui são em português e os bancos
+    // abertos são em inglês, então "Agachamento búlgaro" acharia qualquer coisa ou nada.
+    // Exercício sem vídeo mostra um marcador neutro, e o botão de definir link está a um
+    // toque de distância no card durante o treino.
+    function thumbExercicio(nome) {
+      const doLib = biblioteca.find(e => e.name.trim().toLowerCase() === (nome || '').trim().toLowerCase());
+      const id = doLib && Util.youtubeEmbedId ? Util.youtubeEmbedId(doLib.videoUrl) : null;
+      return id ? `https://img.youtube.com/vi/${id}/mqdefault.jpg` : null;
+    }
+
+    function previaHtml(plano) {
+      if (!plano) {
+        return '<p class="meta" style="margin-top:10px">Treino livre — você monta os exercícios na próxima tela.</p>';
+      }
+      const exs = plano.exercises || [];
+      if (exs.length === 0) {
+        return '<p class="meta" style="margin-top:10px">Este plano está sem exercícios.</p>';
+      }
+      const comVideo = exs.filter(e => thumbExercicio(e.name)).length;
+      return `
+        <div style="margin-top:12px">
+          <div class="meta" style="margin-bottom:6px">${exs.length} exercício${exs.length === 1 ? '' : 's'} neste treino${comVideo < exs.length ? ` · ${exs.length - comVideo} sem vídeo` : ''}</div>
+          ${exs.map(e => {
+            const thumb = thumbExercicio(e.name);
+            const serie = [e.sets && e.reps ? `${e.sets}x${e.reps}` : (e.sets || e.reps || ''), e.descanso].filter(Boolean).join(' · ');
+            return `
+              <div class="row" style="align-items:center;gap:10px;margin-bottom:8px">
+                ${thumb
+                  ? `<img src="${thumb}" alt="" loading="lazy" style="width:68px;height:38px;object-fit:cover;border-radius:6px;flex:0 0 auto;background:var(--bg-alt)">`
+                  : `<div style="width:68px;height:38px;border-radius:6px;flex:0 0 auto;background:var(--bg-alt);display:flex;align-items:center;justify-content:center;font-size:0.9rem;opacity:0.5">🏋️</div>`}
+                <div style="flex:1;min-width:0">
+                  <div style="font-size:0.88rem">${Util.escapeHtml(e.name || 'Exercício sem nome')}</div>
+                  ${serie ? `<div class="meta" style="font-size:0.76rem">${Util.escapeHtml(serie)}</div>` : ''}
+                </div>
+              </div>
+            `;
+          }).join('')}
+        </div>
+      `;
+    }
+
     if (!sessao) {
       const planoPromptHtml = `
         <div class="card">
@@ -213,6 +260,7 @@ const ViewTreino = (() => {
               <option value="">Treino livre (sem plano)</option>
             </select>
             ${sugerido ? `<p class="meta" style="margin-top:4px">Sugestão baseada no último treino registrado — troque acima se não for o certo.</p>` : ''}
+            <div id="previa-plano">${previaHtml(sugerido)}</div>
           ` : '<p><strong>Treino livre</strong></p>'}
           <button class="primary" id="iniciar-treino" style="width:100%;margin-top:10px">▶ Iniciar treino</button>
           <button class="secondary" id="marcar-rapido" style="width:100%;margin-top:8px">✓ Só marcar que treinei hoje</button>
@@ -248,6 +296,16 @@ const ViewTreino = (() => {
           api.render();
         });
       });
+      // A prévia acompanha o seletor. Repinta SÓ o bloco dela — api.render() aqui devolveria
+      // o seletor pro plano sugerido e desfaria a escolha que a pessoa acabou de fazer.
+      const selPlano = document.getElementById('prompt-plano-select');
+      if (selPlano) {
+        selPlano.addEventListener('change', () => {
+          const escolhido = planos.find(p => p.id === selPlano.value) || null;
+          const alvo = document.getElementById('previa-plano');
+          if (alvo) alvo.innerHTML = previaHtml(escolhido);
+        });
+      }
       document.getElementById('iniciar-treino').addEventListener('click', () => {
         const sel = document.getElementById('prompt-plano-select');
         const escolhido = sel ? (planos.find(p => p.id === sel.value) || null) : null;
