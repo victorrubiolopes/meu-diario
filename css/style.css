@@ -1101,6 +1101,32 @@ canvas {
   flex-shrink: 0;
 }
 
+/* O que o plano tem e a lista de hoje não tem. Discreto: pular exercício de propósito é
+   normal, isto informa, não cobra. Cada nome é um botão que devolve o exercício. */
+.ex-faltando {
+  border: 1px dashed var(--border);
+  border-radius: var(--radius);
+  padding: 12px;
+  margin-bottom: 14px;
+}
+
+.ex-faltando-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 10px;
+}
+
+.ex-faltando-chip {
+  background: var(--accent-soft);
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  color: var(--text);
+  font-size: 0.82rem;
+  padding: 8px 14px;
+  text-align: left;
+}
+
 /* ---- cards de exercício (Treino / Musculação) ---- */
 .ex-card {
   background: var(--surface);

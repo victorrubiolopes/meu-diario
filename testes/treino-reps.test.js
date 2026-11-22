@@ -62,10 +62,13 @@ ok(/cargas\[cargas\.length - 1\]/.test(seedCarga), 'e também repete a última s
 console.log('\n--- as duas sementes andam juntas ---');
 // Onde a carga é semeada, as reps também precisam ser — senão metade do card vem pronta
 // e a outra metade não, que era exatamente o incômodo.
+// A regra é o PAR, não a quantidade: ponto novo que semeia carga (ex: recolocar um exercício
+// do plano) tem que semear reps também. Travar o número só obrigava a mexer no teste a cada
+// ponto novo, sem proteger nada a mais.
 const chamadasCarga = (treinoSrc.match(/seedCargasHistorico\(rows\)/g) || []).length;
 const chamadasReps = (treinoSrc.match(/seedRepsHistorico\(rows\)/g) || []).length;
-ok(chamadasCarga === chamadasReps && chamadasCarga === 3,
-  `as duas são chamadas nos mesmos 3 pontos (carga: ${chamadasCarga}, reps: ${chamadasReps})`);
+ok(chamadasCarga > 0 && chamadasCarga === chamadasReps,
+  `as duas são chamadas nos mesmos pontos (carga: ${chamadasCarga}, reps: ${chamadasReps})`);
 ok(/if \(!existing\) \{ seedCargasHistorico\(rows\); seedRepsHistorico\(rows\); \}/.test(treinoSrc),
   'ao abrir um treino novo');
 ok(/syncNames\(\); seedCargasHistorico\(rows\); seedRepsHistorico\(rows\);/.test(treinoSrc),

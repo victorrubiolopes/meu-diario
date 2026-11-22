@@ -673,8 +673,43 @@ const ViewTreino = (() => {
       `;
     }
 
+    // "Do plano X, não estão na lista: [+ Mesa Flexora] [+ Cadeira Extensora]"
+    //
+    // O desfazer resolve o engano enquanto ele está fresco. Isto resolve a pergunta que vem
+    // depois — "eu nem sei quais eram" — e resolve melhor, porque não depende de lembrar nada:
+    // sai da comparação entre o plano de onde o treino veio e o que está na tela agora.
+    // Sobrevive ao F5, ao fechar o app e ao dia seguinte, coisa que a pilha de desfazer não faz.
+    //
+    // Serve pra mais do que o acidente: mostra o que ainda falta fazer da ficha.
+    // Texto neutro de propósito ("não estão na lista", não "você esqueceu"): pular exercício
+    // de propósito é normal, e o app não tem como saber a diferença.
+    function planoDaSessao() {
+      return planoIdAtual ? planos.find(p => p.id === planoIdAtual) : null;
+    }
+
+    function exerciciosFaltando() {
+      const plano = planoDaSessao();
+      if (!plano || !Array.isArray(plano.exercises)) return [];
+      const naLista = new Set(rows.map(r => (r.name || '').trim().toLowerCase()).filter(Boolean));
+      return plano.exercises.filter(e => e.name && !naLista.has(e.name.trim().toLowerCase()));
+    }
+
+    function faltandoHtml() {
+      const faltando = exerciciosFaltando();
+      if (!faltando.length) return '';
+      const plano = planoDaSessao();
+      return `
+        <div class="ex-faltando">
+          <div class="meta">Do plano <strong>${Util.escapeHtml(plano.nome)}</strong>, ${faltando.length === 1 ? 'não está na lista' : 'não estão na lista'}:</div>
+          <div class="ex-faltando-chips">
+            ${faltando.map(e => `<button type="button" class="ex-faltando-chip" data-readd="${Util.escapeHtml(e.name)}">+ ${Util.escapeHtml(e.name)}</button>`).join('')}
+          </div>
+        </div>
+      `;
+    }
+
     function renderCards() {
-      cardsEl.innerHTML = desfazerHtml() + rows.map((r, i) => cardHtml(r, i)).join('');
+      cardsEl.innerHTML = desfazerHtml() + rows.map((r, i) => cardHtml(r, i)).join('') + faltandoHtml();
       bindCards();
     }
 
@@ -703,6 +738,36 @@ const ViewTreino = (() => {
           if (removida && removida.name && removida.name.trim() !== '') {
             removidos.push({ i, row: removida, placeholder });
           }
+          persist();
+          renderCards();
+        });
+      });
+      cardsEl.querySelectorAll('[data-readd]').forEach(btn => {
+        btn.addEventListener('click', () => {
+          syncNames();
+          const plano = planoDaSessao();
+          if (!plano) return;
+          const doPlano = plano.exercises.find(e => e.name === btn.dataset.readd);
+          if (!doPlano) return;
+          // Volta com séries/reps/descanso do plano, mas SEM o que foi marcado — o que já
+          // tinha sido feito nele morreu com a remoção, e inventar série marcada seria pior
+          // do que vir em branco.
+          const nova = { ...doPlano, done: [], weights: [], repsFeitas: [] };
+          // Entra na posição que tem no plano: a ordem da ficha é a ordem de executar.
+          const ordem = plano.exercises.map(e => (e.name || '').trim().toLowerCase());
+          const meu = ordem.indexOf((doPlano.name || '').trim().toLowerCase());
+          let pos = rows.length;
+          for (let k = 0; k < rows.length; k++) {
+            // -1 é exercício que não está no plano (adicionado na mão): não manda na ordem.
+            const idx = ordem.indexOf((rows[k].name || '').trim().toLowerCase());
+            if (idx > meu) { pos = k; break; }
+          }
+          rows.splice(pos, 0, nova);
+          // Card em branco sobrando depois de preencher a lista só estorva.
+          const vazia = rows.findIndex((r, idx) => idx !== pos && !(r.name || '').trim());
+          if (vazia >= 0 && rows.length > 1) rows.splice(vazia, 1);
+          seedCargasHistorico(rows);
+          seedRepsHistorico(rows);
           persist();
           renderCards();
         });
