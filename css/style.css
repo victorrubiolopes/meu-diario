@@ -1068,6 +1068,39 @@ canvas {
   margin-top: 4px;
 }
 
+/* Barra de desfazer da remoção de exercício. Fica acima dos cards, discreta mas visível —
+   o ✕ é a um toque do nome do exercício e apagar sem querer no meio do treino era perda
+   definitiva. Botão com área de toque grande: a mão está suada e o treino, em andamento. */
+.ex-undo {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-left: 3px solid var(--macro-protein);
+  border-radius: var(--radius);
+  padding: 10px 12px;
+  margin-bottom: 14px;
+  font-size: 0.85rem;
+  color: var(--text-muted);
+}
+
+.ex-undo strong {
+  color: var(--text);
+}
+
+.ex-undo button {
+  background: none;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  color: var(--accent);
+  font-size: 0.85rem;
+  font-weight: 600;
+  padding: 8px 14px;
+  flex-shrink: 0;
+}
+
 /* ---- cards de exercício (Treino / Musculação) ---- */
 .ex-card {
   background: var(--surface);

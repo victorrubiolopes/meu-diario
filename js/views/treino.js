@@ -345,6 +345,20 @@ const ViewTreino = (() => {
     // Estado transitório de edição por card (não é persistido)
     const ui = { scheme: {} };
     const expandedVideos = new Set();
+    // Pilha de exercícios removidos nesta sessão, pra poder desfazer.
+    //
+    // O ✕ fica a um toque do campo do nome, no meio do treino, com a mão suada e o celular
+    // apoiado em qualquer lugar: errar é fácil. E o erro era DEFINITIVO, porque o persist()
+    // reescreve o registro do dia na hora — não havia de onde voltar.
+    //
+    // Guarda a linha INTEIRA (séries marcadas, pesos, reps feitas) e o índice, então desfazer
+    // devolve o exercício no lugar onde estava, com o que já tinha sido feito dele. Pilha e não
+    // uma só: quem apaga sem querer costuma apagar mais de um antes de perceber.
+    //
+    // NÃO vai pro localStorage de propósito: é de uso imediato. Sobreviver ao F5 significaria
+    // uma barra de "desfazer" aparecendo em treino de outro dia, oferecendo devolver exercício
+    // que a pessoa apagou de propósito semanas atrás.
+    const removidos = [];
 
     content.innerHTML = `
       <datalist id="exercicios-datalist">
@@ -642,8 +656,25 @@ const ViewTreino = (() => {
       });
     }
 
+    // Barra de desfazer, acima dos cards. Só aparece depois de remover algo e some ao desfazer
+    // tudo — no fluxo normal do treino ela não existe e não ocupa espaço.
+    function desfazerHtml() {
+      if (!removidos.length) return '';
+      const n = removidos.length;
+      const ultimo = removidos[n - 1].row.name;
+      const texto = n === 1
+        ? `Removido: <strong>${Util.escapeHtml(ultimo)}</strong>`
+        : `${n} removidos · último: <strong>${Util.escapeHtml(ultimo)}</strong>`;
+      return `
+        <div class="ex-undo">
+          <span>${texto}</span>
+          <button type="button" id="ex-undo-btn">Desfazer</button>
+        </div>
+      `;
+    }
+
     function renderCards() {
-      cardsEl.innerHTML = rows.map((r, i) => cardHtml(r, i)).join('');
+      cardsEl.innerHTML = desfazerHtml() + rows.map((r, i) => cardHtml(r, i)).join('');
       bindCards();
     }
 
@@ -657,12 +688,43 @@ const ViewTreino = (() => {
       cardsEl.querySelectorAll('[data-remove]').forEach(btn => {
         btn.addEventListener('click', () => {
           syncNames();
-          rows.splice(Number(btn.dataset.remove), 1);
-          if (rows.length === 0) rows.push({ name: '', sets: '', reps: '', weight: '', done: [] });
+          const i = Number(btn.dataset.remove);
+          const removida = rows[i];
+          rows.splice(i, 1);
+          // A lista nunca fica sem nenhum card: sem isso a tela de treino ficaria vazia, sem
+          // nem um campo pra começar de novo.
+          let placeholder = false;
+          if (rows.length === 0) {
+            rows.push({ name: '', sets: '', reps: '', weight: '', done: [] });
+            placeholder = true;
+          }
+          // Linha sem nome não entra na pilha: não há o que oferecer de volta, e a barra de
+          // desfazer apareceria dizendo "Removido:" sem nada.
+          if (removida && removida.name && removida.name.trim() !== '') {
+            removidos.push({ i, row: removida, placeholder });
+          }
           persist();
           renderCards();
         });
       });
+      const undoBtn = document.getElementById('ex-undo-btn');
+      if (undoBtn) {
+        undoBtn.addEventListener('click', () => {
+          syncNames();
+          const ult = removidos.pop();
+          if (!ult) return;
+          // Se a remoção tinha esvaziado a lista, a linha em branco que entrou no lugar é
+          // descartada em vez de sobrar embaixo do exercício que está voltando.
+          if (ult.placeholder && rows.length === 1 && !(rows[0].name || '').trim()) {
+            rows = [ult.row];
+          } else {
+            // Volta pro índice de origem; se outras remoções encurtaram a lista, entra no fim.
+            rows.splice(Math.min(ult.i, rows.length), 0, ult.row);
+          }
+          persist();
+          renderCards();
+        });
+      }
       cardsEl.querySelectorAll('[data-scheme]').forEach(btn => {
         btn.addEventListener('click', () => {
           syncNames();

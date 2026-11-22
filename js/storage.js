@@ -280,17 +280,44 @@ const Storage = (() => {
     }
   }
 
+  // Restaurar JUNTA a cópia com o diário atual; não troca um pelo outro.
+  //
+  // Antes era saveAll(copia.dados[k]) — substituição total. A tela sempre prometeu o
+  // contrário ("o que você registrou depois continua lá"), e a promessa era falsa: quem
+  // restaurasse uma cópia pra recuperar um registro apagado perdia, em silêncio, tudo que
+  // tinha lançado desde que a cópia foi feita. No cenário em que esse botão existe — "sumiu
+  // um registro, preciso dele de volta" — a substituição causava uma perda maior do que a
+  // que a pessoa estava tentando consertar.
+  //
+  // Regra da junção: id repetido, o ATUAL manda (é a versão mais nova, e pode ter sido
+  // editado de propósito depois da cópia); id que só existe na cópia volta pro diário.
+  //
+  // LIMITE, que a tela diz com estas palavras: isso traz de volta o que SUMIU, não desfaz
+  // uma edição. Registro que continua lá com valor trocado fica com o valor atual. Pra voltar
+  // a um estado inteiro, o caminho é exportar/importar o backup .json.
   function restaurarCopiaSeguranca(id) {
     const copia = copiasSeguranca().find(c => c.id === id);
     if (!copia) return false;
     // Guarda o estado atual antes de restaurar — restaurar a cópia errada também é perda.
     salvarCopiaSeguranca('antes de restaurar uma cópia');
     Object.keys(KEYS).forEach(k => {
-      if (Array.isArray(copia.dados[k])) saveAll(k, copia.dados[k]);
+      if (!Array.isArray(copia.dados[k])) return;
+      const atuais = getAll(k);
+      const existentes = new Set(atuais.map(it => it && it.id));
+      const faltando = copia.dados[k].filter(it => it && it.id && !existentes.has(it.id));
+      if (faltando.length) saveAll(k, atuais.concat(faltando));
     });
-    if (copia.dados.perfil) savePerfil(copia.dados.perfil);
-    if (copia.dados.refeicaoLivre_config) saveConfigRefeicaoLivre(copia.dados.refeicaoLivre_config);
-    if (copia.dados.lista_compras) saveListaCompras(copia.dados.lista_compras);
+    // Perfil, config e lista de compras são objeto único, não lista: não há id pra juntar.
+    // Então a cópia só PREENCHE o que falta — campo que existe hoje fica com o valor de hoje.
+    // Senão, restaurar pra recuperar um treino apagado desfaria a última pesagem ou a troca
+    // de objetivo, que é exatamente o que a tela promete não fazer.
+    if (copia.dados.perfil) savePerfil({ ...copia.dados.perfil, ...getPerfil() });
+    if (copia.dados.refeicaoLivre_config && !getConfigRefeicaoLivre()) {
+      saveConfigRefeicaoLivre(copia.dados.refeicaoLivre_config);
+    }
+    if (copia.dados.lista_compras && !getListaCompras()) {
+      saveListaCompras(copia.dados.lista_compras);
+    }
     return true;
   }
 
