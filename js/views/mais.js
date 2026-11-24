@@ -4,6 +4,7 @@ const ViewMais = (() => {
     { key: 'fotos', icon: '📸', label: 'Fotos' },
     { key: 'exames', icon: '🩺', label: 'Exames Médicos' },
     { key: 'historico', icon: '📊', label: 'Histórico' },
+    { key: 'protocolo', icon: '🔬', label: 'Protocolo — medir gasto' },
     { key: 'perfil', icon: '👤', label: 'Meu Perfil' },
     { key: 'biblioteca-alimentos', icon: '🍎', label: 'Biblioteca de Alimentos' },
     { key: 'biblioteca-exercicios', icon: '🏋️', label: 'Biblioteca de Exercícios' },
@@ -22,6 +23,8 @@ const ViewMais = (() => {
       case 'exames-tendencia': return ViewExamesTendencia.render($app, state, api);
       case 'exame-lancar': return ViewExamesTendencia.renderLancar($app, state, api);
       case 'historico': return ViewHistorico.render($app, state, api);
+      case 'protocolo': return ViewProtocolo.render($app, state, api);
+      case 'protocolo-config': return ViewProtocolo.renderConfig($app, state, api);
       case 'perfil': return renderPerfil($app, state, api);
       case 'biblioteca-alimentos': return renderBibliotecaAlimentos($app, state, api);
       case 'alimento-novo': return renderAlimentoNovo($app, state, api);

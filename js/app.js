@@ -176,6 +176,8 @@ const App = (() => {
     'exames-tendencia': 'Resultados e tendência',
     'exame-lancar': 'Lançar resultados',
     historico: 'Histórico',
+    protocolo: 'Protocolo',
+    'protocolo-config': 'Ajustar protocolo',
     perfil: 'Meu Perfil',
     'biblioteca-alimentos': 'Biblioteca de Alimentos',
     'alimento-novo': 'Cadastrar alimento',
