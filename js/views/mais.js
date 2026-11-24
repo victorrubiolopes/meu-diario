@@ -834,9 +834,36 @@ Coxa: 58 cm
   function renderDietaPacotes($app, state, api) {
     const dietas = Storage.getAll('dietas_custom');
     const temPacote = typeof DIETA_VICTOR !== 'undefined';
+    const temGabi = typeof DIETA_GABI !== 'undefined';
+    const gabiCarregada = temGabi && dietas.some(d => d.fonte === DIETA_GABI.fonte);
     const pacoteJaCarregado = temPacote && dietas.some(d => d.fonte === DIETA_VICTOR.fonte);
 
     $app.innerHTML = `
+      ${temGabi ? `
+        <div class="card">
+          <h2>🥗 ${Util.escapeHtml(DIETA_GABI.dieta.nome)}</h2>
+          <p class="meta">${DIETA_GABI.dieta.kcal} kcal · P ${DIETA_GABI.dieta.protein}g · C ${DIETA_GABI.dieta.carb}g · G ${DIETA_GABI.dieta.fat}g · F ${DIETA_GABI.dieta.fiber}g</p>
+          <p class="meta">Por ${Util.escapeHtml(DIETA_GABI.profissional)}. Carrega a dieta como objetivo e cria as ${DIETA_GABI.combos.length} refeições como combos, prontos pra lançar em um toque.</p>
+          <p class="meta" style="border-left:3px solid var(--accent);padding-left:8px">
+            Este plano é a <strong>primeira etapa de um protocolo de ${DIETA_GABI.protocolo.dias} dias</strong> pra medir seu gasto,
+            não uma dieta de emagrecimento fechada. O alvo de ${DIETA_GABI.protocolo.vet} kcal é provisório.
+            Acompanhe a conta em <strong>Mais → Protocolo</strong>.
+          </p>
+          <p class="meta prot-alerta">⚠ Somando pelos valores da biblioteca do app, o dia dá
+            <strong>${DIETA_GABI.appTotal.kcal} kcal</strong> e o PDF declara <strong>${DIETA_GABI.pdfTotal.kcal}</strong>.
+            A diferença é quase toda do frango (a base do app usa peito sem pele grelhado, TACO).
+            Nenhum valor foi forçado pra bater.</p>
+          <button class="${gabiCarregada ? 'secondary' : 'primary'}" id="carregar-dieta-gabi" style="margin-top:8px">
+            ${gabiCarregada ? 'Recarregar (atualiza o que já existe)' : 'Carregar este plano'}
+          </button>
+          <details style="margin-top:10px">
+            <summary class="meta">Orientações e observações do plano</summary>
+            <ul class="meta" style="margin:6px 0 0;padding-left:18px;line-height:1.5">
+              ${DIETA_GABI.observacoes.map(o => `<li>${Util.escapeHtml(o)}</li>`).join('')}
+            </ul>
+          </details>
+        </div>
+      ` : ''}
       ${temPacote ? `
         <div class="card">
           <h2>📋 ${Util.escapeHtml(DIETA_VICTOR.dieta.nome)}</h2>
@@ -890,6 +917,35 @@ Coxa: 58 cm
         </div>
       ` : ''}
     `;
+
+    const btnGabi = document.getElementById('carregar-dieta-gabi');
+    if (btnGabi) {
+      btnGabi.addEventListener('click', () => {
+        const existente = Storage.getAll('dietas_custom').find(d => d.fonte === DIETA_GABI.fonte);
+        let dietaId;
+        if (existente) {
+          Storage.update('dietas_custom', existente.id, { ...DIETA_GABI.dieta, fonte: DIETA_GABI.fonte });
+          dietaId = existente.id;
+        } else {
+          dietaId = Storage.add('dietas_custom', { ...DIETA_GABI.dieta, fonte: DIETA_GABI.fonte }).id;
+        }
+        // Upsert por nome: recarregar atualiza em vez de criar uma segunda cópia de tudo.
+        // pdfPorRefeicao NÃO vai pro combo gravado — é documentação do arquivo, não dado de
+        // lançamento, e poluiria o registro do diário.
+        const combos = Storage.getAll('combos');
+        DIETA_GABI.combos.forEach(c => {
+          const novo = { nome: c.nome, horario: c.horario, itens: c.itens.map(i => ({ ...i })), fonte: DIETA_GABI.fonte };
+          const j = combos.findIndex(x => (x.nome || '').trim().toLowerCase() === c.nome.trim().toLowerCase());
+          if (j >= 0) { novo.id = combos[j].id; combos[j] = novo; }
+          else { novo.id = Storage.uid(); combos.push(novo); }
+        });
+        Storage.saveAll('combos', combos);
+        const p = Storage.getPerfil();
+        Storage.savePerfil({ ...p, dietaTemplate: null, metaCustom: null, dietaCustomId: dietaId });
+        alert(`✅ Plano aplicado como objetivo e ${DIETA_GABI.combos.length} combos criados.`);
+        api.back();
+      });
+    }
 
     const btnPacote = document.getElementById('carregar-dieta-victor');
     if (btnPacote) {
@@ -1682,8 +1738,11 @@ Coxa: 58 cm
   // o que o Victor montou na mão e não leva selo nenhum — ausência de selo já diz isso.
   function origemCombo(fonte) {
     if (!fonte) return null;
+    if (typeof DIETA_GABI !== 'undefined' && fonte === DIETA_GABI.fonte && DIETA_GABI.profissional) {
+      return { nome: DIETA_GABI.profissional, atual: true };
+    }
     if (typeof META_VICTOR !== 'undefined' && fonte === META_VICTOR.fonte && META_VICTOR.profissional) {
-      return { nome: META_VICTOR.profissional, atual: true };
+      return { nome: META_VICTOR.profissional, atual: false };
     }
     if (typeof DIETA_VICTOR !== 'undefined' && fonte === DIETA_VICTOR.fonte && DIETA_VICTOR.profissional) {
       return { nome: DIETA_VICTOR.profissional, atual: false };
