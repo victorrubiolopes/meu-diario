@@ -1605,3 +1605,57 @@ canvas {
 @media (prefers-reduced-motion: reduce) {
   .campo-destaque { animation: none; box-shadow: 0 0 0 3px var(--focus-ring); }
 }
+
+/* ---- Protocolo de medição do gasto ---- */
+.prot-barra {
+  background: var(--border);
+  border-radius: 999px;
+  height: 8px;
+  margin-top: 10px;
+  overflow: hidden;
+}
+
+.prot-barra-fill {
+  background: var(--accent);
+  height: 100%;
+}
+
+.prot-destaque {
+  border-left: 3px solid var(--accent);
+}
+
+/* O número grande é o resultado, mas o intervalo logo abaixo é que diz se ele vale —
+   por isso ficam juntos, nunca o número sozinho. */
+.prot-get {
+  font-size: 2.1rem;
+  font-weight: 700;
+  color: var(--accent);
+  line-height: 1.1;
+  margin: 4px 0 6px;
+}
+
+.prot-get span {
+  font-size: 0.95rem;
+  font-weight: 400;
+  color: var(--text-muted);
+}
+
+.prot-veredito.ok { color: var(--good); }
+.prot-veredito.espera { color: var(--macro-protein); }
+
+.prot-linha {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 8px 0;
+  border-bottom: 1px solid var(--border);
+  font-size: 0.88rem;
+}
+
+.prot-linha:last-of-type { border-bottom: none; }
+.prot-linha span { color: var(--text-muted); }
+
+.prot-alerta {
+  color: var(--danger);
+  margin-top: 10px;
+}
