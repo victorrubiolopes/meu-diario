@@ -682,6 +682,16 @@ const ALIMENTOS_PADRAO = [
   // Não é o mesmo produto que a "Bala de banana (bananinha)" já cadastrada: aquela dá
   // 208 kcal/100g, esta dá 375. Ver a nota no changelog.
   { name: 'Doce de banana Lanche', categoria: 'outro', portionLabel: '1 unidade (20g)', portionGrams: 20, kcal: 75, carbs: 18, sugars: 12, protein: 0.3, fat: 0, satFat: 0, transFat: 0, fiber: 0.5, sodium: 0.9 },
+  // Leite de vaca desnatado em pó. TACO (NEPA/UNICAMP), por 100g: 362 kcal, 34,7g de
+  // proteína, 53,0g de carboidrato, 0,9g de lipídeo, 431,7mg de sódio. Aqui a porção é
+  // os 20g (2 colheres de sopa cheias) que o plano da nutri prescreve, pra qty ficar 1.
+  // Açúcares = carboidratos porque é tudo lactose. Saturada: ~62% da gordura do leite.
+  { name: 'Leite de vaca desnatado em pó', categoria: 'proteina', portionLabel: '2 col. sopa cheias (20g)', portionGrams: 20, kcal: 72.4, carbs: 10.6, sugars: 10.6, protein: 6.9, fat: 0.2, satFat: 0.1, transFat: 0, fiber: 0, sodium: 86 },
+  // Suco de uva integral envasado. Valores do rótulo do fabricante (Aliança), por 200ml:
+  // 120 kcal, 30g de carboidrato, 28g de açúcares, sem proteína nem gordura. As marcas
+  // variam de 114 a 127 kcal por copo — CONFERIR O RÓTULO e corrigir na biblioteca se não
+  // bater, porque é um item que entra todo dia.
+  { name: 'Suco de uva integral (envasado)', categoria: 'outro', portionLabel: '1 copo (200ml)', portionGrams: 200, kcal: 120, carbs: 30, sugars: 28, protein: 0, fat: 0, satFat: 0, transFat: 0, fiber: 0.2, sodium: 2 },
 ];
 
 // Categoria de cada alimento é uma propriedade de código (não persistida em Storage),

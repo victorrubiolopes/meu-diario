@@ -20,12 +20,12 @@ const vm = require('vm');
 const raiz = path.join(__dirname, '..');
 const ARQS = [
   'js/util.js', 'js/data/alimentos.js', 'js/data/dietas.js',
-  'js/data/dietaVictor.js', 'js/data/metaVictor.js',
+  'js/data/dietaVictor.js', 'js/data/metaVictor.js', 'js/data/dietaGabi.js',
   'js/views/tarefas.js', 'js/views/mais.js',
 ];
 const src = ARQS.map(f => fs.readFileSync(path.join(raiz, f), 'utf8')).join('\n;\n');
-const { ViewMais, META_VICTOR, DIETA_VICTOR } = vm.runInNewContext(
-  '(function(){' + src + '; return { ViewMais, META_VICTOR, DIETA_VICTOR };})()', { console });
+const { ViewMais, META_VICTOR, DIETA_VICTOR, DIETA_GABI } = vm.runInNewContext(
+  '(function(){' + src + '; return { ViewMais, META_VICTOR, DIETA_VICTOR, DIETA_GABI };})()', { console });
 
 let falhas = 0;
 function ok(cond, nome) {
@@ -40,17 +40,26 @@ ok(typeof DIETA_VICTOR.profissional === 'string' && DIETA_VICTOR.profissional.le
   'DIETA_VICTOR tem campo profissional (convenção que já existia)');
 
 console.log('\n--- o rótulo vem do arquivo, não de string na view ---');
-const atual = ViewMais.origemCombo(META_VICTOR.fonte);
-ok(!!atual, 'combo da prescrição atual é reconhecido');
-ok(atual && atual.nome === META_VICTOR.profissional,
-  `rótulo é exatamente META_VICTOR.profissional ("${META_VICTOR.profissional}")`);
-ok(atual && atual.atual === true, 'marcado como prescrição atual (selo verde)');
+// A regra é: cada pacote é reconhecido e rotulado com o SEU PRÓPRIO campo 'profissional'.
+// Antes este teste exigia que o pacote do META_VICTOR fosse "o atual" — travava QUAL era o
+// vigente, não a regra, e quebrou sozinho quando entrou a prescrição da Gabi. Ciclo de
+// prescrição novo não pode exigir mexer no teste.
+const PACOTES = [DIETA_VICTOR, META_VICTOR, DIETA_GABI].filter(Boolean);
+PACOTES.forEach(pac => {
+  const o = ViewMais.origemCombo(pac.fonte);
+  ok(!!o, `combo de "${pac.profissional}" é reconhecido pela fonte`);
+  ok(o && o.nome === pac.profissional,
+    `rótulo é exatamente o campo profissional do arquivo ("${pac.profissional}")`);
+  ok(o && typeof o.atual === 'boolean', 'diz se é a prescrição vigente ou não');
+});
 
-const antigo = ViewMais.origemCombo(DIETA_VICTOR.fonte);
-ok(!!antigo, 'combo da prescrição anterior é reconhecido');
-ok(antigo && antigo.nome === DIETA_VICTOR.profissional,
-  `rótulo é exatamente DIETA_VICTOR.profissional ("${DIETA_VICTOR.profissional}")`);
-ok(antigo && antigo.atual === false, 'marcado como NÃO atual (selo diferencia do vigente)');
+console.log('\n--- exatamente UMA prescrição é a vigente ---');
+// Duas vigentes deixaria a lista sem hierarquia; nenhuma vigente tiraria o destaque de quem
+// está prescrevendo agora.
+const vigentes = PACOTES.filter(pac => (ViewMais.origemCombo(pac.fonte) || {}).atual === true);
+ok(vigentes.length === 1,
+  vigentes.length === 1 ? `só "${vigentes[0].profissional}" está marcada como vigente`
+    : `${vigentes.length} marcadas como vigentes: ${vigentes.map(p => p.profissional).join(', ')}`);
 
 console.log('\n--- nenhum rótulo está escrito na própria view ---');
 const fonteMais = fs.readFileSync(path.join(raiz, 'js/views/mais.js'), 'utf8');
