@@ -700,6 +700,12 @@ const ALIMENTOS_PADRAO = [
   // refeição pelo método do prato, e sugerir chocottone como a base de carboidrato de um
   // almoço seria absurdo.
   { name: 'Chocottone Bauducco', categoria: 'outro', portionLabel: '1 fatia (80g)', portionGrams: 80, kcal: 309, carbs: 38, sugars: 17, protein: 5.6, fat: 15, satFat: 6.1, transFat: 0, fiber: 1.8, sodium: 110 },
+  // Dark Lab 100% Whey, sabor Gelato di Latte. Valores do rótulo, porção de 30g (1 dosador).
+  // O rótulo fecha: 21x4 + 3,4x4 + 2,3x9 = 118,3 contra 117 declarado (1% de arredondamento).
+  // É CONCENTRADO, não isolado — o primeiro ingrediente é "proteína de soro do leite
+  // concentrada". Por isso 21g de proteína em 30g (70%) e não os ~27g (90%) de um isolado,
+  // e por isso tem 2,9g de açúcares (lactose) onde um isolado teria quase zero.
+  { name: 'Dark Lab 100% Whey (Gelato di Latte)', categoria: 'proteina', portionLabel: '1 dosador (30g)', portionGrams: 30, kcal: 117, carbs: 3.4, sugars: 2.9, protein: 21, fat: 2.3, satFat: 1.5, transFat: 0.1, fiber: 0.1, sodium: 64 },
 ];
 
 // Categoria de cada alimento é uma propriedade de código (não persistida em Storage),
