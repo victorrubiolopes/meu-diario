@@ -692,6 +692,14 @@ const ALIMENTOS_PADRAO = [
   // variam de 114 a 127 kcal por copo — CONFERIR O RÓTULO e corrigir na biblioteca se não
   // bater, porque é um item que entra todo dia.
   { name: 'Suco de uva integral (envasado)', categoria: 'outro', portionLabel: '1 copo (200ml)', portionGrams: 200, kcal: 120, carbs: 30, sugars: 28, protein: 0, fat: 0, satFat: 0, transFat: 0, fiber: 0.2, sodium: 2 },
+  // Chocottone Bauducco. Valores do rótulo da embalagem, coluna de 80g (a porção que o
+  // próprio fabricante declara = 1 fatia). Por 100g: 391 kcal, 48g de carboidrato, 21g de
+  // açúcares (19 adicionados), 7g de proteína, 19g de gordura, 7,6g saturada, 2,2g de
+  // fibra, 137mg de sódio. O rótulo fecha certo: 7x4 + 48x4 + 19x9 = 391.
+  // categoria "outro" e não "carboidrato" de propósito: a categoria só serve pra sugerir
+  // refeição pelo método do prato, e sugerir chocottone como a base de carboidrato de um
+  // almoço seria absurdo.
+  { name: 'Chocottone Bauducco', categoria: 'outro', portionLabel: '1 fatia (80g)', portionGrams: 80, kcal: 309, carbs: 38, sugars: 17, protein: 5.6, fat: 15, satFat: 6.1, transFat: 0, fiber: 1.8, sodium: 110 },
 ];
 
 // Categoria de cada alimento é uma propriedade de código (não persistida em Storage),
