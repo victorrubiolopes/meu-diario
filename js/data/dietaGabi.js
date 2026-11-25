@@ -39,7 +39,7 @@ const DIETA_GABI = {
   },
   // O que o PDF declara, pra comparar com o que o app calcula.
   pdfTotal: { kcal: 2425, protein: 172.1, carb: 283.8, fat: 65.7, fiber: 23.4, colesterol: 886.6, satFat: 14.2, sodio: 2042.3 },
-  appTotal: { kcal: 2345, protein: 175.1, carb: 290.6, fat: 55.8 },
+  appTotal: { kcal: 2342, protein: 172.1, carb: 291.0, fat: 56.6 },
   protocolo: { vet: 2400, dias: 14, inicio: null },
   observacoes: [
     'Este plano é a primeira etapa de um protocolo de 14 dias para MEDIR o gasto energético, não uma dieta de emagrecimento fechada.',
@@ -111,8 +111,13 @@ const DIETA_GABI = {
       horario: "16:00",
       pdfPorRefeicao: { kcal: 310, protein: 38.3, fat: 2.5, carbs: 34 },
       itens: [
-        // PDF: whey protein ISOLADO, 1 porção (30g). A biblioteca tem whey genérico (P24 C3 por 30g); um isolado real tem mais proteína e menos carbo — trocar pelo seu produto se quiser exatidão.
-        { foodName: "Whey protein (pó)", qty: 1, kcal: 120, carbs: 3, sugars: 2, protein: 24, fat: 1.5, satFat: 0.5, transFat: 0, fiber: 0, sodium: 50 },
+        // PDF: whey protein ISOLADO, 1 porção (30g). O que o Victor tem é o Dark Lab 100%
+        // Whey (Gelato di Latte), que é CONCENTRADO: 21g de proteína por dose contra os ~27g
+        // de um isolado. Entra o produto real, não o prescrito — a conta do protocolo usa o
+        // que foi comido. A nutri precisa saber da troca: são ~6g de proteína/dia a menos do
+        // que ela planejou, e a meta proteica já estava marcada como pendente pelo histórico
+        // renal.
+        { foodName: "Dark Lab 100% Whey (Gelato di Latte)", qty: 1, kcal: 117, carbs: 3.4, sugars: 2.9, protein: 21, fat: 2.3, satFat: 1.5, transFat: 0.1, fiber: 0.1, sodium: 64 },
         // PDF: 1 unidade média (65g).
         { foodName: "Banana nanica", qty: 0.5417, kcal: 59.59, carbs: 15.49, sugars: 10.83, protein: 0.92, fat: 0.05, satFat: 0, transFat: 0, fiber: 1.25, sodium: 0.54 },
         // PDF: 2 colheres de sopa cheias (20g).

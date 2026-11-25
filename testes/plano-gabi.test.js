@@ -151,6 +151,20 @@ ok(/prot-alerta/.test(mais.slice(mais.indexOf('temGabi ?'), mais.indexOf('temPac
   'a tela de carregamento avisa da diferença antes de carregar');
 G.combos.forEach(c => ok(!!c.pdfPorRefeicao, `${c.horario} guarda o total do PDF pra conferência`));
 
+console.log('\n--- o whey é o produto real, não o prescrito ---');
+// O PDF pede whey ISOLADO; o que o Victor tem é concentrado (21g de proteína por dose
+// contra ~27g de um isolado). O pacote leva o produto real, porque a conta do protocolo usa
+// o que foi comido — mas a troca tem que estar documentada, já que a meta proteica está
+// pendente de confirmação pelo histórico renal.
+const lanche = G.combos.find(c => c.horario === '16:00');
+const whey = lanche.itens.find(i => /whey/i.test(i.foodName));
+ok(!!whey && /Dark Lab/.test(whey.foodName), 'o lanche da tarde usa o whey que ele tem de verdade');
+ok(whey && whey.protein === 21, `21g de proteína por dose, do rótulo (não os 24 do genérico)`);
+ok(/CONCENTRADO, não isolado/.test(fonteGabi) || /é CONCENTRADO/.test(fonteGabi),
+  'o arquivo registra que é concentrado e não o isolado do PDF');
+ok(/6g de proteína\/dia a menos/.test(fonteGabi),
+  'e quantifica a diferença contra o que a nutri planejou');
+
 console.log('\n--- as orientações do protocolo vieram junto ---');
 ok(G.observacoes.length >= 6, `${G.observacoes.length} observações`);
 ok(G.observacoes.some(o => /não são equivalentes em caloria/i.test(o)),
