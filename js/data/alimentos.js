@@ -721,6 +721,16 @@ const ALIMENTOS_PADRAO = [
   // A coluna de 100g do rótulo é a fonte dos números e está correta: fecha sozinha
   // (8,4x4 + 47x4 + 3,6x9 = 254). O que o rótulo erra é só a conversão pra unidade.
   //
+  // PESAR ANTES DE ESQUENTAR. O wrap perde peso na chapa, mas o que evapora é ÁGUA, que não
+  // tem caloria: as 81 kcal continuam lá num wrap de 28g esquentado. Pesar depois e lançar
+  // o peso menor subnotifica ~10%, porque aplica os valores por 100g do produto cru a uma
+  // massa que já perdeu só água.
+  //
+  // A regra geral: o peso lançado tem que estar no MESMO estado que o rótulo descreve. Este
+  // rótulo descreve o produto como vem no pacote (pré-assado, frio), então é assim que se
+  // pesa. Por isso a biblioteca tem 'Arroz branco cozido' e 'Peito de frango grelhado' com
+  // esses nomes — ali o valor já é o do alimento pronto, e aí se pesa pronto.
+  //
   // categoria "carboidrato" (diferente do chocottone): é pão de tortilha, serve mesmo como
   // base de carboidrato de uma refeição. 7,1g de fibra por 100g é bastante.
   { name: 'Panco Wrap Integral', categoria: 'carboidrato', portionLabel: '1 unidade (32g)', portionGrams: 32, kcal: 81.3, carbs: 15, sugars: 0, protein: 2.7, fat: 1.2, satFat: 0.4, transFat: 0, fiber: 2.3, sodium: 122 },
