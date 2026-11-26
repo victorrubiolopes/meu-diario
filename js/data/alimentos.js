@@ -710,14 +710,20 @@ const ALIMENTOS_PADRAO = [
   // Por 100g: 254 kcal, 47g de carboidrato, 0 de açúcares, 8,4g de proteína, 3,6g de gordura,
   // 1,2g saturada, 7,1g de fibra, 380mg de sódio.
   //
-  // PORÇÃO DE 1 UNIDADE, derivada do próprio rótulo: ele declara a porção como "50g
-  // (1 + 2/3 unidade)", logo 1 unidade = 50 / (5/3) = 30g. Confere com o resto da embalagem:
-  // ~5 porções de 50g = ~250g = ~8 unidades, que é como o pacote vem. Fica em unidade porque
-  // ninguém come "1 e 2/3 de wrap" — come wrap inteiro.
+  // PORÇÃO DE 1 UNIDADE = 32g, PESADA NA BALANÇA. Fica em unidade porque ninguém come
+  // "1 e 2/3 de wrap" — come wrap inteiro.
+  //
+  // Os 32g não vieram do rótulo: ele declara a porção como "50g (1 + 2/3 unidade)", o que
+  // daria 30g por unidade. Perto, mas 6% abaixo do real — arredondamento do fabricante.
+  // A balança é que decide, e o pacote fecha com ela: ~5 porções de 50g = ~250g = ~8
+  // unidades de 32g, que é como o pacote vem.
+  //
+  // A coluna de 100g do rótulo é a fonte dos números e está correta: fecha sozinha
+  // (8,4x4 + 47x4 + 3,6x9 = 254). O que o rótulo erra é só a conversão pra unidade.
   //
   // categoria "carboidrato" (diferente do chocottone): é pão de tortilha, serve mesmo como
   // base de carboidrato de uma refeição. 7,1g de fibra por 100g é bastante.
-  { name: 'Panco Wrap Integral', categoria: 'carboidrato', portionLabel: '1 unidade (30g)', portionGrams: 30, kcal: 76.2, carbs: 14.1, sugars: 0, protein: 2.5, fat: 1.1, satFat: 0.4, transFat: 0, fiber: 2.1, sodium: 114 },
+  { name: 'Panco Wrap Integral', categoria: 'carboidrato', portionLabel: '1 unidade (32g)', portionGrams: 32, kcal: 81.3, carbs: 15, sugars: 0, protein: 2.7, fat: 1.2, satFat: 0.4, transFat: 0, fiber: 2.3, sodium: 122 },
 ];
 
 // Categoria de cada alimento é uma propriedade de código (não persistida em Storage),
