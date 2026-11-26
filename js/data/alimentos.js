@@ -734,6 +734,15 @@ const ALIMENTOS_PADRAO = [
   // categoria "carboidrato" (diferente do chocottone): é pão de tortilha, serve mesmo como
   // base de carboidrato de uma refeição. 7,1g de fibra por 100g é bastante.
   { name: 'Panco Wrap Integral', categoria: 'carboidrato', portionLabel: '1 unidade (32g)', portionGrams: 32, kcal: 81.3, carbs: 15, sugars: 0, protein: 2.7, fat: 1.2, satFat: 0.4, transFat: 0, fiber: 2.3, sodium: 122 },
+  // Moranguete Jelly (Bel). Valores do rótulo, porção de 30g (1 unidade), que é como a
+  // barra é vendida. Por 100g: 416 kcal, 76g de carboidrato, 53g de açúcares, 1,1g de
+  // proteína, 12g de gordura, 9,4g saturada, 74mg de sódio. O rótulo fecha:
+  // 1,1x4 + 76x4 + 12x9 = 416,4 contra 416 declarado.
+  //
+  // Metade dos 30g são 9,4g de gordura saturada por 100g — a embalagem traz os selos de
+  // "ALTO EM açúcar adicionado" e "ALTO EM gordura saturada", e os números confirmam:
+  // uma unidade tem 2,8g de saturada, 20% do total do dia inteiro do plano da nutri.
+  { name: 'Moranguete Jelly (Bel)', categoria: 'outro', portionLabel: '1 unidade (30g)', portionGrams: 30, kcal: 127, carbs: 23, sugars: 16, protein: 0.3, fat: 3.7, satFat: 2.8, transFat: 0, fiber: 0.1, sodium: 22 },
 ];
 
 // Categoria de cada alimento é uma propriedade de código (não persistida em Storage),
