@@ -706,6 +706,18 @@ const ALIMENTOS_PADRAO = [
   // concentrada". Por isso 21g de proteína em 30g (70%) e não os ~27g (90%) de um isolado,
   // e por isso tem 2,9g de açúcares (lactose) onde um isolado teria quase zero.
   { name: 'Dark Lab 100% Whey (Gelato di Latte)', categoria: 'proteina', portionLabel: '1 dosador (30g)', portionGrams: 30, kcal: 117, carbs: 3.4, sugars: 2.9, protein: 21, fat: 2.3, satFat: 1.5, transFat: 0.1, fiber: 0.1, sodium: 64 },
+  // Panco Wrap Integral. Valores do rótulo. O rótulo fecha exato: 8,4x4 + 47x4 + 3,6x9 = 254.
+  // Por 100g: 254 kcal, 47g de carboidrato, 0 de açúcares, 8,4g de proteína, 3,6g de gordura,
+  // 1,2g saturada, 7,1g de fibra, 380mg de sódio.
+  //
+  // PORÇÃO DE 1 UNIDADE, derivada do próprio rótulo: ele declara a porção como "50g
+  // (1 + 2/3 unidade)", logo 1 unidade = 50 / (5/3) = 30g. Confere com o resto da embalagem:
+  // ~5 porções de 50g = ~250g = ~8 unidades, que é como o pacote vem. Fica em unidade porque
+  // ninguém come "1 e 2/3 de wrap" — come wrap inteiro.
+  //
+  // categoria "carboidrato" (diferente do chocottone): é pão de tortilha, serve mesmo como
+  // base de carboidrato de uma refeição. 7,1g de fibra por 100g é bastante.
+  { name: 'Panco Wrap Integral', categoria: 'carboidrato', portionLabel: '1 unidade (30g)', portionGrams: 30, kcal: 76.2, carbs: 14.1, sugars: 0, protein: 2.5, fat: 1.1, satFat: 0.4, transFat: 0, fiber: 2.1, sodium: 114 },
 ];
 
 // Categoria de cada alimento é uma propriedade de código (não persistida em Storage),
