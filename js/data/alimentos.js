@@ -743,6 +743,19 @@ const ALIMENTOS_PADRAO = [
   // "ALTO EM açúcar adicionado" e "ALTO EM gordura saturada", e os números confirmam:
   // uma unidade tem 2,8g de saturada, 20% do total do dia inteiro do plano da nutri.
   { name: 'Moranguete Jelly (Bel)', categoria: 'outro', portionLabel: '1 unidade (30g)', portionGrams: 30, kcal: 127, carbs: 23, sugars: 16, protein: 0.3, fat: 3.7, satFat: 2.8, transFat: 0, fiber: 0.1, sodium: 22 },
+  // Arroz yakimeshi / chaufa — o arroz frito com ovo, presunto e legumes. Não tem rótulo:
+  // é prato montado, então os valores vêm da COMPOSIÇÃO, somando itens desta mesma
+  // biblioteca, do jeito que já se fez com o "Gohan" e o arroz com charque.
+  //
+  // Referência por 100g: 72g de arroz branco cozido, 10g de ovo, 8g de presunto, 4g de
+  // cenoura, 4g de ervilha, 5ml de shoyu e 5g de óleo (108g somados, normalizados pra 100).
+  //
+  // O que separa isto do arroz branco puro: 128 -> 157 kcal por 100g. A diferença é quase
+  // toda o óleo da frigideira (44 kcal por 100g de prato) mais o ovo. Lançar arroz frito
+  // como arroz branco subnotifica ~23%.
+  //
+  // Sódio em 345mg por 100g, quase todo do shoyu e do presunto — contra 1mg do arroz puro.
+  { name: 'Arroz yakimeshi (frito com ovo e legumes)', categoria: 'carboidrato', portionLabel: '100g', portionGrams: 100, kcal: 157, carbs: 20.1, sugars: 0.6, protein: 4.7, fat: 6.1, satFat: 1.1, transFat: 0, fiber: 0.5, sodium: 345 },
 ];
 
 // Categoria de cada alimento é uma propriedade de código (não persistida em Storage),
