@@ -756,6 +756,15 @@ const ALIMENTOS_PADRAO = [
   //
   // Sódio em 345mg por 100g, quase todo do shoyu e do presunto — contra 1mg do arroz puro.
   { name: 'Arroz yakimeshi (frito com ovo e legumes)', categoria: 'carboidrato', portionLabel: '100g', portionGrams: 100, kcal: 157, carbs: 20.1, sugars: 0.6, protein: 4.7, fat: 6.1, satFat: 1.1, transFat: 0, fiber: 0.5, sodium: 345 },
+  // Pão brioche de hambúrguer. Valor de referência padrão (~330 kcal/100g): leva ovo e
+  // manteiga na massa, por isso é mais denso e mais calórico que o pão de hambúrguer comum
+  // já cadastrado aqui (290 kcal/100g). A porção de 85g é a de um pão de hamburgueria
+  // artesanal; o pão industrial de 50g tem item próprio.
+  // NÃO vem de rótulo — pão de padaria não tem. Se algum dia vier um rótulo, ele ganha.
+  { name: 'Pão brioche de hambúrguer', categoria: 'carboidrato', portionLabel: '1 unidade (85g)', portionGrams: 85, kcal: 281, carbs: 41, sugars: 6, protein: 7.7, fat: 9.4, satFat: 5.1, transFat: 0, fiber: 1.5, sodium: 390 },
+  // Queijo cheddar. Valor de referência padrão (~400 kcal/100g, 33g de gordura). É bem mais
+  // gordo que mussarela (300) e prato (350), que é o que o faz pesar em lanche.
+  { name: 'Queijo cheddar', categoria: 'proteina', portionLabel: '1 fatia (20g)', portionGrams: 20, kcal: 80, carbs: 0.3, sugars: 0.1, protein: 5, fat: 6.6, satFat: 4.2, transFat: 0, fiber: 0, sodium: 124 },
 ];
 
 // Categoria de cada alimento é uma propriedade de código (não persistida em Storage),
